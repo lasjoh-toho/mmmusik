@@ -139,6 +139,15 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; }
 .seg button[aria-pressed=true] { background: var(--glass-2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(220,185,120,.45); }
+.guide-ctl { display: inline-flex; align-items: center; flex-direction: row-reverse; gap: 0; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); padding: 3px; }
+.guide-btn { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--muted); padding: 5px 8px; border-radius: 999px; }
+.guide-btn svg { width: 16px; height: 16px; }
+.guide-btn .val { font-family: var(--f-mono); font-size: 11px; min-width: 26px; text-align: left; }
+.guide-ctl.on .guide-btn { color: var(--gold); }
+.guide-slide { display: inline-flex; width: 0; overflow: hidden; opacity: 0; transition: width .22s ease, opacity .22s ease, padding .22s ease; }
+.guide-slide input { width: 110px; flex: none; }
+.guide-ctl:hover .guide-slide, .guide-ctl:focus-within .guide-slide, .guide-ctl.open .guide-slide { width: 122px; opacity: 1; padding-left: 8px; }
+@media (prefers-reduced-motion: reduce) { .guide-slide { transition: none; } }
 .speed { display: flex; align-items: center; gap: 8px; }
 .speed input { width: 110px; }
 .speed .val { font-family: var(--f-mono); font-size: 12px; width: 40px; color: var(--muted); }
@@ -263,6 +272,10 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="wait" aria-pressed="false">Üben</button>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
+    <div class="guide-ctl" id="guideCtl">
+      <button class="guide-btn" id="guideBtn" title="Ziellinie: Länge einstellen" aria-label="Ziellinie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v13" stroke-dasharray="2 3"/><path d="M7 19h10"/></svg><span class="val" id="guideVal">Aus</span></button>
+      <span class="guide-slide"><input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie"></span>
+    </div>
     <div class="seg" id="viewSeg" role="group" aria-label="Ansicht">
       <button data-view="rain" aria-pressed="true">Regen</button>
       <button data-view="sheet" aria-pressed="false">Noten</button>
@@ -272,11 +285,6 @@ table.scores tr.me td { color: var(--gold); }
       <span class="lbl">Tempo</span>
       <input type="range" id="speed" min="25" max="150" step="5" value="100" aria-label="Tempo">
       <span class="val" id="speedVal">100%</span>
-    </div>
-    <div class="speed" title="Dünne Ziellinie unter jeder Note, die zur Taste hin kräftiger wird">
-      <span class="lbl">Linie</span>
-      <input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie">
-      <span class="val" id="guideVal">Aus</span>
     </div>
     <div class="zoom-box" aria-label="Oktavraum">
       <span class="lbl" style="padding-left:6px">Oktaven</span>
@@ -819,9 +827,8 @@ function drawRain(y0, y1, now) {
       const near = 1 - (n.start - t) / look; const a = 0.12 + 0.88 * near * near;
       const x = k.x + k.w / 2; const col = colorOf(n);
       const lg = cx.createLinearGradient(0, yb, 0, ye);
-      lg.addColorStop(0, col.replace(/[\d.]+\)$/, (a * 0.08) + ')')); lg.addColorStop(1, col.replace(/[\d.]+\)$/, a + ')'));
+      lg.addColorStop(0, col.replace(/[\d.]+\)$/, a + ')')); lg.addColorStop(1, col.replace(/[\d.]+\)$/, (a * 0.06) + ')'));
       cx.strokeStyle = lg; cx.lineWidth = 1.5 + near * 1.5; cx.beginPath(); cx.moveTo(x, yb); cx.lineTo(x, ye); cx.stroke();
-      if (reach >= 0.999) { cx.fillStyle = col.replace(/[\d.]+\)$/, a + ')'); cx.beginPath(); cx.arc(x, y1 - 2, 1.5 + near * 2, 0, Math.PI * 2); cx.fill(); }
     }
   }
   // notes
@@ -1401,7 +1408,9 @@ $('#look').value = settings.look; $('#lookVal').textContent = settings.look; $('
 $('#vol').value = settings.vol; $('#vol').oninput = e => { settings.vol = +e.target.value; synth.setVol(settings.vol); saveSettings(); };
 $('#selfChk').checked = settings.self; $('#selfChk').onchange = e => { settings.self = e.target.checked; saveSettings(); };
 setSpeed(settings.speed);
-const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideVal').textContent = v ? v + '%' : 'Aus'; saveSettings(); };
+const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideVal').textContent = v ? v + '%' : 'Aus'; $('#guideCtl').classList.toggle('on', v > 0); saveSettings(); };
+$('#guideBtn').onclick = () => { const c = $('#guideCtl'); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $('#guideBtn').setAttribute('aria-expanded', o); if (o && !settings.guide) setGuide(60); };
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#guideCtl')) { $('#guideCtl').classList.remove('open'); $('#guideBtn').setAttribute('aria-expanded', 'false'); } });
 $('#guide').oninput = e => setGuide(+e.target.value); setGuide(settings.guide);
 
 /* ---------- Main loop ---------- */
