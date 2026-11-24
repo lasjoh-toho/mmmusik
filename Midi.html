@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MIDI Keyboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vexflow@5.0.0/build/cjs/vexflow.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .header {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+        
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        button:hover {
+            background-color: #45a049;
+        }
+        
+        button.offline {
+            background-color: #f44336;
+        }
+        
+        button.recording {
+            background-color: #ff9800;
+        }
+        
+        .control-panel {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .midi-settings {
+            display: block;
+        }
+        
+        .notation-view {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .notation-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .notation-display {
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            padding: 20px;
+            min-height: 400px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        #notation-canvas {
+            width: 100%;
+            height: 100%;
+        }
+        
+        .speed-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            width: 150px;
+        }
+        
+        .log {
+            background-color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            font-family: monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        select, input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin: 5px 0;
+        }
+        
+        label {
+            display: block;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <button class="offline" id="connectBtn">🔌 MIDI-Gerät verbinden</button>
+        <button class="recording" id="recordBtn">⏺️ Aufzeichnung starten</button>
+    </div>
+    
+    <div class="control-panel">
+        <div class="midi-settings" id="midiSettings">
+            <h3>MIDI-Einstellungen</h3>
+            <label>MIDI-Eingabegerät</label>
+            <select id="midiDeviceSelect">
+                <option value="">-- MIDI-Gerät wählen --</option>
+            </select>
+            
+            <label>MIDI-Kanal Filter</label>
+            <select id="midiChannelFilter">
+                <option value="all">Alle Kanäle</option>
+                <option value="1" selected>Kanal 1 (Standard)</option>
+                <option value="2">Kanal 2</option>
+                <option value="3">Kanal 3</option>
+                <option value="4">Kanal 4</option>
+                <option value="5">Kanal 5</option>
+                <option value="6">Kanal 6</option>
+                <option value="7">Kanal 7</option>
+                <option value="8">Kanal 8</option>
+                <option value="9">Kanal 9 (Percussion)</option>
+                <option value="10">Kanal 10</option>
+                <option value="11">Kanal 11</option>
+                <option value="12">Kanal 12</option>
+                <option value="13">Kanal 13</option>
+                <option value="14">Kanal 14</option>
+                <option value="15">Kanal 15</option>
+                <option value="16">Kanal 16</option>
+            </select>
+            
+            <label>Transponierung (Halbtöne)</label>
+            <input type="number" id="transposition" value="0" min="-24" max="24">
+            
+            <div style="margin-top: 15px; display: flex; gap: 10px;">
+                <button id="saveBtn">💾 Einstellungen speichern</button>
+                <button id="loadBtn">📂 Einstellungen laden</button>
+                <button id="resetBtn">🔄 Auf Standard zurücksetzen</button>
+            </div>
+        </div>
+        
+        <div class="notation-view" id="notationView">
+            <div class="notation-controls">
+                <div>
+                    <button id="notationStartBtn">▶️ Start</button>
+                    <button id="autoScrollBtn">🤖 Auto</button>
+                </div>
+                <div class="speed-control">
+                    <span>Geschwindigkeit:</span>
+                    <input type="range" id="speedSlider" min="0.5" max="3" step="0.1" value="1">
+                    <span id="speedValue">1.0x</span>
+                </div>
+            </div>
+            <div class="notation-display">
+                <canvas id="notationCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <div class="log" id="log">
+        <div>[00:00:00] SYSTEM: Anwendung gestartet. Warte auf MIDI-Verbindung...</div>
+    </div>
+    
+    <button id="clearLogBtn" style="margin-top: 10px;">🧹 Log leeren</button>
+
+    <script>
+        // DOM-Elemente
+        const connectBtn = document.getElementById('connectBtn');
+        const recordBtn = document.getElementById('recordBtn');
+        const midiSettings = document.getElementById('midiSettings');
+        const notationView = document.getElementById('notationView');
+        const notationCanvas = document.getElementById('notationCanvas');
+        const notationStartBtn = document.getElementById('notationStartBtn');
+        const autoScrollBtn = document.getElementById('autoScrollBtn');
+        const speedSlider = document.getElementById('speedSlider');
+        const speedValue = document.getElementById('speedValue');
+        const log = document.getElementById('log');
+        const clearLogBtn = document.getElementById('clearLogBtn');
+        
+        // MIDI-Variablen
+        let midiAccess = null;
+        let midiInput = null;
+        let isRecording = false;
+        let recordedNotes = [];
+        let startTime = 0;
+        let autoScrollEnabled = false;
+        let scrollSpeed = 1.0;
+        let animationFrameId = null;
+        
+        // VexFlow-Setup
+        const VF = VexFlow;
+        let renderer = null;
+        let context = null;
+        let staveTreble = null;
+        let staveBass = null;
+        
+        // MIDI initialisieren
+        if (navigator.requestMIDIAccess) {
+            navigator.requestMIDIAccess().then(onMIDISuccess, onMIDIFailure);
+        } else {
+            logMessage('MIDI wird von diesem Browser nicht unterstützt.');
+        }
+        
+        function onMIDISuccess(midi) {
+            midiAccess = midi;
+            logMessage('MIDI-Zugriff erfolgreich.');
+            
+            // MIDI-Geräte auflisten
+            const select = document.getElementById('midiDeviceSelect');
+            midi.inputs.forEach((input, key) => {
+                const option = document.createElement('option');
+                option.value = key;
+                option.textContent = input.name;
+                select.appendChild(option);
+            });
+            
+            // Gerät auswählen Event
+            select.addEventListener('change', function() {
+                if (midiInput) {
+                    midiInput.onmidimessage = null;
+                }
+                midiInput = midi.inputs.get(this.value);
+                if (midiInput) {
+                    midiInput.onmidimessage = onMIDIMessage;
+                    logMessage(`MIDI-Gerät verbunden: ${midiInput.name}`);
+                    connectBtn.textContent = '✅ Verbunden';
+                    connectBtn.classList.remove('offline');
+                }
+            });
+        }
+        
+        function onMIDIFailure() {
+            logMessage('MIDI-Zugriff fehlgeschlagen.');
+        }
+        
+        function onMIDIMessage(message) {
+            const command = message.data[0];
+            const note = message.data[1];
+            const velocity = message.data[2];
+            
+            const timestamp = Date.now() - startTime;
+            
+            if (command === 144 && velocity > 0) {
+                // Note On
+                logMessage(`Note On: ${note}, Velocity: ${velocity}`);
+                
+                if (isRecording) {
+                    recordedNotes.push({
+                        type: 'noteOn',
+                        note: note,
+                        velocity: velocity,
+                        time: timestamp
+                    });
+                    
+                    if (autoScrollEnabled) {
+                        addNoteToStaff(note, velocity);
+                    }
+                }
+            } else if (command === 144 && velocity === 0 || command === 128) {
+                // Note Off
+                logMessage(`Note Off: ${note}`);
+                
+                if (isRecording) {
+                    recordedNotes.push({
+                        type: 'noteOff',
+                        note: note,
+                        time: timestamp
+                    });
+                }
+            }
+        }
+        
+        // Aufzeichnung starten/stoppen
+        recordBtn.addEventListener('click', function() {
+            if (!isRecording) {
+                // Aufzeichnung starten
+                if (!midiInput) {
+                    logMessage('Bitte zuerst ein MIDI-Gerät verbinden.');
+                    return;
+                }
+                
+                startTime = Date.now();
+                recordedNotes = [];
+                isRecording = true;
+                
+                // MIDI-Einstellungen ausblenden
+                midiSettings.style.display = 'none';
+                notationView.style.display = 'flex';
+                
+                // Notensystem initialisieren
+                initNotationSystem();
+                
+                recordBtn.textContent = '⏹️ Aufzeichnung stoppen';
+                logMessage('Aufzeichnung gestartet.');
+            } else {
+                // Aufzeichnung stoppen
+                isRecording = false;
+                recordBtn.textContent = '⏺️ Aufzeichnung starten';
+                logMessage('Aufzeichnung gestoppt.');
+            }
+        });
+        
+        // Notensystem initialisieren
+        function initNotationSystem() {
+            const canvas = notationCanvas;
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            
+            renderer = new VF.Renderer(canvas, VF.Renderer.Backends.CANVAS);
+            context = renderer.getContext();
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Violinschlüssel (Treble Clef)
+            staveTreble = new VF.Stave(50, 30, canvas.width - 100);
+            staveTreble.addClef('treble');
+            staveTreble.setContext(context).draw();
+            
+            // Bassschlüssel (Bass Clef)
+            staveBass = new VF.Stave(50, 180, canvas.width - 100);
+            staveBass.addClef('bass');
+            staveBass.setContext(context).draw();
+        }
+        
+        // Note zum Notensystem hinzufügen
+        function addNoteToStaff(midiNote, velocity) {
+            const canvas = notationCanvas;
+            const centerX = canvas.width - 50;
+            
+            // MIDI-Note zu Notennamen umwandeln
+            const noteName = midiToNoteName(midiNote);
+            
+            try {
+                // Bestimmen, ob Treble oder Bass Clef
+                let stave = staveTreble;
+                let yPosition = 0;
+                
+                if (midiNote < 60) { // C4 = 60
+                    stave = staveBass;
+                }
+                
+                // Note hinzufügen
+                const note = new VF.StaveNote({
+                    clef: midiNote < 60 ? 'bass' : 'treble',
+                    keys: [noteName],
+                    duration: 'q'
+                });
+                
+                // Position berechnen
+                const formatter = new VF.Formatter()
+                    .joinVoices([note])
+                    .format([note], centerX);
+                
+                note.setStave(stave);
+                note.setContext(context).draw();
+                
+            } catch (e) {
+                console.error('Fehler beim Hinzufügen der Note:', e);
+            }
+        }
+        
+        // MIDI-Note zu Notennamen konvertieren
+        function midiToNoteName(midiNote) {
+            const notes = ['c', 'c#', 'd', 'd#', 'e', 'f', 'f#', 'g', 'g#', 'a', 'a#', 'b'];
+            const octave = Math.floor(midiNote / 12) - 1;
+            const noteIndex = midiNote % 12;
+            return `${notes[noteIndex]}/${octave}`;
+        }
+        
+        // Start/Stop Button für Notation
+        notationStartBtn.addEventListener('click', function() {
+            if (notationStartBtn.textContent.includes('Start')) {
+                autoScrollEnabled = true;
+                notationStartBtn.textContent = '⏸️ Stop';
+                startAutoScroll();
+            } else {
+                autoScrollEnabled = false;
+                notationStartBtn.textContent = '▶️ Start';
+                cancelAnimationFrame(animationFrameId);
+            }
+        });
+        
+        // Auto Button
+        autoScrollBtn.addEventListener('click', function() {
+            autoScrollEnabled = !autoScrollEnabled;
+            autoScrollBtn.textContent = autoScrollEnabled ? '🤖 Auto (AN)' : '🤖 Auto';
+        });
+        
+        // Geschwindigkeits-Slider
+        speedSlider.addEventListener('input', function() {
+            scrollSpeed = parseFloat(this.value);
+            speedValue.textContent = `${scrollSpeed.toFixed(1)}x`;
+        });
+        
+        // Auto-Scroll Animation
+        function startAutoScroll() {
+            const canvas = notationCanvas;
+            let scrollPosition = 0;
+            
+            function animate() {
+                if (!autoScrollEnabled) return;
+                
+                context.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // Staves neu zeichnen mit Verschiebung
+                staveTreble.setX(scrollPosition);
+                staveTreble.setContext(context).draw();
+                
+                staveBass.setX(scrollPosition);
+                staveBass.setContext(context).draw();
+                
+                scrollPosition -= 2 * scrollSpeed;
+                
+                if (scrollPosition < -canvas.width) {
+                    scrollPosition = 0;
+                }
+                
+                animationFrameId = requestAnimationFrame(animate);
+            }
+            
+            animate();
+        }
+        
+        // Connect Button - MIDI-Einstellungen ein/ausblenden
+        connectBtn.addEventListener('click', function() {
+            if (midiSettings.style.display === 'none') {
+                midiSettings.style.display = 'block';
+                notationView.style.display = 'none';
+                isRecording = false;
+                recordBtn.textContent = '⏺️ Aufzeichnung starten';
+                autoScrollEnabled = false;
+                cancelAnimationFrame(animationFrameId);
+            }
+        });
+        
+        // Log-Funktion
+        function logMessage(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            log.appendChild(logEntry);
+            log.scrollTop = log.scrollHeight;
+        }
+        
+        // Clear Log
+        clearLogBtn.addEventListener('click', function() {
+            log.innerHTML = '';
+        });
+        
+        // Einstellungen speichern/laden (Placeholder)
+        document.getElementById('saveBtn').addEventListener('click', function() {
+            logMessage('Einstellungen gespeichert.');
+        });
+        
+        document.getElementById('loadBtn').addEventListener('click', function() {
+            logMessage('Einstellungen geladen.');
+        });
+        
+        document.getElementById('resetBtn').addEventListener('click', function() {
+            document.getElementById('midiDeviceSelect').value = '';
+            document.getElementById('midiChannelFilter').value = '1';
+            document.getElementById('transposition').value = '0';
+            logMessage('Einstellungen zurückgesetzt.');
+        });
+    </script>
+</body>
+</html>
