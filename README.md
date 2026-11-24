@@ -7,7 +7,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 ## Funktionen
 
 - **Notenregen**: farbige Balken über einer Klaviatur, Farben als Regenbogen pro Oktave (C rot bis H violett, Halbtöne dunkler) oder nach Hand.
-- **Farbnoten**: Klaviersystem mit farbigen Notenköpfen und kräftigen Längen-Schweifen.
+- **Farbnoten**: Klaviersystem mit kräftig-dunklen farbigen Notenköpfen und Längen-Schweifen. Eine kommende Note kündigt sich durch einen anschwellenden Farbton auf ihrer Taste an.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.
 - **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Lautstärke und Ziellinie sitzen als kleine Knöpfe in der unteren Leiste und öffnen beim Darüberfahren einen senkrechten Regler. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
 - **Drei Modi**

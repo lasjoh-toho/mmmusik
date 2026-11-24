@@ -489,13 +489,14 @@ function oklch(L, C, h, a = 1) {
   return `rgba(${f(r)},${f(g)},${f(b)},${a})`;
 }
 /* One octave is a rainbow: C red … H violet. Semitones (black keys) sit between their neighbours' hues, darker. */
-const PITCH = [], PITCH_DARK = [], PITCH_GLOW = [];
+const PITCH = [], PITCH_DARK = [], PITCH_GLOW = [], PITCH_INK = [];
 const HUE = [25, 42, 62, 80, 98, 145, 170, 195, 225, 258, 280, 305];
 for (let pc = 0; pc < 12; pc++) {
   const h = HUE[pc], blk = isBlack(pc);
   PITCH[pc] = blk ? oklch(0.56, 0.13, h) : oklch(0.79, 0.15, h);
   PITCH_DARK[pc] = blk ? oklch(0.45, 0.12, h) : oklch(0.65, 0.14, h);
   PITCH_GLOW[pc] = oklch(blk ? 0.7 : 0.86, 0.16, h, 0.55);
+  PITCH_INK[pc] = blk ? oklch(0.38, 0.13, h) : oklch(0.53, 0.17, h); // deep tones for the light paper views
 }
 const ROLE = {
   R: { c: oklch(0.80, 0.14, 160), d: oklch(0.64, 0.13, 160), g: oklch(0.86, 0.15, 160, .55), label: 'Rechte Hand' },
@@ -823,6 +824,7 @@ function layout() {
   if (Math.round(kh) !== lastKh) { lastKh = Math.round(kh); stage.style.setProperty('--kbh', lastKh + 'px'); }
 }
 function rr(x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
+function inkOf(n) { return settings.color === 'hand' ? ROLE[n.part.role].d : PITCH_INK[n.midi % 12]; }
 function colorOf(n, dark) {
   if (settings.color === 'hand' || n.part.role === 'A' || n.part.role === 'M') { const r = ROLE[n.part.role]; if (settings.color === 'pitch' && n.part.role === 'A') return dark ? PITCH_DARK[n.midi % 12] : PITCH[n.midi % 12]; return dark ? r.d : r.c; }
   return dark ? PITCH_DARK[n.midi % 12] : PITCH[n.midi % 12];
@@ -957,8 +959,8 @@ function drawSheet(y0, y1, now) {
       for (let s = topS + 2; s <= step; s += 2) lines.push(s);
       lines.forEach(s => { const ly = Math.round(refY - (s - refStep) * gap / 2) + .5; cx.beginPath(); cx.moveTo(x - gap * 1.1, ly); cx.lineTo(x + gap * 1.1, ly); cx.stroke(); });
       // tail
-      const col = colorOf(n);
-      const tg = cx.createLinearGradient(x, 0, Math.max(x + 1, xe), 0); tg.addColorStop(0, col); tg.addColorStop(1, col.replace(/[\d.]+\)$/, '0.55)'));
+      const col = inkOf(n);
+      const tg = cx.createLinearGradient(x, 0, Math.max(x + 1, xe), 0); tg.addColorStop(0, col.replace(/[\d.]+\)$/, '0.85)')); tg.addColorStop(1, col.replace(/[\d.]+\)$/, '0.45)'));
       cx.fillStyle = tg; cx.globalAlpha = acc ? 0.35 : 0.9; rr(x, y - gap * 0.36, Math.max(0, xe - x), gap * 0.72, gap * 0.36); cx.fill();
       cx.globalAlpha = acc ? 0.5 : 1;
       // head
@@ -968,7 +970,7 @@ function drawSheet(y0, y1, now) {
       cx.beginPath(); cx.ellipse(x, y, gap * 0.66, gap * 0.47, -0.35, 0, Math.PI * 2); cx.fill();
       cx.strokeStyle = n.state === 2 ? '#ff6b7a' : 'rgba(27,33,48,.7)'; cx.lineWidth = n.state === 2 ? 2 : 1; cx.stroke(); cx.lineWidth = 1;
       if (ACC[pc]) { cx.fillStyle = ink; cx.font = `${gap * 1.6}px "Noto Music", "Segoe UI Symbol", serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(ACC[pc] > 0 ? '♯' : '♭', x - gap * 1.45, y); }
-      if (settings.names && gap >= 8 && !acc) { cx.fillStyle = 'rgba(15,18,28,.85)'; cx.font = `600 ${gap * 0.78}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(noteName(n.midi).replace('♯', '').replace('♭', ''), x, y + 0.5); }
+      if (settings.names && gap >= 8 && !acc) { cx.fillStyle = 'rgba(255,255,255,.95)'; cx.font = `600 ${gap * 0.78}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(noteName(n.midi).replace('♯', '').replace('♭', ''), x, y + 0.5); }
       cx.globalAlpha = 1;
     }
   }
@@ -995,6 +997,19 @@ function drawKeyboard(now) {
   cx.fillStyle = '#05060a'; cx.fillRect(0, top - 3, W, h + 3);
   cx.fillStyle = 'rgba(220,185,120,.7)'; cx.fillRect(0, top - 3, W, 2);
   const expect = new Set(waitGroup().map(n => n.midi));
+  // in the notation views a coming note tints its key softly, growing stronger as it nears
+  const soon = new Map();
+  if (song && settings.view !== 'rain') {
+    const pre = Math.min(2, settings.look);
+    const hands = song.parts.some(p => p.role === 'R' || p.role === 'L');
+    for (let i = lb(song.all, t, 'start'); i < song.all.length; i++) {
+      const n = song.all[i]; const dt = n.start - t; if (dt > pre) break;
+      const r = n.part.role; if (r === 'M' || (hands && r === 'A')) continue;
+      const a = 0.1 + 0.5 * Math.pow(1 - dt / pre, 1.6);
+      if (!soon.has(n.midi) || soon.get(n.midi).a < a) soon.set(n.midi, { a, c: settings.color === 'hand' ? ROLE[r].c : PITCH[n.midi % 12] });
+    }
+  }
+  const tint = (m, x, y, w, hh, r) => { const s = soon.get(m); if (!s) return; cx.globalAlpha = s.a; cx.fillStyle = s.c; rr(x, y, w, hh, r); cx.fill(); cx.globalAlpha = 1; };
   const stateOf = m => {
     const p = pressed.get(m); if (p) return { c: p.c, glow: p.good !== false };
     const a = autoOn.get(m); if (a) return { c: a.c, glow: true, auto: true };
@@ -1009,6 +1024,7 @@ function drawKeyboard(now) {
     if (st) { g.addColorStop(0, st.c); g.addColorStop(1, '#ffffff'); }
     else { g.addColorStop(0, '#d9dce4'); g.addColorStop(0.15, '#f4f5f8'); g.addColorStop(1, '#ffffff'); }
     cx.fillStyle = g; rr(x, top, w, h - 1, Math.min(5, w * .2)); cx.fill();
+    if (!st) tint(m, x, top, w, h - 1, Math.min(5, w * .2));
     if (expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
     if (m % 12 === 0 && k.w > 14) { cx.fillStyle = 'rgba(30,34,50,.55)'; cx.font = `500 ${Math.min(11, k.w * .42)}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'bottom'; cx.fillText('C' + (Math.floor(m / 12) - 1), x + w / 2, top + h - 5); }
   }
@@ -1020,6 +1036,7 @@ function drawKeyboard(now) {
     if (st) { g.addColorStop(0, st.c); g.addColorStop(1, '#2a2f3d'); }
     else { g.addColorStop(0, '#101219'); g.addColorStop(0.85, '#272b38'); g.addColorStop(1, '#3a3f4f'); }
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
+    if (!st) tint(m, k.x, top - 1, k.w, bh, 3);
     if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
   }
 }
@@ -1094,7 +1111,7 @@ function buildScore(h) {
             if (have !== k.acc) { sn.addModifier(new VF.Accidental(k.acc > 0 ? '#' : k.acc < 0 ? 'b' : 'n'), i); state.set(id, k.acc); }
           });
           if (code.endsWith('d')) VF.Dot.buildAndAttach([sn], { all: true });
-          mids.forEach((m, i) => { const col = PITCH[m % 12]; sn.setKeyStyle(i, { fillStyle: col, strokeStyle: 'rgba(27,33,48,.85)' }); });
+          mids.forEach((m, i) => { const col = PITCH_INK[m % 12]; sn.setKeyStyle(i, { fillStyle: col, strokeStyle: 'rgba(27,33,48,.85)' }); });
           M.tick[si].push(sn); M.anch.push(pi === 0 ? { pos: c.pos, note: sn } : null);
           if (prev) ties.push(new VF.StaveTie({ first_note: prev, last_note: sn, first_indices: mids.map((_, i) => i), last_indices: mids.map((_, i) => i) }));
           prev = sn; cur += v;
