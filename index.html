@@ -1463,9 +1463,12 @@ function renderRecs() {
     const acts = document.createElement('div'); acts.className = 'acts';
     const mk = (txt, title, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = txt; b.title = title; b.onclick = fn; acts.appendChild(b); return b; };
     mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); updateHud(); restart(); });
-    mk('MIDI', 'Als .mid-Datei herunterladen', () => {
-      const blob = new Blob([midiFile(item.notes)], { type: 'audio/midi' });
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
+    mk('MIDI', 'Als .mid-Datei herunterladen', async () => {
+      const data = midiFile(item.notes), filename = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
+      // inside the claude.ai preview downloads go through the viewer; everywhere else a normal download link
+      const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
+      if (dl) { try { await dl.save({ filename, data: new Blob([data], { type: 'audio/midi' }) }); } catch (e) {} return; }
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'audio/midi' })); a.download = filename;
       document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
     });
     let armed = false;
