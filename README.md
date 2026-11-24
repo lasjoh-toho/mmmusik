@@ -6,7 +6,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 
 ## Funktionen
 
-- **Notenregen**: farbige Balken über einer Klaviatur, Farben nach Tonhöhe (Quintenzirkel) oder nach Hand.
+- **Notenregen**: farbige Balken über einer Klaviatur, Farben als Regenbogen pro Oktave (C rot bis H violett, Halbtöne dunkler) oder nach Hand.
 - **Farbige Noten**: Ansicht als Klaviersystem (Violin- und Bassschlüssel) mit farbigen Notenköpfen, oder beides übereinander.
 - **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
 - **Drei Modi**
@@ -17,8 +17,9 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Songs**
   - Suche nach frei lizenzierten MIDI-Dateien auf Wikimedia Commons direkt in der App.
   - Eigene `.mid`-Dateien per Drag & Drop, Dateiauswahl oder URL.
-  - Sechs eingebaute, gemeinfreie Lieder (Alle meine Entchen bis Für Elise).
+  - Eingebaute Lieder: sechs gemeinfreie Klassiker und Kinderlieder plus Jazz & Ragtime (Swing-Blues mit Walking Bass, When the Saints Go Marching In, The Entertainer).
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
+- Klangfarben Flügel, E-Piano und Jazz-Orgel.
 - Tempo 25–150 %, Springen, Notennamen (deutsch mit H oder englisch).
 
 ## Veröffentlichen mit GitHub Pages

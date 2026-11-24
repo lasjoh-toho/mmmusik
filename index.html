@@ -307,6 +307,10 @@ table.scores tr.me td { color: var(--gold); }
       <p class="note">Gesucht wird in den frei lizenzierten MIDI-Dateien von <a href="https://commons.wikimedia.org/wiki/Category:MIDI_files" target="_blank" rel="noopener">Wikimedia Commons</a>.</p>
     </section>
     <section>
+      <h3>Jazz &amp; Ragtime</h3>
+      <div class="list" id="jazzList"></div>
+    </section>
+    <section>
       <h3>Eingebaute Lieder</h3>
       <div class="list" id="builtinList"></div>
     </section>
@@ -353,7 +357,7 @@ table.scores tr.me td { color: var(--gold); }
     <section class="field">
       <h3>Darstellung</h3>
       <label for="colorSel">Farben</label>
-      <select id="colorSel"><option value="pitch">Nach Tonhöhe (Farbkreis)</option><option value="hand">Nach Hand / Stimme</option></select>
+      <select id="colorSel"><option value="pitch">Regenbogen pro Oktave</option><option value="hand">Nach Hand / Stimme</option></select>
       <div class="toggle"><label for="namesChk">Notennamen anzeigen</label><input type="checkbox" id="namesChk" checked></div>
       <div class="toggle"><label for="germanChk">Deutsche Namen (H statt B)</label><input type="checkbox" id="germanChk" checked></div>
       <label for="look">Vorschau (Sekunden sichtbar): <span id="lookVal">3</span></label>
@@ -361,6 +365,8 @@ table.scores tr.me td { color: var(--gold); }
     </section>
     <section class="field">
       <h3>Klang</h3>
+      <label for="soundSel">Instrument</label>
+      <select id="soundSel"><option value="grand">Flügel</option><option value="epiano">E-Piano (Jazz)</option><option value="organ">Jazz-Orgel</option></select>
       <label for="vol">Lautstärke</label>
       <input type="range" id="vol" min="0" max="100" value="70">
       <div class="toggle"><label for="selfChk">Meine Stimmen beim Üben leise vorspielen</label><input type="checkbox" id="selfChk"></div>
@@ -414,7 +420,7 @@ const noteName = (m, withOct) => {
   const pc = m % 12, o = Math.floor(m / 12) - 1;
   const flats = song && song.keySf < 0;
   let n = (flats ? N_FLAT : N_SHARP)[pc];
-  if (settings.german) { if (pc === 11) n = 'H'; else if (n === 'B♭') n = 'B'; }
+  if (settings.german) { if (pc === 11) n = 'H'; else if (pc === 10) n = 'B'; }
   return withOct ? n + o : n;
 };
 const WHITES = []; for (let m = 21; m <= 108; m++) if (!isBlack(m)) WHITES.push(m);
@@ -432,11 +438,14 @@ function oklch(L, C, h, a = 1) {
   const f = x => { x = Math.max(0, Math.min(1, x)); return Math.round(255 * (x <= 0.0031308 ? 12.92 * x : 1.055 * Math.pow(x, 1 / 2.4) - 0.055)); };
   return `rgba(${f(r)},${f(g)},${f(b)},${a})`;
 }
-/* Pitch colours walk the circle of fifths, so neighbouring harmonies sit near each other */
+/* One octave is a rainbow: C red … H violet. Semitones (black keys) sit between their neighbours' hues, darker. */
 const PITCH = [], PITCH_DARK = [], PITCH_GLOW = [];
+const HUE = [25, 42, 62, 80, 98, 145, 170, 195, 225, 258, 280, 305];
 for (let pc = 0; pc < 12; pc++) {
-  const h = 25 + ((pc * 7) % 12) * 30;
-  PITCH[pc] = oklch(0.78, 0.14, h); PITCH_DARK[pc] = oklch(0.62, 0.13, h); PITCH_GLOW[pc] = oklch(0.85, 0.16, h, 0.55);
+  const h = HUE[pc], blk = isBlack(pc);
+  PITCH[pc] = blk ? oklch(0.56, 0.13, h) : oklch(0.79, 0.15, h);
+  PITCH_DARK[pc] = blk ? oklch(0.45, 0.12, h) : oklch(0.65, 0.14, h);
+  PITCH_GLOW[pc] = oklch(blk ? 0.7 : 0.86, 0.16, h, 0.55);
 }
 const ROLE = {
   R: { c: oklch(0.80, 0.14, 160), d: oklch(0.64, 0.13, 160), g: oklch(0.86, 0.15, 160, .55), label: 'Rechte Hand' },
@@ -447,7 +456,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 const saveSettings = () => store.set('settings', settings);
 
 /* ---------- Synth ---------- */
@@ -473,27 +482,51 @@ const synth = {
     if (!this.ensure()) return null;
     const c = this.ctx, now = c.currentTime, f = 440 * Math.pow(2, (m - 69) / 12);
     const v = Math.pow(vel / 127, 1.4) * 0.32 * gainMul;
-    const out = c.createGain(); out.gain.value = 0;
-    const filt = c.createBiquadFilter(); filt.type = 'lowpass';
-    const bright = 900 + vel * 28 + f * 1.5;
-    filt.frequency.setValueAtTime(bright, now); filt.frequency.exponentialRampToValueAtTime(Math.max(400, f * 2), now + 1.2);
-    const o1 = c.createOscillator(); o1.type = 'triangle'; o1.frequency.value = f;
-    const o2 = c.createOscillator(); o2.type = 'sine'; o2.frequency.value = f * 2.001;
-    const o3 = c.createOscillator(); o3.type = 'sawtooth'; o3.frequency.value = f * 0.999;
-    const g2 = c.createGain(); g2.gain.value = 0.28; const g3 = c.createGain(); g3.gain.value = 0.07;
-    o1.connect(filt); o2.connect(g2).connect(filt); o3.connect(g3).connect(filt); filt.connect(out); out.connect(this.master);
-    const decay = Math.max(0.8, 4.2 - (m - 21) * 0.035);
-    out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v, now + 0.006);
-    out.gain.exponentialRampToValueAtTime(v * 0.35, now + 0.35); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
-    [o1, o2, o3].forEach(o => { o.start(now); o.stop(now + decay + 0.1); });
-    const voice = {
+    const out = c.createGain(); out.gain.value = 0; out.connect(this.master);
+    const oscs = []; const osc = (type, freq) => { const o = c.createOscillator(); o.type = type; o.frequency.value = freq; oscs.push(o); return o; };
+    const gain = (val) => { const g = c.createGain(); g.gain.value = val; return g; };
+    let decay, release = 0.07;
+    const sound = settings.sound;
+    if (sound === 'epiano') {
+      // two-operator FM tine with a soft bell and gentle tremolo
+      const car = osc('sine', f), mod = osc('sine', f), modG = gain(0);
+      const idx = f * (0.6 + vel / 127 * 2.4);
+      modG.gain.setValueAtTime(idx, now); modG.gain.exponentialRampToValueAtTime(Math.max(1, f * 0.12), now + 0.9);
+      mod.connect(modG).connect(car.frequency);
+      const bell = osc('sine', f * 4.01), bellG = gain(0); bellG.gain.setValueAtTime(0.12 * vel / 127, now); bellG.gain.exponentialRampToValueAtTime(0.0001, now + 0.25);
+      const trem = gain(1), lfo = osc('sine', 4.6), lfoG = gain(0.12); lfo.connect(lfoG).connect(trem.gain);
+      car.connect(trem); bell.connect(bellG).connect(trem); trem.connect(out);
+      decay = Math.max(1.2, 5 - (m - 21) * 0.04);
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.1, now + 0.004);
+      out.gain.exponentialRampToValueAtTime(v * 0.45, now + 0.5); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+      release = 0.12;
+    } else if (sound === 'organ') {
+      // drawbar organ: sustained harmonics, key click percussion, vibrato
+      const vib = osc('sine', 6.4), vibG = gain(f * 0.0045); vib.connect(vibG);
+      [[0.5, .55], [1, 1], [1.5, .35], [2, .7], [3, .3], [4, .28], [6, .12]].forEach(([r, a]) => {
+        const o = osc('sine', f * r); vibG.connect(o.frequency); o.connect(gain(a * 0.2)).connect(out);
+      });
+      const perc = osc('sine', f * 3), pg = gain(0); pg.gain.setValueAtTime(0.25, now); pg.gain.exponentialRampToValueAtTime(0.0001, now + 0.22); perc.connect(pg).connect(out);
+      decay = 40;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.85, now + 0.008);
+      release = 0.04;
+    } else {
+      const filt = c.createBiquadFilter(); filt.type = 'lowpass';
+      filt.frequency.setValueAtTime(900 + vel * 28 + f * 1.5, now); filt.frequency.exponentialRampToValueAtTime(Math.max(400, f * 2), now + 1.2);
+      osc('triangle', f).connect(filt); osc('sine', f * 2.001).connect(gain(0.28)).connect(filt); osc('sawtooth', f * 0.999).connect(gain(0.07)).connect(filt);
+      filt.connect(out);
+      decay = Math.max(0.8, 4.2 - (m - 21) * 0.035);
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v, now + 0.006);
+      out.gain.exponentialRampToValueAtTime(v * 0.35, now + 0.35); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    }
+    oscs.forEach(o => { o.start(now); o.stop(now + decay + 0.1); });
+    return {
       stop(at) {
         const t0 = Math.max(at || c.currentTime, c.currentTime);
-        out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, 0.07);
-        [o1, o2, o3].forEach(o => { try { o.stop(t0 + 0.5); } catch (e) {} });
+        out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, release);
+        oscs.forEach(o => { try { o.stop(t0 + release * 8 + 0.1); } catch (e) {} });
       }
     };
-    return voice;
   },
   noteOn(m, vel) { this.noteOff(m, true); const v = this.voice(m, vel); if (v) this.live.set(m, v); this.held.delete(m); },
   noteOff(m, force) {
@@ -629,15 +662,17 @@ function makeSongFinal(title, parts, beats, keySf, meta) {
 
 /* ---------- Built-in songs (public domain melodies) ---------- */
 const PCS = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
-function voice(str, shift) {
+function voice(str, shift, swing) {
   const out = []; let b = shift;
+  const sw = x => { if (!swing) return x; const fl = Math.floor(x + 1e-6), fr = x - fl; return Math.abs(fr - 0.5) < 1e-6 ? fl + 2 / 3 : x; };
   for (const tok of str.split(/\s+/)) {
     if (!tok || tok === '|') continue;
     const [pitch, dur] = tok.split('/'); const len = parseFloat(dur);
     if (pitch !== 'r') pitch.split('+').forEach(pn => {
       const m = /^([A-G])(#|b)?(-?\d)$/.exec(pn); if (!m) return;
       const midi = (parseInt(m[3]) + 1) * 12 + PCS[m[1]] + (m[2] === '#' ? 1 : m[2] === 'b' ? -1 : 0);
-      out.push({ midi, b0: b, b1: b + len * 0.96 });
+      const b0 = sw(b - shift) + shift, b1 = sw(b + len - shift) + shift;
+      out.push({ midi, b0, b1: b0 + (b1 - b0) * 0.96 });
     });
     b += len;
   }
@@ -646,12 +681,13 @@ function voice(str, shift) {
 function builtin(def) {
   const spb = 60 / def.bpm, barBeats = def.sig[0] * 4 / def.sig[1];
   const shift = def.pickup ? barBeats - def.pickup : 0;
-  const parts = def.voices.map(v => ({ name: v.name, ch: 0, program: 0, drum: false, notes: voice(v.notes, shift).map(n => ({ midi: n.midi, start: n.b0 * spb, end: n.b1 * spb, vel: v.vel || 88 })) }));
+  const parts = def.voices.map(v => ({ name: v.name, ch: 0, program: 0, drum: false, role: v.role, notes: voice(v.notes, shift, def.swing).map(n => ({ midi: n.midi, start: n.b0 * spb, end: n.b1 * spb, vel: v.vel || 88 })) }));
   const endB = Math.max(...parts.flatMap(p => p.notes.map(n => n.end))) / spb + 1;
   const beats = []; const step = 4 / def.sig[1];
   for (let bt = 0, i = 0; bt <= endB; bt += step, i++) beats.push({ time: bt * spb, bar: i % def.sig[0] === 0 });
   const song = makeSongFinal(def.title, parts, beats, def.key || 0, { source: def.source });
-  song.parts[0].role = 'R'; if (song.parts[1]) song.parts[1].role = 'L';
+  song.parts.forEach((p, i) => { p.role = p.role || ['R', 'L'][i] || 'A'; });
+  song.cat = def.cat; if (def.sound) song.sound = def.sound;
   return song;
 }
 const BUILTIN = [
@@ -674,6 +710,33 @@ const BUILTIN = [
     { name: 'Rechte Hand', notes: 'E5/.25 D#5/.25 | E5/.25 D#5/.25 E5/.25 B4/.25 D5/.25 C5/.25 | A4/.5 r/.25 C4/.25 E4/.25 A4/.25 | B4/.5 r/.25 E4/.25 G#4/.25 B4/.25 | C5/.5 r/.25 E4/.25 E5/.25 D#5/.25 | E5/.25 D#5/.25 E5/.25 B4/.25 D5/.25 C5/.25 | A4/.5 r/.25 C4/.25 E4/.25 A4/.25 | B4/.5 r/.25 E4/.25 C5/.25 B4/.25 | A4/1.5' },
     { name: 'Linke Hand', vel: 70, notes: 'r/.5 | r/1.5 | A2/.25 E3/.25 A3/.25 r/.75 | E2/.25 E3/.25 G#3/.25 r/.75 | A2/.25 E3/.25 A3/.25 r/.75 | r/1.5 | A2/.25 E3/.25 A3/.25 r/.75 | E2/.25 E3/.25 G#3/.25 r/.75 | A2/.25 E3/.25 A3/1' }] }
 ];
+
+/* Jazz & ragtime. Left-hand patterns are built bar by bar from chord names. */
+const bars = (seq, pat) => seq.split(' ').map(ch => pat[ch]).join(' | ');
+const STRIDE = {
+  C: 'C3/1 E3+G3+C4/1 G2/1 E3+G3+C4/1', C7: 'C3/1 E3+Bb3/1 G2/1 E3+Bb3/1', F: 'F2/1 F3+A3+C4/1 C3/1 F3+A3+C4/1',
+  Fm: 'F2/1 F3+Ab3+C4/1 C3/1 F3+Ab3+C4/1', G: 'G2/1 F3+B3+D4/1 D3/1 F3+B3+D4/1', end: 'C2+C3+G3+E4/4'
+};
+const RAG = {
+  C: 'C3/.5 E3+G3+C4/.5 G2/.5 E3+G3+C4/.5', G7: 'G2/.5 F3+B3+D4/.5 D3/.5 F3+B3+D4/.5', D7: 'D3/.5 F#3+A3+C4/.5 A2/.5 F#3+A3+C4/.5', end: 'C2+C3/2'
+};
+const WALK = {
+  C1: 'C2/1 E2/1 G2/1 A2/1', C2: 'Bb2/1 A2/1 G2/1 E2/1', F1: 'F2/1 A2/1 C3/1 D3/1', F2: 'Eb3/1 D3/1 C3/1 A2/1',
+  C3: 'Bb2/1 A2/1 G2/1 F#2/1', G1: 'G2/1 B2/1 D3/1 F3/1', F3: 'F2/1 A2/1 C3/1 Eb3/1', G2: 'G2/1 F2/1 D2/1 B1/1', end: 'C2/4'
+};
+const COMP = { C: 'E3+Bb3+D4/1.5 E3+Bb3+D4/2.5', F: 'Eb3+A3+D4/1.5 Eb3+A3+D4/2.5', G: 'F3+B3+E4/1.5 F3+B3+E4/2.5', end: 'E3+Bb3+D4/4' };
+BUILTIN.unshift(
+  { title: 'Swing-Blues in C', cat: 'jazz', level: 'mittel', bpm: 126, sig: [4, 4], swing: true, sound: 'epiano', source: 'Eigene Komposition · 12-Takt-Blues mit Walking Bass', voices: [
+    { name: 'Melodie', notes: 'G4/.5 Bb4/.5 B4/.5 C5/1 r/.5 G4/.5 A4/.5 | C5/1 A4/.5 G4/.5 Eb4/.5 E4/1.5 | G4/.5 Bb4/.5 B4/.5 C5/1 r/.5 G4/.5 A4/.5 | C5/1 Bb4/1 G4/1 r/1 | C5/.5 Eb5/.5 E5/.5 F5/1 r/.5 C5/.5 D5/.5 | Eb5/1 C5/.5 A4/.5 F4/2 | G4/.5 Bb4/.5 B4/.5 C5/1 r/.5 G4/.5 A4/.5 | C5/1 A4/.5 G4/.5 E4/2 | B4/.5 D5/.5 F5/.5 G5/1 r/.5 F5/.5 D5/.5 | Eb5/1 C5/.5 A4/.5 F4/2 | G4/.5 Bb4/.5 B4/.5 C5/1 r/.5 E5/.5 G5/.5 | F5/1 D5/1 B4/1 G4/1 | Bb4+E5+G5/4' },
+    { name: 'Walking Bass', vel: 80, notes: bars('C1 C2 C1 C2 F1 F2 C1 C3 G1 F3 C1 G2 end', WALK) },
+    { name: 'Akkorde', role: 'A', vel: 58, notes: bars('C C C C F F C C G F C G end', COMP) }] },
+  { title: 'When the Saints Go Marching In', cat: 'jazz', level: 'leicht', bpm: 116, sig: [4, 4], pickup: 3, source: 'Traditional · Dixieland mit Stride-Begleitung', voices: [
+    { name: 'Melodie', notes: 'C4/1 E4/1 F4/1 | G4/4 | r/1 C4/1 E4/1 F4/1 | G4/4 | r/1 C4/1 E4/1 F4/1 | G4/2 E4/2 | C4/2 E4/2 | D4/4 | r/1 E4/1 E4/1 D4/1 | C4/3 C4/1 | E4/2 G4/2 | G4/1 F4/3 | r/1 E4/1 F4/1 G4/1 | E4/2 C4/2 | D4/4 | C4/4' },
+    { name: 'Stride', vel: 72, notes: 'r/3 | ' + bars('C C C C C C G G C C7 F Fm C G end', STRIDE) }] },
+  { title: 'The Entertainer (Thema)', cat: 'jazz', level: 'schwer', bpm: 76, sig: [2, 4], pickup: 0.5, source: 'Scott Joplin, 1902 · Ragtime', voices: [
+    { name: 'Rechte Hand', notes: 'D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 C6/.25 D6/.25 D#6/.25 E6/.25 | C6/.25 D6/.25 E6/.5 B5/.25 D6/.5 C6/1.5 r/.25 D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 A5/.25 G5/.25 F#5/.25 A5/.25 | C6/.25 E6/.5 D6/.25 C6/.25 A5/.25 D6/2 D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 C6/.25 D6/.25 D#6/.25 E6/.25 | C6/.25 D6/.25 E6/.5 B5/.25 D6/.5 C6/2.25' },
+    { name: 'Linke Hand', vel: 70, notes: 'r/.5 | ' + bars('C C G7 C C D7 D7 G7 C C G7 end', RAG) }] }
+);
 
 /* ---------- State ---------- */
 let song = null, songKey = '';
@@ -753,7 +816,7 @@ function drawRain(y0, y1, now) {
     const pad = k.black ? 1 : 2, x = k.x + pad, w = k.w - pad * 2, hh = Math.max(4, yb - yt);
     const acc = n.part.role === 'A';
     cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
-    const c1 = colorOf(n, k.black);
+    const c1 = settings.color === 'hand' ? colorOf(n, k.black) : colorOf(n);
     const gr = cx.createLinearGradient(0, yt, 0, yb); gr.addColorStop(0, c1); gr.addColorStop(1, colorOf(n, true));
     cx.fillStyle = gr; rr(x, yt, w, hh, Math.min(6, w * 0.3)); cx.fill();
     cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1; cx.stroke();
@@ -1193,6 +1256,7 @@ function renderScores(hl) {
 function loadSong(s, meta = {}) {
   song = s; songKey = (s.title + '|' + Math.round(s.duration)).toLowerCase();
   rebuildYou();
+  if (s.sound) { settings.sound = s.sound; const ss = document.getElementById('soundSel'); if (ss) ss.value = s.sound; saveSettings(); }
   $('#songTitle').textContent = s.title;
   const you = s.parts.filter(p => youRole(p.role)).length;
   $('#songSub').textContent = [meta.source || s.source, fmt(s.duration), s.parts.length + (s.parts.length === 1 ? ' Stimme' : ' Stimmen')].filter(Boolean).join(' · ');
@@ -1233,11 +1297,11 @@ BUILTIN.forEach(def => {
   b.innerHTML = '<span class="t"></span><span class="s"></span><span class="lvl"></span>';
   b.querySelector('.t').textContent = def.title; b.querySelector('.s').textContent = def.source; b.querySelector('.lvl').textContent = def.level;
   b.onclick = () => { loadSong(builtin(def)); closePanel(); };
-  bl.appendChild(b);
+  (def.cat === 'jazz' ? $('#jazzList') : bl).appendChild(b);
 });
 
 // Wikimedia Commons search
-const SUGG = ['Bach', 'Mozart', 'Chopin', 'Beethoven', 'Satie', 'Joplin', 'Schumann', 'Pachelbel', 'Debussy', 'Weihnachtslied'];
+const SUGG = ['Jazz', 'Ragtime', 'Joplin', 'Blues', 'Boogie', 'Swing', 'Bach', 'Chopin', 'Beethoven', 'Satie', 'Debussy', 'Mozart'];
 SUGG.forEach(s => { const b = document.createElement('button'); b.type = 'button'; b.textContent = s; b.onclick = () => { $('#q').value = s; search(s); }; $('#sugg').appendChild(b); });
 $('#searchForm').onsubmit = e => { e.preventDefault(); const q = $('#q').value.trim(); if (q) search(q); };
 async function search(q) {
@@ -1307,6 +1371,7 @@ $('#setBtn').onclick = () => openPanel(song ? 'tracks' : 'settings');
 $('#panelClose').onclick = closePanel;
 
 // settings controls
+$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); };
 $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings.color = e.target.value; saveSettings(); };
 $('#namesChk').checked = settings.names; $('#namesChk').onchange = e => { settings.names = e.target.checked; saveSettings(); };
 $('#germanChk').checked = settings.german; $('#germanChk').onchange = e => { settings.german = e.target.checked; saveSettings(); updateRangeLabel(); };
