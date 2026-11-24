@@ -2,13 +2,13 @@
 
 Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken auf eine Klaviatur zu, und du spielst sie auf deinem MIDI-Keyboard mit.
 
-**Direkt im Browser öffnen:** `index.html` (eine einzige Datei, keine Installation). Für die Verbindung zum Keyboard Chrome, Edge oder Opera verwenden.
+**Direkt im Browser öffnen:** `index.html` (eine einzige Datei, keine Installation; für die Notenansicht wird VexFlow vom CDN geladen). Für die Verbindung zum Keyboard Chrome, Edge oder Opera verwenden.
 
 ## Funktionen
 
 - **Notenregen**: farbige Balken über einer Klaviatur, Farben als Regenbogen pro Oktave (C rot bis H violett, Halbtöne dunkler) oder nach Hand.
 - **Farbige Noten**: Ansicht als Klaviersystem (Violin- und Bassschlüssel) mit farbigen Notenköpfen, oder beides übereinander.
-- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
+- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Lautstärke und Ziellinie sitzen als kleine Knöpfe in der unteren Leiste und öffnen beim Darüberfahren einen senkrechten Regler. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
 - **Drei Modi**
   - *Zuhören*: die App spielt alles vor.
   - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.

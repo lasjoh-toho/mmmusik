@@ -92,6 +92,9 @@ header.bar {
 /* Stage */
 #stage { position: relative; min-height: 0; overflow: hidden; touch-action: none; }
 #cv { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+#score { position: absolute; left: 0; right: 0; top: 0; overflow: hidden; pointer-events: none; }
+#scoreInner { position: absolute; top: 0; left: 0; will-change: transform; }
+#scoreMsg { position: absolute; left: 50%; top: 45%; transform: translateX(-50%); color: #4a5266; }
 .hud {
   position: absolute; bottom: calc(var(--kbh, 120px) + 14px); left: max(16px, env(safe-area-inset-left, 0px));
   display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
@@ -139,15 +142,21 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; }
 .seg button[aria-pressed=true] { background: var(--glass-2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(220,185,120,.45); }
-.guide-ctl { display: inline-flex; align-items: center; flex-direction: row-reverse; gap: 0; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); padding: 3px; }
-.guide-btn { display: inline-flex; align-items: center; gap: 5px; border: 0; background: transparent; color: var(--muted); padding: 5px 8px; border-radius: 999px; }
-.guide-btn svg { width: 16px; height: 16px; }
-.guide-btn .val { font-family: var(--f-mono); font-size: 11px; min-width: 26px; text-align: left; }
-.guide-ctl.on .guide-btn { color: var(--gold); }
-.guide-slide { display: inline-flex; width: 0; overflow: hidden; opacity: 0; transition: width .22s ease, opacity .22s ease, padding .22s ease; }
-.guide-slide input { width: 110px; flex: none; }
-.guide-ctl:hover .guide-slide, .guide-ctl:focus-within .guide-slide, .guide-ctl.open .guide-slide { width: 122px; opacity: 1; padding-left: 8px; }
-@media (prefers-reduced-motion: reduce) { .guide-slide { transition: none; } }
+.pop-ctl { position: relative; display: inline-flex; }
+.pop-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--muted); }
+.pop-btn:hover { background: var(--glass-2); color: var(--fg); }
+.pop-btn svg { width: 17px; height: 17px; }
+.pop-ctl.on .pop-btn { color: var(--gold); }
+.pop-panel {
+  position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) scaleY(.4); transform-origin: bottom center;
+  padding: 14px 10px; border-radius: 999px; background: rgba(16,20,31,.96); border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,.45);
+  opacity: 0; pointer-events: none; transition: transform .2s ease, opacity .2s ease; z-index: 15;
+}
+.pop-ctl:hover .pop-panel, .pop-ctl:focus-within .pop-panel, .pop-ctl.open .pop-panel { opacity: 1; pointer-events: auto; transform: translateX(-50%) scaleY(1); }
+.pop-ctl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; }
+.pop-panel input[type=range] { writing-mode: vertical-lr; direction: rtl; -webkit-appearance: slider-vertical; appearance: slider-vertical; width: 22px; height: 120px; display: block; margin: 0; }
+@media (prefers-reduced-motion: reduce) { .pop-panel { transition: none; } }
+.rec-btn { width: 38px; height: 38px; padding: 0; justify-content: center; }
 .rec-btn .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5d6c; box-shadow: 0 0 0 2px rgba(255,93,108,.25); }
 .rec-btn.on { border-color: rgba(255,93,108,.6); background: rgba(255,93,108,.12); font-family: var(--f-mono); }
 .rec-btn.on .rec-dot { animation: recpulse 1s ease-in-out infinite; }
@@ -260,6 +269,7 @@ table.scores tr.me td { color: var(--gold); }
 
   <main id="stage">
     <canvas id="cv"></canvas>
+    <div id="score" hidden><div id="scoreInner"></div><div id="scoreMsg" class="note"></div></div>
     <div class="hud" id="hud" hidden>
       <div class="pill"><span class="k">Punkte</span><span class="v big" id="hScore">0</span></div>
       <div class="pill"><span class="k">Kombo</span><span class="v" id="hCombo">0×</span></div>
@@ -273,7 +283,7 @@ table.scores tr.me td { color: var(--gold); }
   <footer class="transport">
     <button class="play-btn" id="playBtn" title="Abspielen (Leertaste)"><svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
     <button class="btn icon" id="restartBtn" title="Von vorn (Pos1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
-    <button class="btn rec-btn" id="recBtn" title="Aufnehmen, was du spielst (R)"><span class="rec-dot"></span><span id="recTxt">Aufnahme</span></button>
+    <button class="btn rec-btn" id="recBtn" title="Aufnehmen, was du spielst (R)" aria-label="Aufnahme"><span class="rec-dot"></span></button>
     <div class="seek">
       <span class="time" id="tNow">0:00</span>
       <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position im Song">
@@ -284,19 +294,23 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="wait" aria-pressed="false">Üben</button>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
-    <div class="guide-ctl" id="guideCtl">
-      <button class="guide-btn" id="guideBtn" title="Ziellinie: Länge einstellen" aria-label="Ziellinie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v13" stroke-dasharray="2 3"/><path d="M7 19h10"/></svg><span class="val" id="guideVal">Aus</span></button>
-      <span class="guide-slide"><input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie"></span>
+    <div class="pop-ctl" id="guideCtl">
+      <button class="pop-btn" id="guideBtn" title="Ziellinie" aria-label="Ziellinie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v13" stroke-dasharray="2 3"/><path d="M7 19h10"/></svg></button>
+      <div class="pop-panel"><input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie"></div>
     </div>
     <div class="seg" id="viewSeg" role="group" aria-label="Ansicht">
       <button data-view="rain" aria-pressed="true">Regen</button>
-      <button data-view="sheet" aria-pressed="false">Noten</button>
-      <button data-view="both" aria-pressed="false">Beides</button>
+      <button data-view="sheet" aria-pressed="false">Farbnoten</button>
+      <button data-view="score" aria-pressed="false">Noten</button>
     </div>
     <div class="speed">
       <span class="lbl">Tempo</span>
       <input type="range" id="speed" min="25" max="150" step="5" value="100" aria-label="Tempo">
       <span class="val" id="speedVal">100%</span>
+    </div>
+    <div class="pop-ctl" id="volCtl">
+      <button class="pop-btn" id="volBtn" title="Lautstärke" aria-label="Lautstärke" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9v6h4l5 4V5L8 9z"/><path id="volWave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12"/></svg></button>
+      <div class="pop-panel"><input type="range" id="volQuick" min="0" max="100" value="70" aria-label="Lautstärke"></div>
     </div>
     <div class="zoom-box" aria-label="Oktavraum">
       <span class="lbl" style="padding-left:6px">Oktaven</span>
@@ -432,6 +446,7 @@ table.scores tr.me td { color: var(--gold); }
   </div>
 </div>
 
+<script async src="https://cdn.jsdelivr.net/npm/vexflow@4.2.3/build/cjs/vexflow.js"></script>
 <script>
 (() => {
 'use strict';
@@ -445,10 +460,16 @@ const store = {
 const isBlack = m => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
 const N_SHARP = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
 const N_FLAT = ['C', 'D♭', 'D', 'E♭', 'E', 'F', 'G♭', 'G', 'A♭', 'A', 'B♭', 'B'];
+/* Spelling: sharps in sharp keys, flats in flat keys; in C the common mix C♯ E♭ F♯ A♭ B♭ (a song can force one) */
+const SPELL = {
+  sharp: { LET: [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6], ACC: [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0] },
+  flat: { LET: [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6], ACC: [0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0] },
+  mixed: { LET: [0, 0, 1, 2, 2, 3, 3, 4, 5, 5, 6, 6], ACC: [0, 1, 0, -1, 0, 0, 1, 0, -1, 0, -1, 0] }
+};
+function spelling() { if (!song) return SPELL.mixed; if (song.spell) return SPELL[song.spell]; return SPELL[song.keySf > 0 ? 'sharp' : song.keySf < 0 ? 'flat' : 'mixed']; }
 const noteName = (m, withOct) => {
   const pc = m % 12, o = Math.floor(m / 12) - 1;
-  const flats = song && song.keySf < 0;
-  let n = (flats ? N_FLAT : N_SHARP)[pc];
+  const sp = spelling(); let n = 'CDEFGAB'[sp.LET[pc]] + (sp.ACC[pc] > 0 ? '♯' : sp.ACC[pc] < 0 ? '♭' : '');
   if (settings.german) { if (pc === 11) n = 'H'; else if (pc === 10) n = 'B'; }
   return withOct ? n + o : n;
 };
@@ -486,6 +507,7 @@ const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', '
 
 /* ---------- Settings ---------- */
 const settings = Object.assign({ guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+if (settings.view === 'both') settings.view = 'score';
 const saveSettings = () => store.set('settings', settings);
 
 /* ---------- Synth ---------- */
@@ -649,7 +671,7 @@ function parseMidi(buf, title) {
     let tk = 0, bi = 0; const endTk = maxTick + tpq;
     while (tk <= endTk && beats.length < 20000) {
       if (si < sigs.length && tk >= sigs[si].tick) { sig = sigs[si++]; bi = 0; }
-      beats.push({ time: toSec(tk), bar: bi % sig.n === 0 });
+      beats.push({ time: toSec(tk), bar: bi % sig.n === 0, n: sig.n, d: sig.dd });
       tk += tpq * 4 / sig.dd; bi++;
     }
   }
@@ -713,10 +735,10 @@ function builtin(def) {
   const parts = def.voices.map(v => ({ name: v.name, ch: 0, program: 0, drum: false, role: v.role, notes: voice(v.notes, shift, def.swing).map(n => ({ midi: n.midi, start: n.b0 * spb, end: n.b1 * spb, vel: v.vel || 88 })) }));
   const endB = Math.max(...parts.flatMap(p => p.notes.map(n => n.end))) / spb + 1;
   const beats = []; const step = 4 / def.sig[1];
-  for (let bt = 0, i = 0; bt <= endB; bt += step, i++) beats.push({ time: bt * spb, bar: i % def.sig[0] === 0 });
+  for (let bt = 0, i = 0; bt <= endB; bt += step, i++) beats.push({ time: bt * spb, bar: i % def.sig[0] === 0, n: def.sig[0], d: def.sig[1] });
   const song = makeSongFinal(def.title, parts, beats, def.key || 0, { source: def.source });
   song.parts.forEach((p, i) => { p.role = p.role || ['R', 'L'][i] || 'A'; });
-  song.cat = def.cat; if (def.sound) song.sound = def.sound;
+  song.cat = def.cat; song.swing = !!def.swing; if (def.spell) song.spell = def.spell; if (def.sound) song.sound = def.sound;
   return song;
 }
 const BUILTIN = [
@@ -735,7 +757,7 @@ const BUILTIN = [
   { title: 'Menuett in G', level: 'mittel', bpm: 116, sig: [3, 4], key: 1, source: 'Christian Petzold (BWV Anh. 114), Arrangement', voices: [
     { name: 'Rechte Hand', notes: 'D5/1 G4/.5 A4/.5 B4/.5 C5/.5 | D5/1 G4/1 G4/1 | E5/1 C5/.5 D5/.5 E5/.5 F#5/.5 | G5/1 G4/1 G4/1 | C5/1 D5/.5 C5/.5 B4/.5 A4/.5 | B4/1 C5/.5 B4/.5 A4/.5 G4/.5 | F#4/1 G4/.5 A4/.5 B4/.5 G4/.5 | A4/3' },
     { name: 'Linke Hand', vel: 72, notes: 'G3+B3/2 A3/1 | B3/3 | C4/3 | B3/3 | A3/3 | G3/3 | D4/1 B3/1 G3/1 | D4/1 D3/.5 C4/.5 B3/.5 A3/.5' }] },
-  { title: 'Für Elise (Anfang)', level: 'mittel', bpm: 66, sig: [3, 8], pickup: 0.5, source: 'Ludwig van Beethoven, WoO 59', voices: [
+  { title: 'Für Elise (Anfang)', spell: 'sharp', level: 'mittel', bpm: 66, sig: [3, 8], pickup: 0.5, source: 'Ludwig van Beethoven, WoO 59', voices: [
     { name: 'Rechte Hand', notes: 'E5/.25 D#5/.25 | E5/.25 D#5/.25 E5/.25 B4/.25 D5/.25 C5/.25 | A4/.5 r/.25 C4/.25 E4/.25 A4/.25 | B4/.5 r/.25 E4/.25 G#4/.25 B4/.25 | C5/.5 r/.25 E4/.25 E5/.25 D#5/.25 | E5/.25 D#5/.25 E5/.25 B4/.25 D5/.25 C5/.25 | A4/.5 r/.25 C4/.25 E4/.25 A4/.25 | B4/.5 r/.25 E4/.25 C5/.25 B4/.25 | A4/1.5' },
     { name: 'Linke Hand', vel: 70, notes: 'r/.5 | r/1.5 | A2/.25 E3/.25 A3/.25 r/.75 | E2/.25 E3/.25 G#3/.25 r/.75 | A2/.25 E3/.25 A3/.25 r/.75 | r/1.5 | A2/.25 E3/.25 A3/.25 r/.75 | E2/.25 E3/.25 G#3/.25 r/.75 | A2/.25 E3/.25 A3/1' }] }
 ];
@@ -762,7 +784,7 @@ BUILTIN.unshift(
   { title: 'When the Saints Go Marching In', cat: 'jazz', level: 'leicht', bpm: 116, sig: [4, 4], pickup: 3, source: 'Traditional · Dixieland mit Stride-Begleitung', voices: [
     { name: 'Melodie', notes: 'C4/1 E4/1 F4/1 | G4/4 | r/1 C4/1 E4/1 F4/1 | G4/4 | r/1 C4/1 E4/1 F4/1 | G4/2 E4/2 | C4/2 E4/2 | D4/4 | r/1 E4/1 E4/1 D4/1 | C4/3 C4/1 | E4/2 G4/2 | G4/1 F4/3 | r/1 E4/1 F4/1 G4/1 | E4/2 C4/2 | D4/4 | C4/4' },
     { name: 'Stride', vel: 72, notes: 'r/3 | ' + bars('C C C C C C G G C C7 F Fm C G end', STRIDE) }] },
-  { title: 'The Entertainer (Thema)', cat: 'jazz', level: 'schwer', bpm: 76, sig: [2, 4], pickup: 0.5, source: 'Scott Joplin, 1902 · Ragtime', voices: [
+  { title: 'The Entertainer (Thema)', spell: 'sharp', cat: 'jazz', level: 'schwer', bpm: 76, sig: [2, 4], pickup: 0.5, source: 'Scott Joplin, 1902 · Ragtime', voices: [
     { name: 'Rechte Hand', notes: 'D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 C6/.25 D6/.25 D#6/.25 E6/.25 | C6/.25 D6/.25 E6/.5 B5/.25 D6/.5 C6/1.5 r/.25 D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 A5/.25 G5/.25 F#5/.25 A5/.25 | C6/.25 E6/.5 D6/.25 C6/.25 A5/.25 D6/2 D5/.25 D#5/.25 | E5/.25 C6/.5 E5/.25 C6/.5 E5/.25 C6/1.25 C6/.25 D6/.25 D#6/.25 E6/.25 | C6/.25 D6/.25 E6/.5 B5/.25 D6/.5 C6/2.25' },
     { name: 'Linke Hand', vel: 70, notes: 'r/.5 | ' + bars('C C G7 C C D7 D7 G7 C C G7 end', RAG) }] }
 );
@@ -816,7 +838,8 @@ function render(now) {
   const top = 0, bottom = KB.top;
   if (view === 'rain') drawRain(top, bottom, now);
   else if (view === 'sheet') drawSheet(top, bottom, now);
-  else { const mid = Math.round((bottom - top) * 0.46); drawSheet(top, mid, now); drawRain(mid, bottom, now); }
+  else drawScore(top, bottom);
+  $('#score').hidden = view !== 'score';
   drawKeyboard(now);
 }
 
@@ -914,9 +937,7 @@ function drawSheet(y0, y1, now) {
     cx.fillStyle = 'rgba(27,33,48,.5)'; cx.font = `500 ${Math.max(9, gap)}px Inter, system-ui, sans-serif`; cx.textAlign = 'left'; cx.textBaseline = 'bottom';
     let barNo = song.beats.slice(0, bi).filter(b => b.bar).length;
     for (let i = bi; i < song.beats.length; i++) { const b = song.beats[i]; if (!b.bar) continue; barNo++; const x = xOf(b.time) - gap * 0.9; if (x > W) break; if (x < clefW) continue; cx.fillRect(Math.round(x), tTop, 1, bBot - tTop); cx.fillText(barNo, x + 3, tTop - 3); }
-    const flats = song.keySf < 0;
-    const LET = flats ? [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6] : [0, 0, 1, 1, 2, 3, 3, 4, 4, 5, 5, 6];
-    const ACC = flats ? [0, -1, 0, -1, 0, 0, -1, 0, -1, 0, -1, 0] : [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
+    const { LET, ACC } = spelling();
     const tStart = t - playX / pxs, tEnd = t + (W - playX) / pxs;
     const s0 = lb(song.all, tStart - song.maxDur, 'start');
     for (let i = s0; i < song.all.length; i++) {
@@ -937,7 +958,8 @@ function drawSheet(y0, y1, now) {
       lines.forEach(s => { const ly = Math.round(refY - (s - refStep) * gap / 2) + .5; cx.beginPath(); cx.moveTo(x - gap * 1.1, ly); cx.lineTo(x + gap * 1.1, ly); cx.stroke(); });
       // tail
       const col = colorOf(n);
-      cx.fillStyle = col; cx.globalAlpha = acc ? 0.18 : 0.35; rr(x, y - gap * 0.28, Math.max(0, xe - x), gap * 0.56, gap * 0.28); cx.fill();
+      const tg = cx.createLinearGradient(x, 0, Math.max(x + 1, xe), 0); tg.addColorStop(0, col); tg.addColorStop(1, col.replace(/[\d.]+\)$/, '0.55)'));
+      cx.fillStyle = tg; cx.globalAlpha = acc ? 0.35 : 0.9; rr(x, y - gap * 0.36, Math.max(0, xe - x), gap * 0.72, gap * 0.36); cx.fill();
       cx.globalAlpha = acc ? 0.5 : 1;
       // head
       const sounding = n.start <= t && n.end > t;
@@ -1000,6 +1022,134 @@ function drawKeyboard(now) {
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
     if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
   }
+}
+
+/* ---------- Real notation: quantised to sixteenths, engraved with VexFlow, coloured noteheads ---------- */
+let score = null;
+const DUR = [[4, 'w'], [3, 'hd'], [2, 'h'], [1.5, 'qd'], [1, 'q'], [0.75, '8d'], [0.5, '8'], [0.25, '16']];
+const splitDur = d => { const out = []; let r = Math.round(d * 4) / 4; for (const [v, c] of DUR) while (r >= v - 1e-6) { out.push([v, c]); r -= v; } return out; };
+function beatIndex(time) {
+  const b = song.beats; if (!b.length) return 0;
+  if (time <= b[0].time) return 0;
+  let lo = 0, hi = b.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (b[m].time <= time) lo = m; else hi = m - 1; }
+  const next = b[lo + 1] ? b[lo + 1].time : b[lo].time + (lo ? b[lo].time - b[lo - 1].time : 0.5);
+  return lo + (time - b[lo].time) / Math.max(1e-6, next - b[lo].time);
+}
+function beatTime(bi) { const b = song.beats; const i = Math.min(b.length - 1, Math.floor(bi)); const nx = b[i + 1] ? b[i + 1].time : b[i].time + 0.5; return b[i].time + (bi - i) * (nx - b[i].time); }
+function staffIsTreble(n) { const r = n.part.role; return r === 'L' ? n.midi >= 65 : r === 'R' ? n.midi >= 55 : n.midi >= 60; }
+function buildScore(h) {
+  const VF = window.Vex && window.Vex.Flow; const msg = $('#scoreMsg'), inner = $('#scoreInner');
+  inner.innerHTML = '';
+  if (!VF) { msg.textContent = 'Notensatz wird geladen …'; return null; }
+  msg.textContent = '';
+  const { LET, ACC } = spelling();
+  const keyAcc = [0, 0, 0, 0, 0, 0, 0];
+  const sf = Math.max(-7, Math.min(7, song.keySf | 0));
+  [3, 0, 4, 1, 5, 2, 6].slice(0, Math.max(0, sf)).forEach(l => keyAcc[l] = 1);
+  [6, 2, 5, 1, 4, 0, 3].slice(0, Math.max(0, -sf)).forEach(l => keyAcc[l] = -1);
+  const KEYNAME = { '-7': 'Cb', '-6': 'Gb', '-5': 'Db', '-4': 'Ab', '-3': 'Eb', '-2': 'Bb', '-1': 'F', 0: 'C', 1: 'G', 2: 'D', 3: 'A', 4: 'E', 5: 'B', 6: 'F#', 7: 'C#' }[sf];
+  const hasHands = song.parts.some(p => p.role === 'R' || p.role === 'L');
+  const use = n => hasHands ? (n.part.role === 'R' || n.part.role === 'L') : (n.part.role !== 'M');
+  // measures
+  const barIdx = []; song.beats.forEach((b, i) => { if (b.bar) barIdx.push(i); });
+  if (!barIdx.length) return null;
+  const meas = barIdx.map((bi, k) => { const end = barIdx[k + 1] !== undefined ? barIdx[k + 1] : song.beats.length - 1; const bt = song.beats[bi]; const qpb = 4 / (bt.d || 4); return { bi, end, qpb, cap: (end - bi) * qpb, n: bt.n || 4, d: bt.d || 4, st: [new Map(), new Map()] }; }).filter(m => m.cap > 0);
+  const lastNote = song.all.filter(use).reduce((m, n) => Math.max(m, n.end), 0);
+  while (meas.length > 1 && beatTime(meas[meas.length - 1].bi) > lastNote + 0.01) meas.pop();
+  // swung eighths (long-short) are written as straight eighths, as jazz charts do
+  const unswing = x => { if (!song.swing) return x; const fl = Math.floor(x), fr = x - fl; return Math.abs(fr - 2 / 3) < 0.09 ? fl + 0.5 : x; };
+  const mOf = gb => { let lo = 0, hi = meas.length - 1; while (lo < hi) { const m = (lo + hi + 1) >> 1; if (meas[m].bi <= gb + 1e-6) lo = m; else hi = m - 1; } return lo; };
+  for (const n of song.all) {
+    if (!use(n)) continue;
+    const gb = beatIndex(n.start); let k = mOf(gb); let M = meas[k];
+    let pos = Math.round(unswing(gb - M.bi) * M.qpb * 4) / 4;
+    if (pos >= M.cap - 1e-6 && meas[k + 1]) { k++; M = meas[k]; pos = 0; }
+    pos = Math.min(pos, M.cap - 0.25);
+    let end = Math.round(unswing(beatIndex(n.end) - M.bi) * M.qpb * 4) / 4; end = Math.max(pos + 0.25, Math.min(M.cap, end));
+    const st = M.st[staffIsTreble(n) ? 0 : 1];
+    const c = st.get(pos) || { pos, keys: new Map(), end: 0 }; c.keys.set(n.midi, n); c.end = Math.max(c.end, end); st.set(pos, c);
+  }
+  // tickables
+  const keyOf = m => { const pc = m % 12; return { letter: LET[pc], acc: ACC[pc], oct: Math.floor(m / 12) - 1, name: 'cdefgab'[LET[pc]] + (ACC[pc] > 0 ? '#' : ACC[pc] < 0 ? 'b' : '') + '/' + (Math.floor(m / 12) - 1) }; };
+  const ties = [];
+  meas.forEach(M => {
+    M.tick = [[], []]; M.anch = [];
+    M.st.forEach((st, si) => {
+      const clef = si ? 'bass' : 'treble';
+      const chords = [...st.values()].sort((a, b) => a.pos - b.pos);
+      const state = new Map(); let cur = 0;
+      const rest = d => splitDur(d).forEach(([v, c]) => { const r = new VF.StaveNote({ keys: [si ? 'd/3' : 'b/4'], duration: c + 'r', clef }); if (c.endsWith('d')) VF.Dot.buildAndAttach([r], { all: true }); M.tick[si].push(r); M.anch.push(null); cur += v; });
+      chords.forEach((c, ci) => {
+        if (c.pos > cur + 1e-6) rest(c.pos - cur);
+        if (c.pos < cur - 1e-6) return; // overlapping onset after quantising: skip
+        const next = chords[ci + 1] ? chords[ci + 1].pos : M.cap;
+        const dur = Math.max(0.25, Math.min(c.end, next) - c.pos);
+        const mids = [...c.keys.keys()].sort((a, b) => a - b);
+        const ks = mids.map(keyOf);
+        const pieces = splitDur(dur); let prev = null;
+        pieces.forEach(([v, code], pi) => {
+          const sn = new VF.StaveNote({ keys: ks.map(k => k.name), duration: code, clef, auto_stem: true });
+          if (pi === 0) ks.forEach((k, i) => {
+            const id = k.letter + ':' + k.oct; const have = state.has(id) ? state.get(id) : keyAcc[k.letter];
+            if (have !== k.acc) { sn.addModifier(new VF.Accidental(k.acc > 0 ? '#' : k.acc < 0 ? 'b' : 'n'), i); state.set(id, k.acc); }
+          });
+          if (code.endsWith('d')) VF.Dot.buildAndAttach([sn], { all: true });
+          mids.forEach((m, i) => { const col = PITCH[m % 12]; sn.setKeyStyle(i, { fillStyle: col, strokeStyle: 'rgba(27,33,48,.85)' }); });
+          M.tick[si].push(sn); M.anch.push(pi === 0 ? { pos: c.pos, note: sn } : null);
+          if (prev) ties.push(new VF.StaveTie({ first_note: prev, last_note: sn, first_indices: mids.map((_, i) => i), last_indices: mids.map((_, i) => i) }));
+          prev = sn; cur += v;
+        });
+      });
+      if (cur < M.cap - 1e-6) rest(M.cap - cur);
+    });
+    M.w = 50 + 34 * Math.max(M.tick[0].length, M.tick[1].length, 2);
+  });
+  // layout and draw
+  const scale = Math.max(0.6, Math.min(1.7, (h - 16) / 250));
+  const head = 110 + Math.abs(sf) * 11;
+  const totalW = head + meas.reduce((a, M) => a + M.w, 0) + 40;
+  const renderer = new VF.Renderer(inner, VF.Renderer.Backends.SVG);
+  renderer.resize(totalW * scale, 250 * scale);
+  const ctx = renderer.getContext(); ctx.scale(scale, scale);
+  let x = 10; const anchors = []; let lastSig = '';
+  meas.forEach((M, k) => {
+    const first = k === 0; const sig = M.n + '/' + M.d; const w = M.w + (first ? head : 0) + (sig !== lastSig && !first ? 30 : 0);
+    const tS = new VF.Stave(x, 0, w), bS = new VF.Stave(x, 110, w);
+    if (first) { tS.addClef('treble').addKeySignature(KEYNAME); bS.addClef('bass').addKeySignature(KEYNAME); }
+    if (sig !== lastSig) { tS.addTimeSignature(sig); bS.addTimeSignature(sig); lastSig = sig; }
+    tS.setMeasure(k + 1);
+    tS.setContext(ctx).draw(); bS.setContext(ctx).draw();
+    if (first) { new VF.StaveConnector(tS, bS).setType('brace').setContext(ctx).draw(); new VF.StaveConnector(tS, bS).setType('singleLeft').setContext(ctx).draw(); }
+    new VF.StaveConnector(tS, bS).setType('singleRight').setContext(ctx).draw();
+    const voices = M.tick.map((tk, si) => { const v = new VF.Voice({ num_beats: M.n, beat_value: M.d }).setMode(VF.Voice.Mode.SOFT); v.addTickables(tk); return v; });
+    const beams = M.tick.map(tk => VF.Beam.generateBeams(tk.filter(t => !t.isRest()), { maintain_stem_directions: false }));
+    new VF.Formatter().joinVoices([voices[0]]).joinVoices([voices[1]]).format(voices, Math.max(40, tS.getNoteEndX() - tS.getNoteStartX() - 14));
+    voices[0].draw(ctx, tS); voices[1].draw(ctx, bS);
+    beams.flat().forEach(b => b.setContext(ctx).draw());
+    anchors.push({ t: beatTime(M.bi), x: tS.getNoteStartX() - 6 });
+    M.anch.forEach(a => { if (a) anchors.push({ t: beatTime(M.bi + a.pos / M.qpb), x: a.note.getAbsoluteX() }); });
+    x += w;
+  });
+  ties.forEach(t => t.setContext(ctx).draw());
+  anchors.push({ t: song.duration + 1, x: x });
+  anchors.sort((a, b) => a.t - b.t || a.x - b.x);
+  return { scale, anchors, h, key: songKey + '|' + song.parts.map(p => p.role).join('') };
+}
+function drawScore(y0, y1) {
+  const h = y1 - y0;
+  cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
+  const box = $('#score'); box.style.height = h + 'px';
+  if (!song) return;
+  const key = songKey + '|' + song.parts.map(p => p.role).join('');
+  if (!score || score.key !== key || Math.abs(score.h - h) > 24) { score = buildScore(h); if (score) score.h = h; }
+  if (!score) return;
+  const a = score.anchors; let i = 0; while (i < a.length - 2 && a[i + 1].t <= t) i++;
+  const A = a[i], B = a[i + 1] || A; const f = B.t > A.t ? Math.max(0, Math.min(1, (t - A.t) / (B.t - A.t))) : 0;
+  const xs = (A.x + (B.x - A.x) * f) * score.scale;
+  const playX = Math.max(120, W * 0.28);
+  const inner = $('#scoreInner'); inner.style.transform = `translate(${Math.round(playX - xs)}px, ${Math.round((h - 250 * score.scale) / 2)}px)`;
+  cx.fillStyle = 'rgba(200,150,60,.18)'; cx.fillRect(playX - 14, y0, 28, h);
+  cx.fillStyle = 'rgba(200,150,60,.85)'; cx.fillRect(playX - 1, y0 + 8, 2, h - 16);
 }
 
 /* ---------- Range / zoom ---------- */
@@ -1301,6 +1451,8 @@ function renderScores(hl) {
 
 /* ---------- Loading songs ---------- */
 function loadSong(s, meta = {}) {
+  if (!s.beats.length) { for (let i = 0; i * 0.5 <= s.duration + 2; i++) s.beats.push({ time: i * 0.5, bar: i % 4 === 0, n: 4, d: 4 }); }
+  score = null;
   song = s; songKey = (s.title + '|' + Math.round(s.duration)).toLowerCase();
   rebuildYou();
   if (s.sound) { settings.sound = s.sound; const ss = document.getElementById('soundSel'); if (ss) ss.value = s.sound; saveSettings(); }
@@ -1321,7 +1473,7 @@ function renderTracks() {
     const nm = document.createElement('div'); nm.className = 'tn'; nm.textContent = p.name; const sm = document.createElement('small'); sm.textContent = p.notes.length + ' Noten' + (p.drum ? ' · Schlagzeug' : ''); nm.appendChild(sm);
     const sel = document.createElement('select'); sel.setAttribute('aria-label', 'Rolle für ' + p.name);
     ['R', 'L', 'A', 'M'].forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = ROLE[r].label; sel.appendChild(o); });
-    sel.value = p.role; sel.onchange = () => { p.role = sel.value; sw.style.background = ROLE[p.role].c; rebuildYou(); seek(t); if (autoRange) fitRange(); };
+    sel.value = p.role; sel.onchange = () => { p.role = sel.value; score = null; sw.style.background = ROLE[p.role].c; rebuildYou(); seek(t); if (autoRange) fitRange(); };
     row.append(sw, nm, sel); el.appendChild(row);
   });
 }
@@ -1407,7 +1559,7 @@ function recEvent(type, m, v) { if (rec) rec.ev.push([type, m, v, (performance.n
 function toggleRec() {
   synth.ensure();
   if (!rec) { rec = { t0: performance.now(), ev: [] }; $('#recBtn').classList.add('on'); return; }
-  const r = rec; rec = null; $('#recBtn').classList.remove('on'); $('#recTxt').textContent = 'Aufnahme';
+  const r = rec; rec = null; $('#recBtn').classList.remove('on'); $('#recBtn').title = 'Aufnehmen, was du spielst (R)';
   const notes = eventsToNotes(r.ev);
   if (!notes.length) return;
   const d = new Date();
@@ -1504,12 +1656,15 @@ $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings
 $('#namesChk').checked = settings.names; $('#namesChk').onchange = e => { settings.names = e.target.checked; saveSettings(); };
 $('#germanChk').checked = settings.german; $('#germanChk').onchange = e => { settings.german = e.target.checked; saveSettings(); updateRangeLabel(); };
 $('#look').value = settings.look; $('#lookVal').textContent = settings.look; $('#look').oninput = e => { settings.look = +e.target.value; $('#lookVal').textContent = settings.look; saveSettings(); };
-$('#vol').value = settings.vol; $('#vol').oninput = e => { settings.vol = +e.target.value; synth.setVol(settings.vol); saveSettings(); };
 $('#selfChk').checked = settings.self; $('#selfChk').onchange = e => { settings.self = e.target.checked; saveSettings(); };
 setSpeed(settings.speed);
-const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideVal').textContent = v ? v + '%' : 'Aus'; $('#guideCtl').classList.toggle('on', v > 0); saveSettings(); };
-$('#guideBtn').onclick = () => { const c = $('#guideCtl'); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $('#guideBtn').setAttribute('aria-expanded', o); if (o && !settings.guide) setGuide(60); };
-document.addEventListener('pointerdown', e => { if (!e.target.closest('#guideCtl')) { $('#guideCtl').classList.remove('open'); $('#guideBtn').setAttribute('aria-expanded', 'false'); } });
+const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideCtl').classList.toggle('on', v > 0); $('#guideBtn').title = v ? 'Ziellinie: ' + v + ' %' : 'Ziellinie: aus'; saveSettings(); };
+const setVol = v => { settings.vol = v; $('#vol').value = v; $('#volQuick').value = v; synth.setVol(v); $('#volWave').style.opacity = v ? 1 : .15; $('#volBtn').title = 'Lautstärke: ' + v; saveSettings(); };
+$('#volQuick').oninput = e => setVol(+e.target.value); $('#vol').oninput = e => setVol(+e.target.value); setVol(settings.vol);
+function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $(btn).setAttribute('aria-expanded', o); if (o && onOpen) onOpen(); }; }
+popToggle('#guideCtl', '#guideBtn', () => { if (!settings.guide) setGuide(60); });
+popToggle('#volCtl', '#volBtn');
+document.addEventListener('pointerdown', e => { document.querySelectorAll('.pop-ctl.open').forEach(c => { if (!c.contains(e.target)) { c.classList.remove('open'); c.querySelector('.pop-btn').setAttribute('aria-expanded', 'false'); } }); });
 $('#guide').oninput = e => setGuide(+e.target.value); setGuide(settings.guide);
 
 /* ---------- Main loop ---------- */
@@ -1520,7 +1675,7 @@ function frame(now) {
   render(now);
   if (song && !seeking) { seekEl.value = Math.round(Math.max(0, t) / song.duration * 1000); $('#tNow').textContent = fmt(t); }
   updateWaitHint();
-  if (rec) $('#recTxt').textContent = fmt((now - rec.t0) / 1000);
+  if (rec) $('#recBtn').title = 'Aufnahme läuft ' + fmt((now - rec.t0) / 1000) + ' (zum Beenden klicken)';
   requestAnimationFrame(frame);
 }
 // open with a song ready so the first view shows what the app does
