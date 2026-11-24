@@ -142,6 +142,7 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; }
 .seg button[aria-pressed=true] { background: var(--glass-2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(220,185,120,.45); }
+.view-group { display: inline-flex; align-items: center; gap: 8px; flex: none; }
 .pop-ctl { position: relative; display: inline-flex; }
 .pop-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--muted); }
 .pop-btn:hover { background: var(--glass-2); color: var(--fg); }
@@ -294,6 +295,7 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="wait" aria-pressed="false">Üben</button>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
+    <div class="view-group">
     <div class="pop-ctl" id="guideCtl">
       <button class="pop-btn" id="guideBtn" title="Ziellinie" aria-label="Ziellinie" aria-expanded="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 3v13" stroke-dasharray="2 3"/><path d="M7 19h10"/></svg></button>
       <div class="pop-panel"><input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie"></div>
@@ -302,6 +304,7 @@ table.scores tr.me td { color: var(--gold); }
       <button data-view="rain" aria-pressed="true">Regen</button>
       <button data-view="sheet" aria-pressed="false">Farbnoten</button>
       <button data-view="score" aria-pressed="false">Noten</button>
+    </div>
     </div>
     <div class="speed">
       <span class="lbl">Tempo</span>
@@ -507,7 +510,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 const saveSettings = () => store.set('settings', settings);
 
@@ -999,8 +1002,8 @@ function drawKeyboard(now) {
   const expect = new Set(waitGroup().map(n => n.midi));
   // in the notation views a coming note tints its key softly, growing stronger as it nears
   const soon = new Map();
-  if (song && settings.view !== 'rain') {
-    const pre = Math.min(2, settings.look);
+  if (song && settings.view !== 'rain' && settings.pre > 0) {
+    const pre = settings.pre;
     const hands = song.parts.some(p => p.role === 'R' || p.role === 'L');
     for (let i = lb(song.all, t, 'start'); i < song.all.length; i++) {
       const n = song.all[i]; const dt = n.start - t; if (dt > pre) break;
@@ -1009,6 +1012,24 @@ function drawKeyboard(now) {
       if (!soon.has(n.midi) || soon.get(n.midi).a < a) soon.set(n.midi, { a, c: settings.color === 'hand' ? ROLE[r].c : PITCH[n.midi % 12] });
     }
   }
+  // keys that should be held right now get a coloured stripe on top; it glows harder when the key is really pressed
+  const due = new Map();
+  if (song) {
+    const hands = song.parts.some(p => p.role === 'R' || p.role === 'L');
+    for (let i = lb(song.all, t - song.maxDur - 0.05, 'start'); i < song.all.length; i++) {
+      const n = song.all[i]; if (n.start > t + 0.001) break; if (n.end <= t) continue;
+      const r = n.part.role; if (r === 'M' || (hands && r === 'A')) continue;
+      due.set(n.midi, settings.color === 'hand' ? ROLE[r].c : PITCH[n.midi % 12]);
+    }
+  }
+  const stripe = (m, x, y, w, hh, r) => {
+    const c = due.get(m); if (!c) return;
+    const p = pressed.get(m), hit = p && p.good !== false;
+    cx.save(); cx.shadowColor = c; cx.shadowBlur = hit ? 28 : 9; cx.fillStyle = c; cx.globalAlpha = hit ? 1 : 0.9;
+    rr(x, y, w, hh, r); cx.fill(); if (hit) { cx.fill(); }
+    cx.restore();
+    if (hit) { const gx = x + w / 2, gr = Math.max(w * 1.6, 26); const rg = cx.createRadialGradient(gx, top, 0, gx, top, gr); rg.addColorStop(0, c.replace(/[\d.]+\)$/, '0.6)')); rg.addColorStop(1, c.replace(/[\d.]+\)$/, '0)')); cx.fillStyle = rg; cx.fillRect(gx - gr, top - gr, gr * 2, gr); }
+  };
   const tint = (m, x, y, w, hh, r) => { const s = soon.get(m); if (!s) return; cx.globalAlpha = s.a; cx.fillStyle = s.c; rr(x, y, w, hh, r); cx.fill(); cx.globalAlpha = 1; };
   const stateOf = m => {
     const p = pressed.get(m); if (p) return { c: p.c, glow: p.good !== false };
@@ -1025,6 +1046,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#d9dce4'); g.addColorStop(0.15, '#f4f5f8'); g.addColorStop(1, '#ffffff'); }
     cx.fillStyle = g; rr(x, top, w, h - 1, Math.min(5, w * .2)); cx.fill();
     if (!st) tint(m, x, top, w, h - 1, Math.min(5, w * .2));
+    stripe(m, x + 1.5, top + 1, w - 3, Math.max(5, h * 0.085), 3);
     if (expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
     if (m % 12 === 0 && k.w > 14) { cx.fillStyle = 'rgba(30,34,50,.55)'; cx.font = `500 ${Math.min(11, k.w * .42)}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'bottom'; cx.fillText('C' + (Math.floor(m / 12) - 1), x + w / 2, top + h - 5); }
   }
@@ -1037,6 +1059,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#101219'); g.addColorStop(0.85, '#272b38'); g.addColorStop(1, '#3a3f4f'); }
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
     if (!st) tint(m, k.x, top - 1, k.w, bh, 3);
+    stripe(m, k.x + 1.5, top, k.w - 3, Math.max(4, bh * 0.1), 2);
     if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
   }
 }
@@ -1398,7 +1421,7 @@ function segInit(id, key, onChange) {
   sync();
 }
 segInit('#modeSeg', 'mode', () => { if (song) { seek(t); updateHud(); } });
-segInit('#viewSeg', 'view');
+segInit('#viewSeg', 'view', () => syncGuide());
 
 /* ---------- HUD ---------- */
 function bestFor(key) { const l = (store.get('scores', {})[key] || []); return l.length ? l[0].score : null; }
@@ -1675,14 +1698,22 @@ $('#germanChk').checked = settings.german; $('#germanChk').onchange = e => { set
 $('#look').value = settings.look; $('#lookVal').textContent = settings.look; $('#look').oninput = e => { settings.look = +e.target.value; $('#lookVal').textContent = settings.look; saveSettings(); };
 $('#selfChk').checked = settings.self; $('#selfChk').onchange = e => { settings.self = e.target.checked; saveSettings(); };
 setSpeed(settings.speed);
-const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideCtl').classList.toggle('on', v > 0); $('#guideBtn').title = v ? 'Ziellinie: ' + v + ' %' : 'Ziellinie: aus'; saveSettings(); };
+// one mini control: in the falling-notes view it sets the guide line length, in the notation views the lead time of the key tint
+const guideIsPre = () => settings.view !== 'rain';
+function syncGuide() {
+  const pre = guideIsPre(), v = pre ? Math.round(settings.pre * 25) : settings.guide;
+  $('#guide').value = v; $('#guideCtl').classList.toggle('on', v > 0);
+  $('#guide').setAttribute('aria-label', pre ? 'Vorlauf der Tasten-Ankündigung' : 'Länge der Ziellinie');
+  $('#guideBtn').title = pre ? (v ? 'Vorlauf: ' + settings.pre.toFixed(1).replace('.', ',') + ' s' : 'Vorlauf: aus') : (v ? 'Ziellinie' : 'Ziellinie: aus');
+}
+const setGuide = v => { if (guideIsPre()) settings.pre = v / 25; else settings.guide = v; syncGuide(); saveSettings(); };
 const setVol = v => { settings.vol = v; $('#vol').value = v; $('#volQuick').value = v; synth.setVol(v); $('#volWave').style.opacity = v ? 1 : .15; $('#volBtn').title = 'Lautstärke: ' + v; saveSettings(); };
 $('#volQuick').oninput = e => setVol(+e.target.value); $('#vol').oninput = e => setVol(+e.target.value); setVol(settings.vol);
 function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $(btn).setAttribute('aria-expanded', o); if (o && onOpen) onOpen(); }; }
-popToggle('#guideCtl', '#guideBtn', () => { if (!settings.guide) setGuide(60); });
+popToggle('#guideCtl', '#guideBtn', () => { if (+$('#guide').value === 0) setGuide(guideIsPre() ? 50 : 60); });
 popToggle('#volCtl', '#volBtn');
 document.addEventListener('pointerdown', e => { document.querySelectorAll('.pop-ctl.open').forEach(c => { if (!c.contains(e.target)) { c.classList.remove('open'); c.querySelector('.pop-btn').setAttribute('aria-expanded', 'false'); } }); });
-$('#guide').oninput = e => setGuide(+e.target.value); setGuide(settings.guide);
+$('#guide').oninput = e => setGuide(+e.target.value); syncGuide();
 
 /* ---------- Main loop ---------- */
 function frame(now) {
