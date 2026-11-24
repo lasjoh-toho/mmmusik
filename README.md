@@ -20,6 +20,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Eingebaute Lieder: sechs gemeinfreie Klassiker und Kinderlieder plus Jazz & Ragtime (Swing-Blues mit Walking Bass, When the Saints Go Marching In, The Entertainer).
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - Klangfarben Flügel, E-Piano und Jazz-Orgel.
+- Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt und beim Näherkommen kräftiger wird; Länge einstellbar.
 - Tempo 25–150 %, Springen, Notennamen (deutsch mit H oder englisch).
 
 ## Veröffentlichen mit GitHub Pages

@@ -110,10 +110,9 @@ header.bar {
 }
 .wait-hint b { font-family: var(--f-mono); color: var(--gold); font-weight: 500; }
 .zoom-box {
-  position: absolute; right: max(12px, env(safe-area-inset-right, 0px)); bottom: calc(var(--kbh, 120px) + 14px);
-  display: flex; gap: 4px; align-items: center;
-  background: rgba(10,13,22,.78); border: 1px solid var(--line); border-radius: 999px; padding: 4px;
-  backdrop-filter: blur(8px);
+  margin-left: auto;
+  display: flex; gap: 2px; align-items: center; flex-wrap: wrap;
+  background: var(--glass); border: 1px solid var(--line); border-radius: 999px; padding: 3px;
 }
 .zoom-box .btn { padding: 5px 9px; font-size: 12px; border: 0; background: transparent; }
 .zoom-box .btn:hover { background: var(--glass-2); }
@@ -214,7 +213,6 @@ table.scores tr.me td { color: var(--gold); }
 .card .actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
 
 @media (max-width: 760px) {
-  .zoom-box { bottom: auto; top: 12px; }
   .wait-hint { top: 58px; }
 }
 @media (max-width: 640px) {
@@ -249,15 +247,6 @@ table.scores tr.me td { color: var(--gold); }
       <div class="pill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
     </div>
     <div class="wait-hint" id="waitHint" hidden></div>
-    <div class="zoom-box" aria-label="Tastatur-Ausschnitt">
-      <button class="btn" id="zLeft" title="Ausschnitt nach links">◀</button>
-      <button class="btn" id="zOut" title="Mehr Tasten zeigen">−</button>
-      <span class="range-label" id="zLabel">A0–C8</span>
-      <button class="btn" id="zIn" title="Weniger Tasten, größer">+</button>
-      <button class="btn" id="zRight" title="Ausschnitt nach rechts">▶</button>
-      <button class="btn" id="zAuto" title="An den Song anpassen">Auto</button>
-      <button class="btn" id="zFull" title="Alle 88 Tasten">88</button>
-    </div>
     <div class="drop-veil" id="dropVeil" hidden>MIDI-Datei hier ablegen</div>
   </main>
 
@@ -283,6 +272,21 @@ table.scores tr.me td { color: var(--gold); }
       <span class="lbl">Tempo</span>
       <input type="range" id="speed" min="25" max="150" step="5" value="100" aria-label="Tempo">
       <span class="val" id="speedVal">100%</span>
+    </div>
+    <div class="speed" title="Dünne Ziellinie unter jeder Note, die zur Taste hin kräftiger wird">
+      <span class="lbl">Linie</span>
+      <input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie">
+      <span class="val" id="guideVal">Aus</span>
+    </div>
+    <div class="zoom-box" aria-label="Oktavraum">
+      <span class="lbl" style="padding-left:6px">Oktaven</span>
+      <button class="btn" id="zLeft" title="Ausschnitt nach links">◀</button>
+      <button class="btn" id="zOut" title="Mehr Tasten zeigen">−</button>
+      <span class="range-label" id="zLabel">A0–C8</span>
+      <button class="btn" id="zIn" title="Weniger Tasten, größer">+</button>
+      <button class="btn" id="zRight" title="Ausschnitt nach rechts">▶</button>
+      <button class="btn" id="zAuto" title="An den Song anpassen">Auto</button>
+      <button class="btn" id="zFull" title="Alle 88 Tasten">88</button>
     </div>
   </footer>
 </div>
@@ -456,7 +460,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 const saveSettings = () => store.set('settings', settings);
 
 /* ---------- Synth ---------- */
@@ -802,6 +806,24 @@ function drawRain(y0, y1, now) {
   // beat lines
   const bi = lb(song.beats, t, 'time');
   for (let i = bi; i < song.beats.length; i++) { const b = song.beats[i]; const y = y1 - (b.time - t) * pps; if (y < y0) break; cx.fillStyle = b.bar ? 'rgba(220,185,120,.16)' : 'rgba(255,255,255,.035)'; cx.fillRect(0, y, W, 1); }
+  // guide lines: a thin line under each coming note aims at its key, faint far away and stronger close to the hit
+  if (settings.guide > 0) {
+    const reach = settings.guide / 100;
+    const g0 = lb(song.all, t, 'start');
+    for (let i = g0; i < song.all.length; i++) {
+      const n = song.all[i]; if (n.start > t + look) break;
+      if (n.part.role === 'M' || n.part.role === 'A') continue;
+      const k = KB.keys[n.midi]; if (!k) continue;
+      const yb = y1 - (n.start - t) * pps; const dist = y1 - yb; if (dist < 2) continue;
+      const len = dist * reach; const ye = yb + len;
+      const near = 1 - (n.start - t) / look; const a = 0.12 + 0.88 * near * near;
+      const x = k.x + k.w / 2; const col = colorOf(n);
+      const lg = cx.createLinearGradient(0, yb, 0, ye);
+      lg.addColorStop(0, col.replace(/[\d.]+\)$/, (a * 0.08) + ')')); lg.addColorStop(1, col.replace(/[\d.]+\)$/, a + ')'));
+      cx.strokeStyle = lg; cx.lineWidth = 1.5 + near * 1.5; cx.beginPath(); cx.moveTo(x, yb); cx.lineTo(x, ye); cx.stroke();
+      if (reach >= 0.999) { cx.fillStyle = col.replace(/[\d.]+\)$/, a + ')'); cx.beginPath(); cx.arc(x, y1 - 2, 1.5 + near * 2, 0, Math.PI * 2); cx.fill(); }
+    }
+  }
   // notes
   const s0 = lb(song.all, t - song.maxDur - 0.1, 'start');
   const offL = [], offR = [];
@@ -1379,6 +1401,8 @@ $('#look').value = settings.look; $('#lookVal').textContent = settings.look; $('
 $('#vol').value = settings.vol; $('#vol').oninput = e => { settings.vol = +e.target.value; synth.setVol(settings.vol); saveSettings(); };
 $('#selfChk').checked = settings.self; $('#selfChk').onchange = e => { settings.self = e.target.checked; saveSettings(); };
 setSpeed(settings.speed);
+const setGuide = v => { settings.guide = v; $('#guide').value = v; $('#guideVal').textContent = v ? v + '%' : 'Aus'; saveSettings(); };
+$('#guide').oninput = e => setGuide(+e.target.value); setGuide(settings.guide);
 
 /* ---------- Main loop ---------- */
 function frame(now) {
