@@ -21,6 +21,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - Klangfarben Flügel, E-Piano und Jazz-Orgel.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
+- **Aufnahme**: Spiel auf, was du willst (Taste R oder Button). Zeitpunkt, Anschlagstärke und Haltepedal bleiben so erhalten, wie du gespielt hast. Aufnahmen werden im Browser gespeichert, lassen sich umbenennen, als Notenregen abspielen und als .mid-Datei herunterladen.
 - Tempo 25–150 %, Springen, Notennamen (deutsch mit H oder englisch).
 
 ## Veröffentlichen mit GitHub Pages

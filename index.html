@@ -148,6 +148,17 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .guide-slide input { width: 110px; flex: none; }
 .guide-ctl:hover .guide-slide, .guide-ctl:focus-within .guide-slide, .guide-ctl.open .guide-slide { width: 122px; opacity: 1; padding-left: 8px; }
 @media (prefers-reduced-motion: reduce) { .guide-slide { transition: none; } }
+.rec-btn .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5d6c; box-shadow: 0 0 0 2px rgba(255,93,108,.25); }
+.rec-btn.on { border-color: rgba(255,93,108,.6); background: rgba(255,93,108,.12); font-family: var(--f-mono); }
+.rec-btn.on .rec-dot { animation: recpulse 1s ease-in-out infinite; }
+@keyframes recpulse { 50% { opacity: .3; } }
+@media (prefers-reduced-motion: reduce) { .rec-btn.on .rec-dot { animation: none; } }
+.rec-item { display: grid; grid-template-columns: 1fr auto; gap: 8px; align-items: center; padding: 8px 8px 8px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); }
+.rec-item .nm { background: transparent; border: 0; padding: 4px 0; font-weight: 500; min-width: 0; width: 100%; }
+.rec-item .nm:focus { outline: none; border-bottom: 1px solid var(--gold); }
+.rec-item .meta { color: var(--muted); font-size: 12px; }
+.rec-item .acts { display: flex; gap: 4px; grid-row: 1 / span 2; grid-column: 2; }
+.rec-item .acts .btn { padding: 6px 10px; font-size: 12px; }
 .speed { display: flex; align-items: center; gap: 8px; }
 .speed input { width: 110px; }
 .speed .val { font-family: var(--f-mono); font-size: 12px; width: 40px; color: var(--muted); }
@@ -262,6 +273,7 @@ table.scores tr.me td { color: var(--gold); }
   <footer class="transport">
     <button class="play-btn" id="playBtn" title="Abspielen (Leertaste)"><svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
     <button class="btn icon" id="restartBtn" title="Von vorn (Pos1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
+    <button class="btn rec-btn" id="recBtn" title="Aufnehmen, was du spielst (R)"><span class="rec-dot"></span><span id="recTxt">Aufnahme</span></button>
     <div class="seek">
       <span class="time" id="tNow">0:00</span>
       <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position im Song">
@@ -308,6 +320,11 @@ table.scores tr.me td { color: var(--gold); }
     <button role="tab" data-tab="settings" aria-selected="false">Einstellungen</button>
   </div>
   <div class="panel-body" id="tab-songs">
+    <section>
+      <h3>Meine Aufnahmen</h3>
+      <div class="list" id="recList"></div>
+      <p class="note">Aufnahmen speichern Zeitpunkt, Anschlagstärke und Haltepedal so, wie du gespielt hast. Sie bleiben in diesem Browser; mit „MIDI“ lädst du eine .mid-Datei herunter.</p>
+    </section>
     <section>
       <h3>Im Internet suchen</h3>
       <form class="row" id="searchForm">
@@ -385,7 +402,7 @@ table.scores tr.me td { color: var(--gold); }
     </section>
     <section>
       <h3>Tastenkürzel</h3>
-      <p class="note"><span class="kbd">Leertaste</span> Start/Pause · <span class="kbd">Pos1</span> von vorn · <span class="kbd">←</span>/<span class="kbd">→</span> 5 s springen · <span class="kbd">↑</span>/<span class="kbd">↓</span> Tempo · Mausrad auf der Bühne zoomt die Tastatur, mit <span class="kbd">Shift</span> verschiebt es sie.</p>
+      <p class="note"><span class="kbd">Leertaste</span> Start/Pause · <span class="kbd">Pos1</span> von vorn · <span class="kbd">←</span>/<span class="kbd">→</span> 5 s springen · <span class="kbd">↑</span>/<span class="kbd">↓</span> Tempo · <span class="kbd">R</span> Aufnahme starten/stoppen · Mausrad auf der Bühne zoomt die Tastatur, mit <span class="kbd">Shift</span> verschiebt es sie.</p>
     </section>
   </div>
 </aside>
@@ -1091,7 +1108,7 @@ function judge(m, now) {
 /* ---------- Input ---------- */
 function noteOn(m, vel = 96) {
   m += settings.transp | 0; if (m < 0 || m > 127) return;
-  synth.noteOn(m, vel);
+  synth.noteOn(m, vel); recEvent(1, m, vel);
   const now = performance.now();
   const good = judge(m, now);
   let c = 'rgba(220,185,120,.95)';
@@ -1100,7 +1117,7 @@ function noteOn(m, vel = 96) {
   pressed.set(m, { c, good });
   if (settings.mode === 'watch' || !playing) flashes.push({ midi: m, t0: now, c: PITCH_GLOW[m % 12] });
 }
-function noteOff(m) { m += settings.transp | 0; synth.noteOff(m); pressed.delete(m); }
+function noteOff(m) { m += settings.transp | 0; synth.noteOff(m); pressed.delete(m); recEvent(0, m, 0); }
 
 // Web MIDI
 let midiAccess = null;
@@ -1114,7 +1131,7 @@ function onMidiMsg(e) {
   if (settings.chan !== 'all' && ch !== +settings.chan) return;
   if (cmd === 0x90 && b > 0) noteOn(a, b);
   else if (cmd === 0x80 || cmd === 0x90) noteOff(a);
-  else if (cmd === 0xb0 && a === 64) synth.setPedal(b >= 64);
+  else if (cmd === 0xb0 && a === 64) { synth.setPedal(b >= 64); recEvent(2, 64, b); }
 }
 function bindInputs() {
   if (!midiAccess) return;
@@ -1146,6 +1163,7 @@ window.addEventListener('keydown', e => {
   if (e.target.closest('input, select, textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); return; }
   if (e.code === 'Home') { restart(); return; }
+  if (e.code === 'KeyR' && !e.repeat && !KEYMAP.KeyR) { toggleRec(); return; }
   if (e.code === 'ArrowLeft') { seek(t - 5); return; }
   if (e.code === 'ArrowRight') { seek(t + 5); return; }
   if (e.code === 'ArrowUp') { setSpeed(settings.speed + 5); e.preventDefault(); return; }
@@ -1383,6 +1401,84 @@ function renderRecent() {
 }
 renderRecent();
 
+/* ---------- Recording: keeps exact timing, velocity and sustain pedal ---------- */
+let rec = null;
+function recEvent(type, m, v) { if (rec) rec.ev.push([type, m, v, (performance.now() - rec.t0) / 1000]); }
+function toggleRec() {
+  synth.ensure();
+  if (!rec) { rec = { t0: performance.now(), ev: [] }; $('#recBtn').classList.add('on'); return; }
+  const r = rec; rec = null; $('#recBtn').classList.remove('on'); $('#recTxt').textContent = 'Aufnahme';
+  const notes = eventsToNotes(r.ev);
+  if (!notes.length) return;
+  const d = new Date();
+  const name = 'Aufnahme ' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const item = { id: Date.now(), name, notes: notes.map(n => [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel]) };
+  const list = store.get('recordings', []); list.unshift(item); store.set('recordings', list.slice(0, 30));
+  renderRecs(); loadRecording(item); openPanel('songs');
+}
+function eventsToNotes(ev) {
+  // pair key presses with releases; while the pedal is down a released note keeps sounding until the pedal comes up
+  const open = new Map(), sustained = new Map(), out = []; let pedal = false;
+  const close = (o, end) => out.push({ midi: o.m, start: o.t, end: Math.max(end, o.t + 0.05), vel: o.v });
+  for (const [type, m, v, time] of ev) {
+    if (type === 1) { if (open.has(m)) close(open.get(m), time); if (sustained.has(m)) { close(sustained.get(m), time); sustained.delete(m); } open.set(m, { m, v, t: time }); }
+    else if (type === 0) { const o = open.get(m); if (!o) continue; open.delete(m); if (pedal) sustained.set(m, o); else close(o, time); }
+    else if (type === 2) { const down = v >= 64; if (pedal && !down) { sustained.forEach(o => close(o, time)); sustained.clear(); } pedal = down; }
+  }
+  const last = ev.length ? ev[ev.length - 1][3] : 0;
+  open.forEach(o => close(o, last + 0.3)); sustained.forEach(o => close(o, last + 0.3));
+  if (!out.length) return out;
+  const first = Math.min(...out.map(n => n.start)) - 0.5;
+  out.forEach(n => { n.start -= first; n.end -= first; });
+  return out.sort((a, b) => a.start - b.start);
+}
+function loadRecording(item) {
+  const notes = item.notes.map(([midi, start, end, vel]) => ({ midi, start, end, vel }));
+  const s = makeSong(item.name, [{ name: 'Gespielt', ch: 0, program: 0, drum: false, notes }], [], 0);
+  s.source = 'Eigene Aufnahme'; s.recId = item.id;
+  loadSong(s);
+}
+function midiFile(notes) {
+  // format 0, 480 ticks per quarter at 120 BPM: 960 ticks per second
+  const ev = [];
+  notes.forEach(([m, st, en, v]) => { ev.push([Math.round(st * 960), 0x90, m, v]); ev.push([Math.round(en * 960), 0x80, m, 64]); });
+  ev.sort((a, b) => a[0] - b[0] || (a[1] === 0x80 ? -1 : 1));
+  const bytes = [0x00, 0xff, 0x51, 0x03, 0x07, 0xa1, 0x20];
+  const vlq = n => { const b = [n & 0x7f]; while ((n >>= 7)) b.unshift((n & 0x7f) | 0x80); return b; };
+  let last = 0; ev.forEach(([tk, st, m, v]) => { bytes.push(...vlq(tk - last), st, m, v); last = tk; });
+  bytes.push(0x00, 0xff, 0x2f, 0x00);
+  const head = [0x4d, 0x54, 0x68, 0x64, 0, 0, 0, 6, 0, 0, 0, 1, 0x01, 0xe0, 0x4d, 0x54, 0x72, 0x6b, (bytes.length >>> 24) & 255, (bytes.length >>> 16) & 255, (bytes.length >>> 8) & 255, bytes.length & 255];
+  return new Uint8Array([...head, ...bytes]);
+}
+function renderRecs() {
+  const el = $('#recList'); el.innerHTML = '';
+  const list = store.get('recordings', []);
+  if (!list.length) { el.innerHTML = '<p class="note">Noch keine Aufnahmen. Drück unten auf „Aufnahme“ (oder R), spiel los und drück noch einmal zum Beenden.</p>'; return; }
+  list.forEach(item => {
+    const row = document.createElement('div'); row.className = 'rec-item';
+    const nm = document.createElement('input'); nm.className = 'nm'; nm.value = item.name; nm.setAttribute('aria-label', 'Name der Aufnahme'); nm.maxLength = 40;
+    nm.onchange = () => { const l = store.get('recordings', []); const it = l.find(x => x.id === item.id); if (it) { it.name = nm.value.trim() || it.name; store.set('recordings', l); } };
+    const dur = item.notes.reduce((m, n) => Math.max(m, n[2]), 0);
+    const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = item.notes.length + ' Noten · ' + fmt(dur);
+    const acts = document.createElement('div'); acts.className = 'acts';
+    const mk = (txt, title, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = txt; b.title = title; b.onclick = fn; acts.appendChild(b); return b; };
+    mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); updateHud(); restart(); });
+    mk('MIDI', 'Als .mid-Datei herunterladen', () => {
+      const blob = new Blob([midiFile(item.notes)], { type: 'audio/midi' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
+      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+    });
+    let armed = false;
+    const del = mk('✕', 'Löschen', () => {
+      if (!armed) { armed = true; del.textContent = 'Löschen?'; setTimeout(() => { armed = false; del.textContent = '✕'; }, 3000); return; }
+      store.set('recordings', store.get('recordings', []).filter(x => x.id !== item.id)); renderRecs();
+    });
+    row.append(nm, acts, meta); el.appendChild(row);
+  });
+}
+$('#recBtn').onclick = toggleRec;
+renderRecs();
+
 /* ---------- Panel ---------- */
 const panel = $('#panel');
 const TAB_TITLES = { songs: 'Bibliothek', tracks: 'Stimmen', scores: 'Bestenliste', settings: 'Einstellungen' };
@@ -1421,13 +1517,14 @@ function frame(now) {
   render(now);
   if (song && !seeking) { seekEl.value = Math.round(Math.max(0, t) / song.duration * 1000); $('#tNow').textContent = fmt(t); }
   updateWaitHint();
+  if (rec) $('#recTxt').textContent = fmt((now - rec.t0) / 1000);
   requestAnimationFrame(frame);
 }
 // open with a song ready so the first view shows what the app does
 loadSong(builtin(BUILTIN[3]));
 updateRangeLabel();
 requestAnimationFrame(t0 => { lastNow = t0; requestAnimationFrame(frame); });
-window.mmm = { get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi };
+window.mmm = { get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
 <!--APP-END-->
