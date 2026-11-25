@@ -1109,7 +1109,17 @@ function drawRain(y0, y1, now, ppsFix) {
   const pps = ppsFix || h / settings.look, look = h / pps;
   // beat lines
   const bi = lb(song.beats, t, 'time');
-  for (let i = bi; i < song.beats.length; i++) { const b = song.beats[i]; const y = y1 - (b.time - t) * pps; if (y < y0) break; cx.fillStyle = b.bar ? 'rgba(220,185,120,.16)' : 'rgba(255,255,255,.035)'; cx.fillRect(0, y, W, 1); }
+  // bar lines with bar numbers, finer lines for the beats
+  let barNo = 0; for (let i = 0; i < bi; i++) if (song.beats[i].bar) barNo++;
+  cx.font = '600 11px Inter, system-ui, sans-serif'; cx.textAlign = 'left'; cx.textBaseline = 'bottom';
+  for (let i = bi; i < song.beats.length; i++) {
+    const b = song.beats[i]; const y = y1 - (b.time - t) * pps; if (y < y0) break;
+    if (b.bar) {
+      barNo++;
+      cx.fillStyle = 'rgba(220,185,120,.5)'; cx.fillRect(0, Math.round(y) - 1, W, 2);
+      cx.fillStyle = 'rgba(220,185,120,.85)'; cx.fillText(barNo, 6, y - 3);
+    } else { cx.fillStyle = 'rgba(255,255,255,.07)'; cx.fillRect(0, Math.round(y), W, 1); }
+  }
   // guide lines: a thin line under each coming note aims at its key, faint far away and stronger close to the hit
   if (settings.guide > 0) {
     const reach = settings.guide / 100;
