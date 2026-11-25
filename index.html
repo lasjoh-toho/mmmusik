@@ -112,7 +112,13 @@ header.bar {
 .metro[data-phase=count] .m-state i { background: var(--gold); }
 .metro[data-phase=rec] .m-state i { background: #ff5d6c; animation: recpulse 1s ease-in-out infinite; }
 .m-stage { display: flex; gap: clamp(16px, 5vw, 48px); align-items: center; }
-.m-svg { width: clamp(70px, 15vh, 150px); height: auto; overflow: visible; }
+.m-meter { position: relative; display: grid; justify-items: center; }
+.pop-ctl.m-foot { position: absolute; bottom: 2%; left: 50%; transform: translateX(-50%); }
+.m-foot .knob { width: 34px; height: 34px; background: #0f131e; }
+.metro:not([data-phase=ready]) .m-foot .pop-panel { display: none; }
+.m-bpm-panel { display: grid; justify-items: center; gap: 8px; padding: 12px 8px; border-radius: 18px; }
+.m-bpm-panel .rl { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+.m-svg { width: clamp(80px, 17vh, 160px); height: auto; overflow: visible; }
 .m-svg .body { fill: url(#mBody); stroke: rgba(255,255,255,.12); }
 .m-svg .face { fill: #0b0e17; }
 .m-svg .tick { stroke: rgba(255,255,255,.16); stroke-width: 1; }
@@ -131,12 +137,9 @@ header.bar {
 .m-cfg { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; align-items: center; }
 .metro:not([data-phase=ready]) .m-cfg { display: none; }
 .m-cfg .m-f { display: grid; gap: 4px; justify-items: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
-.m-tempo { display: flex; align-items: center; gap: 6px; }
-.m-tempo input[type=range] { width: 140px; }
-.m-tempo output { font-family: var(--f-mono); font-size: 15px; color: var(--fg); min-width: 3ch; text-align: right; }
 .m-acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .metro[data-phase=ready] .m-hint { display: none; }
-@media (max-width: 600px) { .m-top { display: none; } .m-svg { width: 64px; } .m-num b { font-size: 48px; } .m-tempo input[type=range] { width: 100px; } }
+@media (max-width: 600px) { .m-top { display: none; } .m-svg { width: 84px; } .m-num b { font-size: 48px; } }
 .m-hint { font-size: 12px; color: var(--muted); text-align: center; max-width: 46ch; }
 .hud .pill {
   background: rgba(10,13,22,.72); border: 1px solid var(--line); backdrop-filter: blur(8px);
@@ -389,19 +392,25 @@ table.scores tr.me td { color: var(--gold); }
       <div class="m-card">
         <div class="m-top">Lehrer-Modus <span class="m-state"><i></i><span id="mState">Bereit</span></span></div>
         <div class="m-stage">
-          <svg class="m-svg" viewBox="0 0 120 170" aria-hidden="true">
+          <div class="m-meter">
+          <svg class="m-svg" viewBox="0 0 120 184" aria-hidden="true">
             <defs><linearGradient id="mBody" x1="0" x2="1"><stop offset="0" stop-color="#2a3145"/><stop offset=".5" stop-color="#1b2131"/><stop offset="1" stop-color="#131826"/></linearGradient></defs>
-            <path class="body" d="M42 6 H78 L112 164 H8 Z" stroke-linejoin="round"/>
+            <path class="body" d="M42 6 H78 L112 164 V180 H8 V164 Z" stroke-linejoin="round"/>
             <path class="face" d="M47 18 H73 L96 138 H24 Z"/>
             <g id="mTicks"></g>
             <g id="mArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mWeight" x="52" y="60" width="16" height="12" rx="3"/></g>
             <circle class="pivot" cx="60" cy="140" r="4"/>
           </svg>
+          <div class="pop-ctl knob-ctl m-foot" id="mBpmCtl">
+            <button class="knob pop-btn" id="mBpmBtn" title="Metronom-Tempo in Schlägen pro Minute" aria-label="Metronom-Tempo" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="mBpmArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="mBpmPct">90</span></button>
+            <div class="pop-panel m-bpm-panel"><span class="rl">schneller</span><input type="range" id="mBpm" min="40" max="208" step="1" aria-label="Metronom-Tempo in Schlägen pro Minute"><span class="rl">langsamer</span><button class="btn mini" id="mTap" title="Im Tempo mehrmals tippen">Tippen</button></div>
+          </div>
+          </div>
           <div class="m-num"><b id="mNum">4/4</b><span id="mSub">Takt</span></div>
         </div>
         <div class="m-beats" id="mBeats"></div>
         <div class="m-cfg">
-          <div class="m-f">Tempo<span class="m-tempo"><button class="btn icon-btn" id="mSlower" aria-label="Langsamer">−</button><input type="range" id="mBpm" min="40" max="208" step="1" aria-label="Tempo in Schlägen pro Minute"><output id="mBpmVal"></output><button class="btn icon-btn" id="mFaster" aria-label="Schneller">+</button><button class="btn" id="mTap" title="Im Tempo mehrmals tippen">Tippen</button></span></div>
+          
           <div class="m-f">Takt<span class="seg" id="mSigSeg"><button data-metro-sig="2/4">2/4</button><button data-metro-sig="3/4">3/4</button><button data-metro-sig="4/4">4/4</button><button data-metro-sig="6/8">6/8</button></span></div>
           <div class="m-f">Einzählen<span class="seg" id="mCountSeg"><button data-metro-count="0">Aus</button><button data-metro-count="1">1 Takt</button><button data-metro-count="2">2 Takte</button></span></div>
           <div class="m-f">Klick<span class="seg" id="mClickSeg"><button data-metro-click="on">Immer</button><button data-metro-click="count">Nur Einzählen</button><button data-metro-click="off">Stumm</button></span></div>
@@ -1897,7 +1906,7 @@ function metroLayout() {
   const { n } = metroSig();
   const el = $('#mBeats'); el.innerHTML = '';
   for (let i = 0; i < n; i++) { const b = document.createElement('i'); if (i === 0 || (n === 6 && i === 3)) b.className = 'acc'; el.appendChild(b); }
-  $('#mBpm').value = settings.metroBpm; $('#mBpmVal').textContent = settings.metroBpm;
+  $('#mBpm').value = settings.metroBpm; $('#mBpmPct').textContent = settings.metroBpm; $('#mBpmArc').style.strokeDasharray = (75 * (settings.metroBpm - 40) / 168) + ' 100';
   // a real metronome: the weight slides down for faster tempi
   $('#mWeight').setAttribute('y', 28 + (208 - settings.metroBpm) / 168 * 70);
   if (metro.phase === 'ready') { $('#mNum').textContent = settings.metroSig; $('#mSub').textContent = settings.metroBpm + ' Schläge pro Minute'; }
@@ -1990,8 +1999,7 @@ $('#mGo').onclick = metroGoStop;
 $('#mCancel').onclick = metroCancel;
 const setMetroBpm = v => { settings.metroBpm = Math.max(40, Math.min(208, Math.round(v))); saveSettings(); metroLayout(); };
 $('#mBpm').oninput = e => setMetroBpm(+e.target.value);
-$('#mSlower').onclick = () => setMetroBpm(settings.metroBpm - 2);
-$('#mFaster').onclick = () => setMetroBpm(settings.metroBpm + 2);
+$('#mBpmBtn').addEventListener('wheel', e => { e.preventDefault(); e.stopPropagation(); setMetroBpm(settings.metroBpm + (e.deltaY < 0 ? 1 : -1)); }, { passive: false });
 $('#mTap').onclick = () => {
   const now = performance.now(); metro.taps = metro.taps.filter(x => now - x < 2500); metro.taps.push(now);
   if (metro.taps.length >= 3) { const iv = (metro.taps[metro.taps.length - 1] - metro.taps[0]) / (metro.taps.length - 1); setMetroBpm(60000 / iv); }
@@ -2119,6 +2127,7 @@ function knobShow(id, v, min, max) { $('#' + id + 'Pct').textContent = v; $('#' 
   popToggle('#' + id + 'Ctl', '#' + id + 'Btn');
 });
 popToggle('#speedCtl', '#speedBtn');
+popToggle('#mBpmCtl', '#mBpmBtn');
 function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $(btn).setAttribute('aria-expanded', o); if (o && onOpen) onOpen(); }; }
 popToggle('#guideCtl', '#guideBtn', () => { if (+$('#guide').value === 0) setGuide(guideIsPre() ? 50 : 60); });
 document.addEventListener('pointerdown', e => { document.querySelectorAll('.pop-ctl.open').forEach(c => { if (!c.contains(e.target)) { c.classList.remove('open'); c.querySelector('.pop-btn').setAttribute('aria-expanded', 'false'); } }); });
