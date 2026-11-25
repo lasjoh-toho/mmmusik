@@ -250,6 +250,15 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .seg { display: inline-flex; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
 .seg button { border: 0; background: transparent; padding: 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; }
 .seg button[aria-pressed=true] { background: var(--glass-2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(220,185,120,.45); }
+.seg-sel { position: relative; display: inline-flex; align-items: center; border-radius: 999px; }
+.seg-sel .ps-l { padding: 6px 26px 6px 12px; border-radius: 999px; color: var(--muted); font-size: 13px; white-space: nowrap; }
+.seg-sel select { position: absolute; inset: 0; width: 100%; opacity: 0; cursor: pointer; font: inherit; font-size: 13px; }
+.seg-sel:hover .ps-l { color: var(--fg); }
+.seg-sel:focus-within .ps-l { outline: 2px solid rgba(220,185,120,.6); outline-offset: 1px; }
+.seg-sel select option { background: #1b2131; color: var(--fg); }
+.seg-sel svg { position: absolute; right: 9px; width: 11px; height: 11px; color: var(--muted); pointer-events: none; }
+.seg-sel.on .ps-l { background: var(--glass-2); color: var(--fg); box-shadow: inset 0 0 0 1px rgba(220,185,120,.45); }
+.seg-sel.on svg { color: var(--gold); }
 .view-group { display: inline-flex; align-items: center; gap: 8px; flex: none; }
 .pop-ctl { position: relative; display: inline-flex; }
 .pop-btn { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--muted); }
@@ -520,6 +529,7 @@ table.scores tr.me td { color: var(--gold); }
 @media (max-width: 640px) {
   .speed input { width: 80px; }
   .seg button { padding: 6px 9px; font-size: 12px; }
+  .seg-sel .ps-l { padding: 6px 22px 6px 9px; font-size: 12px; } .seg-sel svg { right: 7px; }
   .hud .v { font-size: 13px; }
   .head-actions .btn .txt { display: none; }
 }
@@ -583,13 +593,13 @@ table.scores tr.me td { color: var(--gold); }
     <div class="hud" id="hud" hidden>
       <div class="pill"><span class="k">Punkte</span><span class="v big" id="hScore">0</span></div>
       <div class="pill"><span class="k">Kombo</span><span class="v" id="hCombo">0×</span></div>
-      <div class="pill"><span class="k">Genauigkeit</span><span class="v" id="hAcc">–</span></div>
+      <div class="pill" id="accPill"><span class="k">Genauigkeit</span><span class="v" id="hAcc">–</span></div>
       <div class="pill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
     </div>
     <div class="wait-hint" id="waitHint" hidden></div>
     <div class="edit-bar" id="editBar" hidden>
       <div class="eb-main"><span class="eb-tag">Bearbeiten</span><b id="ebNote">–</b><span id="ebInfo"></span><button class="btn" id="ebDone">Fertig</button></div>
-      <div class="eb-keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Note wählen</span><span><kbd>⇧</kbd>+Pfeile oder ziehen: Note verschieben</span><span>rechte Maustaste ziehen oder <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd><kbd>8</kbd><kbd>6</kbd>: Dauer, <kbd>.</kbd> punktiert</span><span><kbd>+</kbd> dann Buchstaben: Noten einfügen · <kbd>−</kbd> Pause</span><span><kbd>Entf</kbd> löschen · <kbd>Strg</kbd><kbd>Z</kbd> zurück</span></div>
+      <div class="eb-keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Note wählen</span><span><kbd>⇧</kbd>+Pfeile oder ziehen: Note verschieben</span><span>rechte Maustaste ziehen oder <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd><kbd>8</kbd><kbd>6</kbd>: Dauer, <kbd>.</kbd> punktiert</span><span><kbd>+</kbd> dann Buchstaben: Noten einfügen · <kbd>−</kbd> Pause</span><span><kbd>S</kbd> gebundene Note teilen · <kbd>V</kbd> mit der nächsten gleichen Note verbinden</span><span><kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd> diese Note und alles danach verschieben, mit <kbd>⇧</kbd> um einen ganzen Takt (Platz einfügen)</span><span><kbd>Entf</kbd> löschen · <kbd>Strg</kbd><kbd>Z</kbd> zurück</span></div>
     </div>
     <div class="metro" id="metro" data-phase="ready" hidden aria-label="Einspielen: Aufnahme mit Metronom oder zu den Spuren">
       <div class="m-card">
@@ -667,8 +677,11 @@ table.scores tr.me td { color: var(--gold); }
     <button class="btn rec-btn edit-btn" id="editBtn" title="Noten bearbeiten" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5c-6 0-11.5 3.5-13.5 10.5l-1 3 3-1c7-2 10.5-7.5 11.5-12.5z"/><path d="M4 20l6.5-6.5"/></svg></button>
     <div class="seg" id="modeSeg" role="group" aria-label="Modus">
       <button data-mode="watch" aria-pressed="true">Zuhören</button>
-      <button data-mode="wait" aria-pressed="false" title="Das Lied wartet auf jeden richtigen Ton">Üben</button>
-      <button data-mode="chord" aria-pressed="false" title="Das Lied wartet, bis alle Töne gleichzeitig gedrückt sind">Warten</button>
+      <span class="seg-sel" id="practiceWrap" title="Üben: das Lied wartet auf dich, oder läuft im gewählten Tempo"><span class="ps-l" id="practiceLbl" aria-hidden="true">Üben</span><select id="practiceSel" aria-label="Üben">
+        <option value="" hidden>Üben</option>
+        <option value="chord">Üben · Warten</option>
+        <option value="50">Üben · 50 %</option><option value="75">Üben · 75 %</option><option value="90">Üben · 90 %</option><option value="100">Üben · 100 %</option>
+      </select><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
     <div class="hands" id="handSeg" role="group" aria-label="Welche Hand übst du? Volle Hand: du spielst, Umriss: die App spielt">
@@ -2386,7 +2399,8 @@ let wheelPan = 0, wheelZoom = 0;
 /* ---------- Playback & judging ---------- */
 const youRole = r => (r === 'R' && settings.hands !== 'L') || (r === 'L' && settings.hands !== 'R');
 const handRole = r => r === 'R' || r === 'L';
-// 'wait' waits for each note, 'chord' waits until all notes of the moment are held together
+// 'chord' (Üben · Warten) waits until all notes of the moment are held together, 'play' (Üben · 50–100 %) runs at the chosen tempo without points
+if (settings.mode === 'wait') settings.mode = 'chord';
 const waitish = () => settings.mode === 'wait' || settings.mode === 'chord';
 // the hand you are not practising plays along like accompaniment
 const dimRole = r => r === 'A' || (settings.mode !== 'watch' && handRole(r) && !youRole(r));
@@ -2437,7 +2451,7 @@ function advance(dt) {
   }
   autoOn.forEach((v, m) => { if (v.until <= nt) autoOn.delete(m); });
   // misses
-  if (settings.mode === 'score') {
+  if (settings.mode === 'score' || settings.mode === 'play') {
     const lim = nt - tol();
     while (youIdx < youNotes.length && youNotes[youIdx].start < lim) {
       const n = youNotes[youIdx++]; if (n.state === 0) { n.state = 2; sc.miss++; sc.total++; sc.combo = 0; popups.push({ midi: n.midi, txt: 'Verpasst', c: '#ff8a96', t0: performance.now() }); updateHud(); }
@@ -2477,7 +2491,7 @@ function judge(m, now) {
   const real = bd / (settings.speed / 100);
   let pts, txt;
   if (real < 0.05) { pts = 100; txt = 'Perfekt'; sc.perfect++; } else if (real < 0.1) { pts = 70; txt = 'Gut'; sc.good++; } else { pts = 40; txt = 'Okay'; sc.ok++; }
-  if (waitish()) { pts = 0; txt = ''; }
+  if (settings.mode !== 'score') { pts = 0; txt = ''; }
   const mult = Math.min(4, 1 + Math.floor(sc.combo / 10));
   sc.score += Math.round(pts * mult * (settings.speed / 100));
   const c = glowOf(best); flashes.push({ midi: m, t0: now, c });
@@ -2677,7 +2691,7 @@ function setSpeed(v) {
   settings.speed = Math.max(25, Math.min(110, v)); $('#speed').value = settings.speed; $('#speedPct').textContent = settings.speed;
   // place the number on the handle: the native thumb is 36px wide and travels within the track
   const f = (settings.speed - 25) / 85, w = 150; $('#speedPct').style.left = (18 + f * (w - 36)) + 'px';
-  $('#speed').style.setProperty('--p', (f * 100) + '%'); saveSettings();
+  $('#speed').style.setProperty('--p', (f * 100) + '%'); saveSettings(); if (settings.mode === 'play' && $('#practiceSel')) syncPractice();
 }
 $('#speed').oninput = e => setSpeed(+e.target.value);
 $('#speedDown').onclick = () => setSpeed(settings.speed - 5);
@@ -2690,7 +2704,26 @@ function segInit(id, key, onChange) {
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset[key] === undefined) return; settings[key] = b.dataset[key]; saveSettings(); sync(); onChange && onChange(); });
   sync();
 }
-segInit('#modeSeg', 'mode', () => { if (song) { seek(t); updateHud(); } });
+segInit('#modeSeg', 'mode', () => { syncPractice(); if (song) { seek(t); updateHud(); } });
+// Üben is a choice: Warten, or the song runs at 50, 75, 90 or 100 % tempo
+function syncPractice() {
+  const on = settings.mode === 'chord' || settings.mode === 'play', sel = $('#practiceSel');
+  $('#practiceWrap').classList.toggle('on', on);
+  if (!on) { sel.value = ''; $('#practiceLbl').textContent = 'Üben'; return; }
+  if (settings.mode === 'chord') { sel.value = 'chord'; $('#practiceLbl').textContent = 'Üben · Warten'; return; }
+  $('#practiceLbl').textContent = 'Üben · ' + settings.speed + ' %';
+  let o = sel.querySelector('option[data-custom]');
+  if ([50, 75, 90, 100].includes(settings.speed)) { if (o) o.remove(); sel.value = String(settings.speed); return; }
+  if (!o) { o = document.createElement('option'); o.dataset.custom = '1'; sel.appendChild(o); }
+  o.value = String(settings.speed); o.textContent = 'Üben · ' + settings.speed + ' %'; sel.value = o.value;
+}
+$('#practiceSel').onchange = e => {
+  const v = e.target.value; if (!v) return;
+  if (v === 'chord') settings.mode = 'chord'; else { settings.mode = 'play'; setSpeed(+v); }
+  saveSettings(); document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', false));
+  syncPractice(); e.target.blur(); if (song) { seek(t); updateHud(); }
+};
+syncPractice();
 function syncHands() { $('#handL').setAttribute('aria-pressed', settings.hands !== 'R'); $('#handR').setAttribute('aria-pressed', settings.hands !== 'L'); }
 // each hand toggles between "you play it" (full) and "the app plays it" (outline); at least one hand stays yours
 ['L', 'R'].forEach(h => { $('#hand' + h).onclick = () => {
@@ -2711,6 +2744,7 @@ function updateHud() {
   $('#hScore').textContent = settings.mode === 'score' ? sc.score.toLocaleString('de-DE') : sc.hits;
   $('#hud .pill .k').textContent = settings.mode === 'score' ? 'Punkte' : 'Getroffen';
   $('#hCombo').textContent = sc.combo + '×';
+  $('#accPill').hidden = settings.mode !== 'score';
   $('#hAcc').textContent = judged ? Math.round(sc.hits / judged * 100) + '%' : '–';
   const b = bestFor(songKey); $('#hBest').textContent = b == null ? '–' : b.toLocaleString('de-DE');
 }
@@ -2741,7 +2775,7 @@ function finish() {
     const rank = list.filter(s => s.score > sc.score).length + 1;
     $('#resRank').textContent = rank === 1 ? (list.length ? 'Neuer Rekord für diesen Song!' : 'Erster Eintrag für diesen Song.') : `Platz ${rank} in der Bestenliste.`;
     nameForm.hidden = rank > 10; $('#nameIn').value = settings.player || '';
-  } else { $('#resRank').textContent = waitish() ? 'Wechsle zu Highscore, um Punkte zu sammeln.' : ''; nameForm.hidden = true; }
+  } else { $('#resRank').textContent = settings.mode !== 'score' ? 'Wechsle zu Highscore, um Punkte zu sammeln.' : ''; nameForm.hidden = true; }
   $('#result').hidden = false;
 }
 $('#nameForm').onsubmit = e => {
@@ -2846,7 +2880,7 @@ function overdubStart() {
   if (playing) togglePlay();
   if (edit.on) editToggle(false);
   synth.ensure();
-  settings.mode = 'watch'; document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch'));
+  settings.mode = 'watch'; document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); syncPractice();
   // count in one bar before the first note, with the song's own beat
   const B = song.beats, start = Math.max(0, song.firstStart - 0.05);
   let bi = 0; for (let i = 0; i < B.length; i++) { if (B[i].time <= start + 1e-6 && B[i].bar) bi = i; }
@@ -3174,7 +3208,7 @@ function renderRecs() {
     const meta = document.createElement('div'); meta.className = 'meta'; meta.textContent = item.notes.length + ' Noten · ' + fmt(dur);
     const acts = document.createElement('div'); acts.className = 'acts';
     const mk = (txt, title, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = txt; b.title = title; b.onclick = fn; acts.appendChild(b); return b; };
-    mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); updateHud(); restart(); });
+    mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); syncPractice(); updateHud(); restart(); });
     mk('MIDI', 'Als .mid-Datei herunterladen', () => {
       const data = midiFile(item.notes, item.bpm, item.sig), filename = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
       saveFile(filename, new Blob([data], { type: 'audio/midi' }));
@@ -3619,6 +3653,40 @@ function chordStep(n, dir) {
   const list = editable().filter(o => o !== n && o.start < n.end && o.end > n.start && (dir > 0 ? o.midi > n.midi : o.midi < n.midi));
   return list.sort((a, b) => Math.abs(a.midi - n.midi) - Math.abs(b.midi - n.midi) || Math.abs(a.start - n.start) - Math.abs(b.start - n.start))[0] || null;
 }
+/* cut a held (tied) note in two, or join it with the next note of the same pitch */
+function splitNote(n) {
+  const B = song.beats, u = quarterAt(n.start) / 4, s0 = n.start + u * 0.5, e0 = n.end - u * 0.5;
+  // where it is tied: the first bar line inside the note, else the first beat, else the middle on the sixteenth grid
+  const inside = B.filter(b => b.time > s0 && b.time < e0);
+  let at = (inside.find(b => b.bar) || inside[0] || {}).time;
+  if (at == null) { const steps = Math.round((n.end - n.start) / u); if (steps < 2) { editHint('Zu kurz zum Teilen'); return; } at = n.start + Math.floor(steps / 2) * u; }
+  pushUndo();
+  const nn = { midi: n.midi, start: at, end: n.end, vel: n.vel, part: n.part, state: 0 };
+  n.end = at - Math.min(0.03, (at - n.start) * 0.04); n.part.notes.push(nn);
+  editDone(); preview(n);
+}
+function joinNote(n) {
+  const u = quarterAt(n.start) / 4;
+  const next = n.part.notes.filter(o => o !== n && o.midi === n.midi && o.start > n.start && o.start - n.end < u * 0.6).sort((a, b) => a.start - b.start)[0];
+  if (!next) { editHint('Keine gleiche Note direkt danach'); return; }
+  pushUndo(); n.end = Math.max(n.end, next.end); n.part.notes.splice(n.part.notes.indexOf(next), 1);
+  editDone(); preview(n);
+}
+/* move this note and everything after it, in every part: a sixteenth, or a whole bar */
+function shiftFrom(n, dir, bar) {
+  const B = song.beats, T = n.start - 1e-3;
+  let amt = quarterAt(n.start) / 4;
+  if (bar) { const i = Math.max(0, lb(B, n.start + 1e-6, 'time') - 1), b = B[i] || {}; amt = quarterAt(n.start) * (4 / (b.d || 4)) * (b.n || 4); }
+  const later = song.all.filter(o => o.start >= T), before = song.all.filter(o => o.start < T);
+  if (dir < 0) {
+    // only into empty room: no note before may still be sounding there
+    const free = n.start - before.reduce((m, o) => Math.max(m, o.end), 0);
+    if (free < amt - 0.035) { editHint(bar ? 'Davor ist kein leerer Takt' : 'Davor ist kein Platz'); return; }
+  }
+  pushUndo(); later.forEach(o => { o.start += dir * amt; o.end += dir * amt; });
+  editDone(); follow(n);
+}
+function editHint(txt) { const el = $('#ebInfo'); el.textContent = txt; clearTimeout(editHint.tm); editHint.tm = setTimeout(editBar, 1600); }
 function moveInTime(n, dir) {
   const u = quarterAt(n.start) / 4, len = n.end - n.start;
   n.start = Math.max(0, n.start + dir * u); n.end = n.start + len;
@@ -3634,6 +3702,8 @@ function editKey(e) {
   editOk();
   const k = e.key, n = edit.sel;
   if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')) { editUndo(); return true; }
+  // Alt + left/right: this note and everything after it moves (a sixteenth, with Shift a whole bar: room for a new piece)
+  if (e.altKey && !e.ctrlKey && !e.metaKey && (e.code === 'ArrowLeft' || e.code === 'ArrowRight') && n) { shiftFrom(n, e.code === 'ArrowRight' ? 1 : -1, e.shiftKey); return true; }
   if (e.ctrlKey || e.metaKey || e.altKey) return false;
   if (edit.typing) {
     // after +: every letter adds a note, Esc, Enter or an arrow ends the input
@@ -3662,6 +3732,8 @@ function editKey(e) {
   if (DUR_KEYS[k] !== undefined) { pushUndo(); setDur(n, DUR_KEYS[k]); editDone(); return true; }
   if (k === '.' || k === ',') { pushUndo(); const q = quarters(n), dotted = DUR_NAMES.some(([v, nm]) => nm.startsWith('punktierte') && Math.abs(v - q) < 0.01); setDur(n, dotted ? q / 1.5 : q * 1.5); editDone(); return true; }
   if (k === '+') { edit.typing = true; editBar(); return true; }
+  if (k === 's' || k === 'S' || k === '/') { splitNote(n); return true; }
+  if (k === 'v' || k === 'V') { joinNote(n); return true; }
   if (k === '-') { insertAfter(n, null); return true; }
   if (k === 'Delete' || k === 'Backspace') {
     pushUndo(); const list = editable(), i = list.indexOf(n);

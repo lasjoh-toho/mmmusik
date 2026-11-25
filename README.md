@@ -14,11 +14,10 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Gleichmäßige Marke in Noten und Blatt**: Die Noten stehen dort, wo ihre Zeit ist (jedes Viertel gleich breit), daher läuft die Marke ohne Haken mit immer gleichem Tempo, auch über Taktstriche.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.
 - **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. „Keyboard suchen“ hört auf allen Geräten und Kanälen und stellt das Keyboard ein, auf dem du die erste Taste drückst. Verweigert der Browser den Zugriff, steht direkt dort, wie man ihn erlaubt, mit einem Knopf, um die App als ZIP herunterzuladen. Ziellinie und Vorlauf sitzen als kleiner Knopf in der unteren Leiste. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
-- **Vier Modi**
+- **Drei Modi**
   - *Zuhören*: die App spielt alles vor.
-  - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.
-  - *Warten*: wie Üben, aber bei Akkorden geht es erst weiter, wenn alle Töne gleichzeitig gedrückt sind.
-  - *Highscore*: Echtzeit mit Punkten (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
+  - *Üben* (Auswahl): *Warten* hält den Song an, bis alle Töne des Moments gedrückt sind; die nächsten Tasten leuchten. *50 %*, *75 %*, *90 %* und *100 %* lassen den Song im gewählten Tempo laufen, gezählt werden Treffer und verpasste Töne, ohne Punkte.
+  - *Highscore*: Echtzeit mit Punkten, Genauigkeit (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
 - **Hände**: zwei Hand-Symbole (von oben gesehen). Voll heißt: du spielst diese Hand, Umriss heißt: die App spielt sie. Klick schaltet um.
 - **Vollbild**: Knopf oben rechts.
 - **Kopfleiste**: Tempo als Schieberegler (25–110 %) mit − und + an den Enden und drei Drehregler für die Lautstärke: *Vorlage* (wie es klingen soll), *Du* (dein Spiel) und *Begleitung*. Sie zeigen den Wert in Prozent und werden beim Darüberfahren zum senkrechten Schieberegler.
@@ -54,6 +53,8 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Eine Note nach oben oder unten ziehen ändert die Tonhöhe, nicht die Zeit; der Notenname steht dabei über der Note.
   - Mit der rechten Maustaste nach rechts oder links ziehen, oder die Zahlen `1` `2` `4` `8` `6` (Ganze, Halbe, Viertel, Achtel, Sechzehntel), ändern die Dauer; `.` macht sie punktiert.
   - `+` und dann Buchstaben (`C D E F G A H`, `B` = B♭) fügen Noten nach der Auswahl ein, `#` erhöht, `−` fügt eine Pause ein. Die folgenden Noten derselben Hand rücken dabei nach hinten.
+  - `S` teilt eine gebundene (übergebundene) Note an der Taktlinie oder am Schlag in zwei Noten, `V` verbindet sie mit der nächsten gleichen Note.
+  - `Alt` + links/rechts verschiebt die gewählte Note und alles danach (in allen Stimmen) um ein Sechzehntel; mit `Shift` dazu um einen ganzen Takt. So entsteht Platz, um ein Stück einzufügen. Zurück geht es nur, wenn davor Platz frei ist.
   - `Entf` löscht, `Strg+Z` macht rückgängig, `Esc` beendet.
 - **Spuren** (Ebenen-Knopf unten oder das Tonband vor „mmmusik“): Rechts neben dem Menü zeigt ein Sequenzer jede Spur als Band über die ganze Breite, mit Taktstrichen und Abspielmarke; ein Klick springt dorthin. Beim Aufnehmen erscheint die neue Spur live. Der Notenknopf an einer Spur zeigt nur diese Spur als Notenblatt (und druckt sie so als PDF). „Neues Stück aufnehmen“ (auch „Neuen Song einspielen“ oben in der Songliste) beginnt ein leeres Stück im Tempo und Takt des Metronoms. Ein Menü links, das die Tasten frei lässt, zeigt alle Spuren des Lieds mit Name und Rolle. „Neue Spur aufnehmen“ zählt einen Takt ein und spielt das Lied ab, während du eine weitere Spur dazu spielst. So entstehen Stücke aus mehreren Spuren, gespeichert unter „Meine Aufnahmen“.
 - **Noten als PDF**: Der Knopf oben im Seitenmenü druckt das ganze Lied als Notenblatt; im Druckdialog „Als PDF speichern“ wählen.
