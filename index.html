@@ -1323,10 +1323,13 @@ function layout() {
   const nW = range.b - range.a + 1, ww = W / nW;
   const kh = Math.max(64, Math.min(H * 0.24, ww * 5.2, 190));
   const keys = {}; let wi = 0;
-  const off = { 1: -0.12, 3: 0.12, 6: -0.14, 8: 0, 10: 0.14 };
+  // at the back every octave splits into 12 equal parts, one per key: the black keys sit exactly there,
+  // and each white key's narrow back end has the same width. Notes and their paths continue these widths.
+  const slot = ww * 7 / 12, WB = [0, 1, 1, 2, 2, 3, 4, 4, 5, 5, 6, 6]; // white keys before each pitch class
   for (let m = lo; m <= hi; m++) {
-    if (!isBlack(m)) { keys[m] = { x: wi * ww, w: ww, black: false }; wi++; }
-    else { const bw = ww * 0.6; keys[m] = { x: wi * ww - bw / 2 + off[m % 12] * bw, w: bw, black: true }; }
+    const pc = m % 12, cX = (wi - WB[pc]) * ww, lx = cX + pc * slot;
+    if (!isBlack(m)) { keys[m] = { x: wi * ww, w: ww, black: false, lx, lw: slot }; wi++; }
+    else keys[m] = { x: lx, w: slot, black: true, lx, lw: slot };
   }
   KB = { keys, ww, top: H - kh, h: kh, lo, hi };
   if (Math.round(kh) !== lastKh) { lastKh = Math.round(kh); stage.style.setProperty('--kbh', lastKh + 'px'); }
@@ -1419,7 +1422,7 @@ function drawRoad(y0, y1, now) {
   cx.restore();
 }
 // a path as wide as a black key, centred on the key
-const lane = k => { const bw = KB.ww * 0.6; return k.black ? { x: k.x, w: k.w } : { x: k.x + (k.w - bw) / 2, w: bw }; };
+const lane = k => ({ x: k.lx, w: k.lw });
 // on the road the sounding notes stand a little over the front edge of the keys, like blocks reaching onto them
 function drawNoteLips() {
   if (!song) return;
@@ -1442,7 +1445,12 @@ function drawRain(y0, y1, now, ppsFix) {
   // lane background: subtle stripes for black keys
   const g = cx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(10,12,20,0)'); g.addColorStop(1, 'rgba(30,34,52,.55)'); cx.fillStyle = g; cx.fillRect(0, y0, W, h);
   // every key has its own path, all as wide as a black key and darker than the ground; the notes glide along them
-  for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (!k) continue; const l = lane(k); cx.fillStyle = k.black ? 'rgba(0,0,0,.30)' : 'rgba(0,0,0,.20)'; cx.fillRect(l.x, y0, l.w, h); if (!k.black && m % 12 === 0) { cx.fillStyle = 'rgba(255,255,255,.05)'; cx.fillRect(k.x, y0, 1, h); } }
+  for (let m = KB.lo; m <= KB.hi; m++) {
+    const k = KB.keys[m]; if (!k) continue; const l = lane(k);
+    cx.fillStyle = k.black ? 'rgba(0,0,0,.34)' : 'rgba(0,0,0,.22)'; cx.fillRect(l.x + 0.5, y0, l.w - 1, h);
+    // a groove where two white keys meet without a black key between them: H|C and E|F
+    if (m % 12 === 0 || m % 12 === 5) { cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(l.x - 1, y0, 1.5, h); cx.fillStyle = 'rgba(255,255,255,.09)'; cx.fillRect(l.x + 0.5, y0, 1, h); }
+  }
   if (!song) { cx.restore(); return; }
   const pps = ppsFix || h / settings.look, look = h / pps;
   // beat lines
