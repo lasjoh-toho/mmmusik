@@ -268,9 +268,10 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .inst-ctl:hover .inst-btn, .inst-ctl.open .inst-btn { color: var(--gold); border-color: rgba(220,185,120,.5); }
 .inst-ctl .inst-panel { left: -4px; transform: scaleY(.4); transform-origin: top left; }
 .inst-ctl:hover .inst-panel, .inst-ctl:focus-within .inst-panel, .inst-ctl.open .inst-panel { transform: scaleY(1); }
-.inst-panel { width: 340px; max-width: calc(100vw - 24px); padding: 12px; border-radius: 16px; display: grid; gap: 10px; }
+.inst-panel { width: 420px; max-width: calc(100vw - 24px); max-height: calc(100vh - 110px); overflow-y: auto; padding: 12px; border-radius: 16px; display: grid; gap: 10px; }
 .inst-panel h4 { margin: 0; font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
-.inst-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.inst-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; }
+@media (max-width: 640px) { .inst-grid { grid-template-columns: repeat(4, 1fr); } }
 .inst-grid button { display: grid; justify-items: center; gap: 4px; padding: 8px 2px 6px; border-radius: 10px; border: 1px solid transparent; background: var(--glass); color: var(--muted); font-size: 10.5px; line-height: 1.15; text-align: center; }
 .inst-grid button svg { width: 26px; height: 26px; }
 .inst-grid button:hover { background: var(--glass-2); color: var(--fg); }
@@ -339,6 +340,18 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 }
 .panel.open { transform: none; visibility: visible; transition: transform .25s ease; }
 .panel-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 8px; }
+.panel-acts { display: flex; gap: 6px; }
+#printSheet { position: absolute; left: -12000px; top: 0; width: 700px; visibility: hidden; }
+@media print {
+  @page { size: A4; margin: 14mm 12mm; }
+  html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
+  body > *:not(#printSheet) { display: none !important; }
+  #printSheet { position: static; width: auto; visibility: visible; color: #111; font-family: Inter, system-ui, sans-serif; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  #printSheet h1 { font: 600 20pt Sora, Inter, sans-serif; margin: 0 0 2mm; text-align: center; }
+  #printSheet .src { text-align: center; font-size: 9pt; color: #555; margin: 0 0 6mm; }
+  #printSheet .sys { break-inside: avoid; page-break-inside: avoid; overflow: hidden; }
+  #printSheet .foot { font-size: 7.5pt; color: #888; margin-top: 6mm; text-align: center; }
+}
 .panel-head h2 { margin: 0; font-family: var(--f-display); font-size: 18px; font-weight: 600; }
 .tabs { display: flex; gap: 4px; padding: 0 16px 10px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
 .tabs button { border: 0; background: transparent; color: var(--muted); padding: 7px 11px; border-radius: 8px; }
@@ -368,6 +381,29 @@ input[type=text], input[type=url], input[type=search], input[type=number], selec
 .note a { color: var(--gold); }
 .msg { font-size: 13px; padding: 9px 11px; border-radius: 9px; background: rgba(255,107,122,.1); border: 1px solid rgba(255,107,122,.3); line-height: 1.45; }
 .msg.ok { background: rgba(111,224,166,.08); border-color: rgba(111,224,166,.3); }
+.tracks-drawer {
+  position: absolute; left: 0; top: 0; bottom: var(--kbh, 120px); width: min(300px, 86vw); z-index: 9; /* ends above the keys */
+  display: flex; flex-direction: column; gap: 10px; padding: 12px; overflow-y: auto;
+  background: rgba(12,15,24,.94); backdrop-filter: blur(10px); border-right: 1px solid var(--line); box-shadow: 12px 0 30px rgba(0,0,0,.35);
+  animation: tdIn .2s ease;
+}
+@keyframes tdIn { from { transform: translateX(-16px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .tracks-drawer { animation: none; } }
+.td-head { display: flex; align-items: center; justify-content: space-between; font-family: var(--f-display); font-size: 15px; }
+.td-list { display: grid; gap: 6px; }
+.td-list .track { grid-template-columns: 14px 1fr auto auto; padding: 7px 8px; gap: 8px; }
+.td-list .track input { width: 100%; background: transparent; border: 0; color: var(--fg); font: inherit; padding: 0; }
+.td-list .track input:focus { outline: 1px solid rgba(220,185,120,.5); border-radius: 4px; }
+.td-list .track small { display: block; color: var(--muted); font-size: 11px; }
+.td-list .track select { max-width: 110px; }
+.td-list .del { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+.td-list .del:hover { color: #ff8a96; border-color: rgba(255,138,150,.5); }
+#trRec { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+#trRec .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5a6e; display: inline-block; }
+#trRec.on { background: #ff5a6e; border-color: #ff5a6e; color: #fff; }
+#trRec.on .rec-dot { background: #fff; border-radius: 2px; }
+#trBtn[aria-pressed=true] { color: var(--gold); border-color: rgba(220,185,120,.5); }
+#trBtn svg { width: 18px; height: 18px; }
 .track { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); }
 .track .sw { width: 14px; height: 14px; border-radius: 4px; }
 .track .tn { min-width: 0; overflow-wrap: anywhere; }
@@ -444,6 +480,12 @@ table.scores tr.me td { color: var(--gold); }
   </header>
 
   <main id="stage">
+    <aside class="tracks-drawer" id="trDrawer" hidden aria-label="Spuren">
+      <div class="td-head"><b>Spuren</b><button class="btn icon" id="trClose" title="Schließen" aria-label="Spuren schließen">✕</button></div>
+      <div class="td-list" id="trList"></div>
+      <button class="btn primary" id="trRec"><span class="rec-dot"></span><span id="trRecTxt">Neue Spur aufnehmen</span></button>
+      <p class="note" id="trNote">Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Spur fertig“ oder am Ende des Lieds wird sie gespeichert.</p>
+    </aside>
     <canvas id="cv"></canvas>
     <div class="overview" id="overview" title="Ziehen: Ausschnitt verschieben · Klicken: Noten an dieser Stelle zeigen">
     <canvas id="ovCv" role="slider" tabindex="0" aria-label="Position im Song" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></canvas>
@@ -499,6 +541,7 @@ table.scores tr.me td { color: var(--gold); }
     <button class="play-btn" id="playBtn" title="Abspielen (Leertaste)"><svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
     <button class="btn icon" id="restartBtn" title="Von vorn (Pos1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
     <button class="btn rec-btn" id="recBtn" title="Aufnehmen, was du spielst (R)" aria-label="Aufnahme"><span class="rec-dot"></span></button>
+    <button class="btn rec-btn" id="trBtn" title="Spuren: mehrere Spuren übereinander aufnehmen" aria-label="Spuren" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5L12 21l9-4.5"/></svg></button>
     <button class="btn rec-btn edit-btn" id="editBtn" title="Noten bearbeiten" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div class="seg" id="modeSeg" role="group" aria-label="Modus">
       <button data-mode="watch" aria-pressed="true">Zuhören</button>
@@ -538,7 +581,7 @@ table.scores tr.me td { color: var(--gold); }
 </div>
 
 <aside class="panel" id="panel" aria-label="Seitenleiste">
-  <div class="panel-head"><h2 id="panelTitle">Bibliothek</h2><button class="btn icon" id="panelClose" title="Schließen">✕</button></div>
+  <div class="panel-head"><h2 id="panelTitle">Bibliothek</h2><span class="panel-acts"><button class="btn icon" id="pdfBtn" title="Noten drucken oder als PDF speichern" aria-label="Noten als PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 17v-4h1.3a1.3 1.3 0 0 1 0 2.6H8.5M12.5 17v-4h1a2 2 0 0 1 0 4zM17 13h-1.6v4M15.4 15h1.4"/></svg></button><button class="btn icon" id="panelClose" title="Schließen">✕</button></span></div>
   <div class="tabs" role="tablist">
     <button role="tab" data-tab="songs" aria-selected="true">Songs</button>
     <button role="tab" data-tab="tracks" aria-selected="false">Stimmen</button>
@@ -633,9 +676,11 @@ table.scores tr.me td { color: var(--gold); }
         <optgroup label="Klavier"><option value="concert">Konzertflügel (echte Aufnahmen)</option><option value="grand">Flügel (synthetisch)</option><option value="harpsi">Cembalo</option></optgroup>
         <optgroup label="Elektrisch"><option value="epiano">E-Piano (Rhodes-Stil)</option><option value="wurli">E-Piano (Wurlitzer-Stil)</option><option value="clav">Clavinet</option><option value="organ">Jazz-Orgel (Hammond-Stil)</option></optgroup>
         <optgroup label="Synthesizer"><option value="moog">Analog-Lead (Moog-Stil)</option><option value="moogbass">Analog-Bass (Moog-Stil)</option><option value="brass">Synth-Brass (Prophet-Stil)</option><option value="pad">Streicher-Pad</option></optgroup>
-        <optgroup label="Weitere"><option value="vibes">Vibraphon</option><option value="marimba">Marimba</option></optgroup>
+        <optgroup label="Weitere"><option value="vibes">Vibraphon</option><option value="marimba">Marimba</option><option value="harp">Harfe</option><option value="musicbox">Spieluhr</option></optgroup>
+        <optgroup label="Aus aller Welt"><option value="kalimba">Kalimba (Daumenklavier)</option><option value="koto">Koto (Japan)</option><option value="sitar">Sitar (Indien)</option><option value="steelpan">Steeldrum (Karibik)</option><option value="gamelan">Gamelan-Glocken (Indonesien)</option><option value="panflute">Panflöte (Anden)</option></optgroup>
       </select>
       <p class="note" id="soundNote" hidden></p>
+      <button class="btn" id="pianoSave" hidden title="Die aus dem Internet geladenen Flügel-Aufnahmen in den Programmordner legen, damit sie ohne Internet klingen">Flügel-Aufnahmen im Programmordner speichern</button>
       <label for="drumSel">Schlagzeug zur Begleitung</label>
       <select id="drumSel"><option value="off">Aus</option><option value="file">Nur aus der MIDI-Datei</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="swing">Swing (Besen-Ride)</option><option value="shuffle">Shuffle / Blues</option><option value="bossa">Bossa Nova</option><option value="waltz">Walzer</option><option value="latin">Percussion (Conga, Shaker, Cowbell)</option></select>
       <p class="note">Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien spielen immer mit, außer bei „Aus“. Beim Üben im Wartemodus pausiert es.</p>
@@ -788,17 +833,46 @@ const synth = {
   setVol(v) { if (this.master) this.master.gain.value = v / 100 * 0.6; },
   setBus(k, v) { if (this.bus) this.bus[k].gain.value = v / 100; },
   // recorded grand piano (Salamander Grand Piano by Alexander Holm, CC BY 3.0), one sample every minor third
-  piano: { buf: new Map(), state: 'idle' },
+  piano: { buf: new Map(), raw: new Map(), state: 'idle', fromNet: false },
   loadPiano() {
     if (this.piano.state !== 'idle' || !this.ensure()) return;
     this.piano.state = 'loading'; soundNote();
     const NAMES = { 9: 'A', 0: 'C', 3: 'Ds', 6: 'Fs' }, jobs = [];
+    // where the recordings come from, in this order: next to the app (web server, GitHub Pages),
+    // the program folder opened with "Ordner öffnen", and only then the internet
+    const dirP = pianoDir(false);
+    const get = async name => {
+      if (/^https?:$/.test(location.protocol)) { try { const r = await fetch('samples/salamander/' + name); if (r.ok) return await r.arrayBuffer(); } catch (e) {} }
+      const d = await dirP; if (d) { try { return await (await (await d.getFileHandle(name)).getFile()).arrayBuffer(); } catch (e) {} }
+      const r = await fetch('https://tonejs.github.io/audio/salamander/' + name); if (!r.ok) throw new Error(r.status);
+      const b = await r.arrayBuffer(); this.piano.raw.set(name, b.slice(0)); this.piano.fromNet = true; return b;
+    };
     for (let m = 21; m <= 108; m += 3) {
-      const url = 'https://tonejs.github.io/audio/salamander/' + NAMES[m % 12] + (Math.floor(m / 12) - 1) + '.mp3';
-      jobs.push(fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(b => new Promise((res, rej) => this.ctx.decodeAudioData(b, res, rej))).then(ab => this.piano.buf.set(m, ab)));
+      const name = NAMES[m % 12] + (Math.floor(m / 12) - 1) + '.mp3';
+      jobs.push(get(name).then(b => new Promise((res, rej) => this.ctx.decodeAudioData(b, res, rej))).then(ab => this.piano.buf.set(m, ab)));
     }
     Promise.all(jobs).then(() => { this.piano.state = 'ready'; soundNote(); }).catch(() => { this.piano.state = 'failed'; soundNote(); });
   },
+  plucks: new Map(),
+  pluck(kind, m) {
+    const key = kind + m; if (this.plucks.has(key)) return this.plucks.get(key);
+    const sr = this.ctx.sampleRate, f = 440 * Math.pow(2, (m - 69) / 12), N = Math.max(2, Math.round(sr / f));
+    const secs = kind === 'harp' ? Math.max(1.2, 5 - (m - 40) * 0.05) : kind === 'sitar' ? 3.5 : Math.max(0.8, 3 - (m - 48) * 0.03);
+    const len = Math.round(sr * secs), buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0), ring = new Float32Array(N);
+    // excitation: bright noise for koto and sitar, a soft plucked shape for the harp
+    for (let i = 0; i < N; i++) ring[i] = kind === 'harp' ? Math.sin(Math.PI * i / N) * (0.6 + 0.4 * (Math.random() * 2 - 1)) : Math.random() * 2 - 1;
+    const damp = kind === 'harp' ? 0.996 : kind === 'koto' ? 0.994 : 0.998, mix = kind === 'harp' ? 0.5 : 0.5;
+    let prev = 0;
+    for (let i = 0; i < len; i++) {
+      const j = i % N, x = ring[j];
+      let y = damp * (mix * x + (1 - mix) * prev);
+      if (kind === 'sitar') y = Math.tanh(y * 1.6) / 1.6;           // a little nonlinearity for the buzz
+      d[i] = x; ring[j] = y; prev = x;
+    }
+    const fade = Math.min(len, Math.round(sr * 0.05)); for (let i = 0; i < fade; i++) d[len - 1 - i] *= i / fade;
+    this.plucks.set(key, buf); return buf;
+  },
+  noiseBuf() { if (!this._nb) { const b = this.ctx.createBuffer(1, this.ctx.sampleRate, this.ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this._nb = b; } return this._nb; },
   sampleVoice(m, vel, gainMul, bus) {
     const c = this.ctx, now = c.currentTime;
     let s = 21; this.piano.buf.forEach((_, k) => { if (Math.abs(k - m) < Math.abs(s - m)) s = k; });
@@ -907,6 +981,45 @@ const synth = {
       out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.1, now + 0.004);
       out.gain.exponentialRampToValueAtTime(v * 0.45, now + 0.5); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
       release = 0.12;
+    } else if (sound === 'koto' || sound === 'sitar' || sound === 'harp') {
+      // plucked strings: Karplus-Strong, computed once per key and kept
+      const src = c.createBufferSource(); src.buffer = this.pluck(sound, m); oscs.push(src);
+      if (sound === 'sitar') {
+        // the bridge buzz (jawari): a resonant peak that wanders, plus a bright overtone
+        const pk = c.createBiquadFilter(); pk.type = 'peaking'; pk.Q.value = 6; pk.gain.value = 14;
+        pk.frequency.setValueAtTime(Math.min(9000, f * 9), now); pk.frequency.exponentialRampToValueAtTime(Math.min(7000, f * 4), now + 1.2);
+        src.connect(pk).connect(out);
+      } else if (sound === 'harp') src.connect(lp(Math.min(9000, f * 6))).connect(out); else src.connect(out);
+      decay = src.buffer.duration; release = sound === 'harp' ? 0.4 : 0.15;
+      out.gain.setValueAtTime(v * (sound === 'harp' ? 1.6 : 1.4), now);
+    } else if (sound === 'kalimba' || sound === 'musicbox') {
+      // tines: a sine with one strong inharmonic partial that dies fast
+      const box = sound === 'musicbox', fq = box ? f * 2 : f;
+      osc('sine', fq).connect(out);
+      const p2 = osc('sine', fq * (box ? 4.2 : 5.95)), g2 = gain(0); g2.gain.setValueAtTime(box ? 0.35 : 0.5, now); g2.gain.exponentialRampToValueAtTime(0.0001, now + (box ? 0.25 : 0.12)); p2.connect(g2).connect(out);
+      if (!box) { const p3 = osc('sine', fq * 2.01), g3 = gain(0.08); p3.connect(g3).connect(out); }
+      decay = box ? Math.max(0.6, 2.2 - (m - 60) * 0.03) : Math.max(0.8, 2.8 - (m - 48) * 0.03); release = 0.2;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.2, now + 0.002); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'steelpan') {
+      // steel drum: strong octave and twelfth, a short metallic attack
+      [[1, 1], [2, 0.55], [3, 0.22], [4.02, 0.12]].forEach(([r, a], i) => { const g = gain(0); g.gain.setValueAtTime(a, now); g.gain.exponentialRampToValueAtTime(a * (i ? 0.08 : 0.3), now + (i ? 0.5 : 1.5)); osc('sine', f * r).connect(g).connect(out); });
+      const ping = osc('triangle', f * 7.1), pg = gain(0); pg.gain.setValueAtTime(0.12, now); pg.gain.exponentialRampToValueAtTime(0.0001, now + 0.04); ping.connect(pg).connect(out);
+      decay = Math.max(0.8, 2.6 - (m - 55) * 0.03); release = 0.2;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v, now + 0.004); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'gamelan') {
+      // bronze bells: inharmonic partials in beating pairs, long ring
+      [[1, 1], [1.007, 0.6], [2.76, 0.35], [5.4, 0.18], [8.93, 0.08]].forEach(([r, a]) => osc('sine', f * r).connect(gain(a * 0.6)).connect(out));
+      decay = Math.max(1.5, 6 - (m - 48) * 0.05); release = 0.5;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.1, now + 0.003); out.gain.exponentialRampToValueAtTime(v * 0.4, now + 0.2); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'panflute') {
+      // breathy flute: sine with a little second harmonic, breath noise through a band-pass, slow vibrato
+      const vib = osc('sine', 5), vg = gain(f * 0.006); vib.connect(vg);
+      const o1 = osc('sine', f), o2 = osc('sine', f * 2); vg.connect(o1.frequency); o1.connect(out); o2.connect(gain(0.12)).connect(out);
+      const ns = c.createBufferSource(); ns.buffer = this.noiseBuf(); ns.loop = true; oscs.push(ns);
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = f * 2; bp.Q.value = 3;
+      const ng = gain(0); ng.gain.setValueAtTime(0.5, now); ng.gain.exponentialRampToValueAtTime(0.12, now + 0.25); ns.connect(bp).connect(ng).connect(out);
+      decay = 40; release = 0.15;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.9, now + 0.08);
     } else if (sound === 'organ') {
       // drawbar organ: sustained harmonics, key click percussion, vibrato
       const vib = osc('sine', 6.4), vibG = gain(f * 0.0045); vib.connect(vibG);
@@ -946,14 +1059,16 @@ const synth = {
   stopAuto() { this.auto.forEach(v => v.stop()); this.auto.clear(); }
 };
 
-function soundNote() {
+function soundNote(msg) {
   const el = document.getElementById('soundNote'); if (!el) return;
   const st = synth.piano.state;
-  el.hidden = settings.sound !== 'concert';
+  const sv = document.getElementById('pianoSave'); if (sv) sv.hidden = !(st === 'ready' && synth.piano.fromNet && synth.piano.raw.size);
+  el.hidden = settings.sound !== 'concert' && !msg;
+  if (msg) { el.textContent = msg; return; }
   el.textContent = st === 'ready' ? 'Echte Flügel-Aufnahmen geladen (Salamander Grand Piano von Alexander Holm, CC BY 3.0).'
-    : st === 'loading' ? 'Die Flügel-Aufnahmen werden geladen (etwa 4 MB) … bis dahin klingt der synthetische Flügel.'
+    : st === 'loading' ? 'Die Flügel-Aufnahmen werden geladen (etwa 2 MB) … bis dahin klingt der synthetische Flügel.'
     : st === 'failed' ? 'Die Flügel-Aufnahmen ließen sich nicht laden (offline oder in der Vorschau gesperrt). Es klingt der synthetische Flügel.'
-    : 'Die Aufnahmen werden beim ersten Ton geladen (etwa 4 MB).';
+    : 'Die Aufnahmen werden beim ersten Ton geladen (etwa 2 MB).';
 }
 /* Drum grooves: hits per beat as [fraction of the beat, GM drum note, velocity] */
 const GROOVES = {
@@ -1209,7 +1324,7 @@ function layout() {
   KB = { keys, ww, top: H - kh, h: kh, lo, hi };
   if (Math.round(kh) !== lastKh) { lastKh = Math.round(kh); stage.style.setProperty('--kbh', lastKh + 'px'); }
 }
-function rr(x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
+function rr(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); cx.beginPath(); cx.moveTo(x + r, y); cx.arcTo(x + w, y, x + w, y + h, r); cx.arcTo(x + w, y + h, x, y + h, r); cx.arcTo(x, y + h, x, y, r); cx.arcTo(x, y, x + w, y, r); cx.closePath(); }
 function inkOf(n) { return settings.color === 'hand' ? ROLE[n.part.role].d : PITCH_INK[n.midi % 12]; }
 function colorOf(n, dark) {
   if (settings.color === 'hand' || n.part.role === 'A' || n.part.role === 'M') { const r = ROLE[n.part.role]; if (settings.color === 'pitch' && n.part.role === 'A') return dark ? PITCH_DARK[n.midi % 12] : PITCH[n.midi % 12]; return dark ? r.d : r.c; }
@@ -1585,8 +1700,8 @@ function beatIndex(time) {
 }
 function beatTime(bi) { const b = song.beats; const i = Math.min(b.length - 1, Math.floor(bi)); const nx = b[i + 1] ? b[i + 1].time : b[i].time + 0.5; return b[i].time + (bi - i) * (nx - b[i].time); }
 function staffIsTreble(n) { const r = n.part.role; return r === 'L' ? n.midi >= 65 : r === 'R' ? n.midi >= 55 : n.midi >= 60; }
-function buildScore(h, pageW) {
-  const VF = window.Vex && window.Vex.Flow; const msg = $('#scoreMsg'), inner = $('#scoreInner');
+function buildScore(h, pageW, target) {
+  const VF = window.Vex && window.Vex.Flow; const msg = target ? { textContent: '' } : $('#scoreMsg'), inner = target || $('#scoreInner');
   inner.innerHTML = '';
   if (!VF) { msg.textContent = 'Notensatz wird geladen …'; return null; }
   msg.textContent = '';
@@ -2082,6 +2197,7 @@ function updateWaitHint() {
 function grade(acc) { return acc >= 0.97 ? 'S' : acc >= 0.9 ? 'A' : acc >= 0.8 ? 'B' : acc >= 0.65 ? 'C' : 'D'; }
 let lastResult = null;
 function finish() {
+  if (rec && rec.overdub) { overdubStop(true); return; }
   setPlaying(false); t = song.duration;
   if (settings.mode === 'watch') return;
   const judged = sc.hits + sc.miss, acc = judged ? sc.hits / judged : 0;
@@ -2137,8 +2253,81 @@ function loadSong(s, meta = {}) {
   $('#tEnd').textContent = fmt(s.duration);
   autoRange = true; fitRange();
   seek(s.firstStart - 1); setPlaying(false);
-  renderTracks(); renderScores(); updateHud();
+  renderTracks(); renderDrawer(); renderScores(); updateHud();
 }
+/* ---------- several tracks: record a new one while the song plays ---------- */
+const drawerOpen = () => !$('#trDrawer').hidden;
+function setDrawer(on) { $('#trDrawer').hidden = !on; $('#trBtn').setAttribute('aria-pressed', on); if (on) renderDrawer(); }
+$('#trBtn').onclick = () => setDrawer(!drawerOpen());
+$('#trClose').onclick = () => setDrawer(false);
+function renderDrawer() {
+  if (!drawerOpen()) return;
+  const el = $('#trList'); el.innerHTML = '';
+  if (!song) { el.innerHTML = '<p class="note">Lade zuerst einen Song oder nimm etwas auf.</p>'; return; }
+  song.parts.forEach((p, i) => {
+    const row = document.createElement('div'); row.className = 'track';
+    const sw = document.createElement('span'); sw.className = 'sw'; sw.style.background = ROLE[p.role].c;
+    const nm = document.createElement('div'); nm.className = 'tn';
+    const inp = document.createElement('input'); inp.value = p.name; inp.maxLength = 30; inp.setAttribute('aria-label', 'Name der Spur');
+    inp.onchange = () => { p.name = inp.value.trim() || p.name; inp.value = p.name; tracksSave(); renderTracks(); };
+    const sm = document.createElement('small'); sm.textContent = p.notes.length + ' Noten' + (p.drum ? ' · Schlagzeug' : ''); nm.append(inp, sm);
+    const sel = document.createElement('select'); sel.setAttribute('aria-label', 'Rolle für ' + p.name);
+    ['R', 'L', 'A', 'M'].forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = ROLE[r].label; sel.appendChild(o); });
+    sel.value = p.role; sel.onchange = () => { p.role = sel.value; score = null; page = null; sw.style.background = ROLE[p.role].c; rebuildYou(); seek(t); if (autoRange) fitRange(); renderTracks(); tracksSave(); };
+    const del = document.createElement('button'); del.className = 'del'; del.textContent = '✕'; del.title = 'Spur löschen'; del.setAttribute('aria-label', 'Spur ' + p.name + ' löschen');
+    del.hidden = song.parts.length < 2;
+    del.onclick = () => { if (!confirmDel(del)) return; tracksRebuild(song.parts.filter((_, j) => j !== i)); };
+    row.append(sw, nm, sel, del); el.appendChild(row);
+  });
+  $('#trRec').classList.toggle('on', !!(rec && rec.overdub)); $('#trRecTxt').textContent = rec && rec.overdub ? 'Spur fertig' : 'Neue Spur aufnehmen';
+}
+// a second click within 3 s really deletes (no browser dialogs)
+function confirmDel(b) { if (b.dataset.armed) return true; b.dataset.armed = 1; b.textContent = '?'; b.title = 'Zum Löschen noch einmal klicken'; setTimeout(() => { delete b.dataset.armed; b.textContent = '✕'; }, 3000); return false; }
+function songItem(parts) {
+  // the song with the given parts as an entry of "Meine Aufnahmen" (the same form an edited version uses)
+  const list = store.get('recordings', []);
+  let item = song.recId && list.find(x => x.id === song.recId);
+  if (!item) { item = { id: Date.now(), name: (song.title.replace(/ \((bearbeitet|mehrspurig)\)$/, '') + ' (mehrspurig)').slice(0, 40) }; list.unshift(item); }
+  item.notes = []; parts.forEach((p, pi) => p.notes.forEach(n => item.notes.push([n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel, pi])));
+  item.parts = parts.map(p => ({ name: p.name, role: p.role, program: p.program || 0, drum: !!p.drum }));
+  item.meta = { spell: song.spell, swing: song.swing, keySf: song.keySf };
+  if (!item.bpm) item.beats = song.beats.map(b => [+b.time.toFixed(3), b.bar ? 1 : 0, b.n, b.d]);
+  store.set('recordings', list.slice(0, 60));
+  return item;
+}
+function tracksSave() { if (song && song.recId) { songItem(song.parts); renderRecs(); } }
+function tracksRebuild(parts) { const keep = t; const item = songItem(parts); renderRecs(); loadRecording(item); seek(Math.min(keep, song.duration)); renderDrawer(); }
+function overdubStart() {
+  if (!song) return;
+  if (playing) togglePlay();
+  if (edit.on) editToggle(false);
+  synth.ensure();
+  settings.mode = 'watch'; document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch'));
+  // count in one bar before the first note, with the song's own beat
+  const B = song.beats, start = Math.max(0, song.firstStart - 0.05);
+  let bi = 0; for (let i = 0; i < B.length; i++) { if (B[i].time <= start + 1e-6 && B[i].bar) bi = i; }
+  const spb = B.length > 1 ? B[1].time - B[0].time : 0.5, n = (B[bi] && B[bi].n) || 4, bar0 = B[bi] ? B[bi].time : 0;
+  seek(bar0 - n * spb, true);
+  const sp = settings.speed / 100, a0 = synth.ctx.currentTime + 0.05;
+  for (let k = 0; k < n; k++) metroClick(a0 + k * spb / sp, k === 0 ? 2 : 0);
+  rec = { overdub: true, ev: [] };
+  $('#recBtn').classList.add('on');
+  setPlaying(true); renderDrawer();
+}
+function overdubStop(keep) {
+  const r = rec; rec = null; $('#recBtn').classList.remove('on');
+  if (playing) togglePlay();
+  if (keep && r && r.ev.length) {
+    const notes = eventsToNotes(r.ev, true).filter(x => x.end > 0);
+    if (notes.length) {
+      const k = song.parts.length + 1;
+      const parts = [...song.parts, { name: 'Spur ' + k, ch: 0, program: 0, drum: false, role: song.parts.some(p => p.role === 'R') ? 'L' : 'R', notes }];
+      tracksRebuild(parts); seek(song.firstStart - 1);
+    }
+  }
+  renderDrawer();
+}
+$('#trRec').onclick = () => { if (rec && rec.overdub) overdubStop(true); else overdubStart(); };
 function renderTracks() {
   const el = $('#trackList'); el.innerHTML = '';
   if (!song) { el.innerHTML = '<p class="note">Lade zuerst einen Song.</p>'; return; }
@@ -2238,7 +2427,12 @@ renderRecent();
 
 /* ---------- Recording: keeps exact timing, velocity and sustain pedal ---------- */
 let rec = null;
-function recEvent(type, m, v) { if (rec) rec.ev.push([type, m, v, (performance.now() - rec.t0) / 1000]); }
+function recEvent(type, m, v) {
+  if (!rec) return;
+  // overdub: in song time, so the new track lines up with what is playing
+  if (rec.overdub) { if (playing) rec.ev.push([type, m, v, t + (performance.now() - lastNow) / 1000 * settings.speed / 100]); return; }
+  rec.ev.push([type, m, v, (performance.now() - rec.t0) / 1000]);
+}
 // Teacher mode: the R button opens a metronome screen instead of the notes; it counts in and records in time
 const metro = { phase: 'ready', timer: 0, a0: 0, spb: 0.5, n: 4, d: 4, countBeats: 4, nextBeat: 0, taps: [] };
 const metroOpen = () => !$('#metro').hidden;
@@ -2324,7 +2518,7 @@ function metroDraw() {
     $('#mNum').textContent = pos + 1; $('#mSub').textContent = 'Takt ' + bar + ' · ' + fmt(Math.max(0, (performance.now() - rec.t0) / 1000));
   }
 }
-function toggleRec() { if (metroOpen()) metroGoStop(); else metroOpenScreen(); }
+function toggleRec() { if (rec && rec.overdub) overdubStop(true); else if (metroOpen()) metroGoStop(); else metroOpenScreen(); }
 function saveRecording(r) {
   const m = r.metro;
   let notes = eventsToNotes(r.ev, !!m);
@@ -2451,6 +2645,34 @@ $('#setBtn').onclick = () => openPanel(song ? 'tracks' : 'settings');
 $('#panelClose').onclick = closePanel;
 
 // settings controls
+$('#pianoSave').onclick = () => savePianoToFolder();
+/* ---------- print the notes / save as PDF ---------- */
+function printScore() {
+  if (!song) return;
+  if (!(window.Vex && window.Vex.Flow)) { $('#pdfBtn').title = 'Der Notensatz lädt noch, bitte gleich noch einmal'; return; }
+  document.getElementById('printSheet')?.remove();
+  const box = document.createElement('div'); box.id = 'printSheet';
+  const h1 = document.createElement('h1'); h1.textContent = song.title || 'Noten';
+  const src = document.createElement('p'); src.className = 'src'; src.textContent = $('#songSub').textContent.split(' · ')[0] || '';
+  const tmp = document.createElement('div'); box.append(h1, src); document.body.appendChild(box); box.appendChild(tmp);
+  const PW = 700; // CSS pixels across an A4 page
+  const r = buildScore(1e5, PW, tmp); if (!r) { box.remove(); return; }
+  // one block per line of music, so a page break never cuts through a line
+  // VexFlow scales through the viewBox, so crop in unscaled units
+  const svg = tmp.querySelector('svg'); const lineH = r.SYS * r.scale, W0 = +svg.getAttribute('width'), U = W0 / r.scale;
+  r.sys.forEach((_, k) => {
+    const d = document.createElement('div'); d.className = 'sys';
+    const c = k === r.sys.length - 1 ? svg : svg.cloneNode(true);
+    c.setAttribute('viewBox', `0 ${k * r.SYS} ${U} ${r.SYS}`); c.setAttribute('height', lineH); c.setAttribute('width', W0); c.style.width = '100%'; c.style.height = 'auto';
+    d.appendChild(c); box.insertBefore(d, tmp);
+  });
+  tmp.remove();
+  const foot = document.createElement('p'); foot.className = 'foot'; foot.textContent = 'Gesetzt mit mmmusik'; box.appendChild(foot);
+  const done = () => { box.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  setTimeout(() => window.print(), 50);
+}
+$('#pdfBtn').onclick = printScore;
 $('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (settings.sound === 'concert') synth.loadPiano(); soundNote(); syncInst(); };
 $('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); };
 soundNote();
@@ -2493,7 +2715,15 @@ const INSTS = [
   ['brass', 'Synth-Brass', IC('<path d="M3 15h14l9-7v16l-9-7H3z"/><path d="M8 15v-3M11 15v-3M14 15v-3"/><path d="M5 17v4h7"/>')],
   ['pad', 'Pad', IC('<path d="M3 12c4-5 6 5 10 0s6-5 10 0 4 2 6 0"/><path d="M3 18c4-5 6 5 10 0s6-5 10 0 4 2 6 0" opacity=".65"/><path d="M3 24c4-5 6 5 10 0s6-5 10 0 4 2 6 0" opacity=".35"/>')],
   ['vibes', 'Vibraphon', IC('<path d="M4 9h6v9H4zM12 9h6v8h-6zM20 9h6v7h-6z"/><path d="M7 18v7M15 17v8M23 16v9"/><path d="M27 4l-4 6M23 9.5l1-1"/><circle cx="23" cy="10" r="1.6"/>')],
-  ['marimba', 'Marimba', IC('<path d="M3 8h4v15H3zM9 9h4v12H9zM15 10h4v10h-4zM21 11h4v8h-4z"/><path d="M2 26h26"/><path d="M29 3l-5 8"/><circle cx="23.5" cy="11.5" r="1.8"/>')]
+  ['marimba', 'Marimba', IC('<path d="M3 8h4v15H3zM9 9h4v12H9zM15 10h4v10h-4zM21 11h4v8h-4z"/><path d="M2 26h26"/><path d="M29 3l-5 8"/><circle cx="23.5" cy="11.5" r="1.8"/>')],
+  ['harp', 'Harfe', IC('<path d="M8 28V5c6 0 9 3 11 8s6 8 9 8v4H8"/><path d="M12 7v18M15.5 9v16M19 14v11M22.5 19v6"/>')],
+  ['musicbox', 'Spieluhr', IC('<rect x="4" y="13" width="24" height="13" rx="2"/><path d="M4 13l3-5h18l3 5"/><circle cx="16" cy="19.5" r="2.5"/><path d="M28 18h2.5v4"/>')],
+  ['kalimba', 'Kalimba', IC('<path d="M6 27h20l-2-21H8z"/><circle cx="16" cy="22" r="2.2"/><path d="M10 6v9M13 6v12M16 6v8M19 6v12M22 6v9"/>')],
+  ['koto', 'Koto', IC('<path d="M3 21c8-3 18-10 26-13v4C21 15 11 22 3 25z"/><path d="M8 15.5l2 4M13 13l2 4.5M18 10.5l2 4.5M23 8.5l1.5 4"/>')],
+  ['sitar', 'Sitar', IC('<circle cx="10" cy="22" r="6"/><path d="M14 18L27 5M24 4l4 4"/><path d="M17 15.5l2 2M20 12.5l2 2"/>')],
+  ['steelpan', 'Steeldrum', IC('<ellipse cx="16" cy="10" rx="12" ry="4"/><path d="M4 10v12c0 2.2 5.4 4 12 4s12-1.8 12-4V10"/><circle cx="12" cy="10" r="1.5"/><circle cx="19" cy="9.5" r="1.8"/>')],
+  ['gamelan', 'Gamelan', IC('<path d="M3 24h26M6 24v4M26 24v4"/><path d="M3 16h26"/><circle cx="9" cy="13" r="3"/><circle cx="16" cy="13" r="3"/><circle cx="23" cy="13" r="3"/><path d="M9 10V9M16 10V9M23 10V9"/>')],
+  ['panflute', 'Panflöte', IC('<path d="M4 6h4v20H4zM9 6h4v17H9zM14 6h4v14h-4zM19 6h4v11h-4zM24 6h4v8h-4z"/><path d="M3 11h26" opacity=".6"/>')]
 ];
 const DRUMS = [['off', 'Aus'], ['file', 'Aus der Datei'], ['pop', 'Pop'], ['rock', 'Rock'], ['swing', 'Swing'], ['shuffle', 'Shuffle'], ['bossa', 'Bossa'], ['waltz', 'Walzer'], ['latin', 'Percussion']];
 $('#instGrid').innerHTML = INSTS.map(([v, n, ic]) => `<button type="button" data-inst="${v}" aria-pressed="false" title="${$('#soundSel').querySelector(`option[value=${v}]`).textContent}">${ic}<span>${n}</span></button>`).join('');
@@ -2794,7 +3024,7 @@ function drawOverview() {
   c.fillStyle = '#f0d9a8'; c.fillRect(Math.round(xOf(Math.max(0, t))), 2, 1.5, h - 4);
   ovCv.setAttribute('aria-valuenow', Math.round(Math.max(0, t) / dur * 100));
 }
-function rrOn(c, x, y, w, h, r) { r = Math.min(r, w / 2, h / 2); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
+function rrOn(c, x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + h, r); c.arcTo(x + w, y + h, x, y + h, r); c.arcTo(x, y + h, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
 function ovTime(x) { const w = ovCv.clientWidth, pad = 48; return Math.max(0, Math.min(1, (x - pad) / (w - pad * 2))) * song.duration; }
 ovCv.addEventListener('pointerdown', e => {
   if (!song) return;
@@ -2828,6 +3058,29 @@ const idb = {
   async get(k) { try { const db = await idb.open(); return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); } catch (e) { return undefined; } },
   async set(k, v) { try { const db = await idb.open(); await new Promise(res => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
 };
+// samples/salamander inside the program folder the user opened (Chrome, Edge); write = create it if needed
+async function pianoDir(write) {
+  try {
+    const h = window.showDirectoryPicker ? await idb.get('folder') : null; if (!h || !h.queryPermission) return null;
+    const mode = write ? 'readwrite' : 'read';
+    if ((await h.queryPermission({ mode })) !== 'granted' && (!write || (await h.requestPermission({ mode })) !== 'granted')) return null;
+    const s = await h.getDirectoryHandle('samples', { create: write }); return await s.getDirectoryHandle('salamander', { create: write });
+  } catch (e) { return null; }
+}
+async function savePianoToFolder() {
+  const btn = $('#pianoSave');
+  if (!window.showDirectoryPicker) { soundNote('Speichern in einen Ordner geht nur in Chrome und Edge. In der heruntergeladenen App sind die Aufnahmen schon im Ordner samples/ enthalten.'); return; }
+  let d = await pianoDir(true);
+  if (!d) {
+    try { const h = await window.showDirectoryPicker({ id: 'mmmusik', mode: 'readwrite' }); await idb.set('folder', h); d = await pianoDir(true); }
+    catch (e) { return; }
+  }
+  if (!d) { soundNote('Der Ordner ließ sich nicht beschreiben.'); return; }
+  btn.disabled = true; let n = 0;
+  for (const [name, b] of synth.piano.raw) { try { const w = await (await d.getFileHandle(name, { create: true })).createWritable(); await w.write(b); await w.close(); n++; } catch (e) {} }
+  btn.disabled = false;
+  soundNote(n ? `${n} Flügel-Aufnahmen im Programmordner unter samples/salamander gespeichert. Ab jetzt lädt die App sie von dort.` : 'Es gab nichts zu speichern.');
+}
 const isMidiName = n => /\.(mid|midi|kar)$/i.test(n);
 const songName = n => n.replace(/\.(mid|midi|kar)$/i, '').replace(/[_]+/g, ' ');
 async function scanHandle(dir, path = '', depth = 0, out = []) {
