@@ -34,8 +34,9 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Klavier: Konzertflügel aus echten Aufnahmen, Flügel (synthetisch), Cembalo.
   - Elektrisch: E-Piano im Rhodes- und im Wurlitzer-Stil, Clavinet, Jazz-Orgel.
   - Synthesizer: Analog-Lead und Analog-Bass im Moog-Stil (verstimmte Sägezähne, Sub-Oszillator, resonantes Tiefpassfilter mit Hüllkurve), Synth-Brass, Flächenklang.
-  - Weitere: Vibraphon, Marimba.
-  - Der Konzertflügel lädt beim ersten Auswählen die Klavieraufnahmen aus dem Netz (*Salamander Grand Piano* von Alexander Holm, Lizenz CC BY 3.0). Ohne Internet klingt der synthetische Flügel.
+  - Weitere: Vibraphon, Marimba, Harfe, Spieluhr.
+  - Aus aller Welt: Kalimba, Koto, Sitar, Steeldrum, Gamelan-Glocken, Panflöte.
+  - Der Konzertflügel spielt echte Klavieraufnahmen (*Salamander Grand Piano* von Alexander Holm, Lizenz CC BY 3.0). Sie liegen im Ordner `samples/salamander` neben der App. Läuft die App ohne Webserver direkt aus einem Ordner, holt sie die Aufnahmen aus dem Programmordner (nach „Ordner öffnen“) oder aus dem Internet; „Flügel-Aufnahmen im Programmordner speichern“ legt sie dann dort ab.
 - **Schlagzeug zur Begleitung**: Pop, Rock, Swing (Besen-Ride), Shuffle/Blues, Bossa Nova, Walzer oder Percussion (Conga, Shaker, Cowbell). Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien klingen jetzt als Schlagzeug mit; „Aus“ schaltet alles ab.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
 - Auf der Straße sind die Noten kleine erhabene Blöcke mit Schatten. Das Leuchten über einer fälligen Taste ist rund und in der Mitte am hellsten; ist die Note vorbei, blendet es langsam aus.
@@ -46,6 +47,8 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Mit der rechten Maustaste nach rechts oder links ziehen, oder die Zahlen `1` `2` `4` `8` `6` (Ganze, Halbe, Viertel, Achtel, Sechzehntel), ändern die Dauer; `.` macht sie punktiert.
   - `+` und dann Buchstaben (`C D E F G A H`, `B` = B♭) fügen Noten nach der Auswahl ein, `#` erhöht, `−` fügt eine Pause ein. Die folgenden Noten derselben Hand rücken dabei nach hinten.
   - `Entf` löscht, `Strg+Z` macht rückgängig, `Esc` beendet.
+- **Spuren** (Ebenen-Knopf unten): Ein Menü links, das die Tasten frei lässt, zeigt alle Spuren des Lieds mit Name und Rolle. „Neue Spur aufnehmen“ zählt einen Takt ein und spielt das Lied ab, während du eine weitere Spur dazu spielst. So entstehen Stücke aus mehreren Spuren, gespeichert unter „Meine Aufnahmen“.
+- **Noten als PDF**: Der Knopf oben im Seitenmenü druckt das ganze Lied als Notenblatt; im Druckdialog „Als PDF speichern“ wählen.
 - **Lehrer-Modus (Aufnahme)**: Der rote Punkt (oder R) blendet die Noten aus und zeigt ein Metronom. Tempo (Drehknopf auf dem Fuß des Metronoms, auch per Tippen), Takt (2/4, 3/4, 4/4, 6/8), Einzählen (aus, 1 oder 2 Takte) und Klick (immer, nur beim Einzählen, stumm) sind einstellbar. Nach dem Einzählen läuft die Aufnahme taktgenau; Auftakte bleiben erhalten. So spielt die Lehrerin ein Stück ein, und der Schüler übt es danach mit Notenregen, Farbnoten oder Notensatz, auf Wunsch mit demselben Metronom-Klick. Zeitpunkt, Anschlagstärke und Haltepedal bleiben so erhalten, wie gespielt wurde. Aufnahmen werden im Browser gespeichert, lassen sich umbenennen, als Notenregen abspielen und als .mid-Datei mit Tempo und Taktart herunterladen.
 - Springen, Notennamen (deutsch mit H oder englisch).
 
