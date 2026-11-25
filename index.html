@@ -151,6 +151,24 @@ header.bar {
   padding: 7px 12px; font-size: 13px; pointer-events: none;
 }
 .wait-hint b { font-family: var(--f-mono); color: var(--gold); font-weight: 500; }
+.edit-btn svg { width: 17px; height: 17px; color: var(--muted); }
+.edit-btn.on { border-color: rgba(220,185,120,.6); background: rgba(220,185,120,.12); }
+.edit-btn.on svg { color: var(--gold); }
+.edit-bar {
+  position: absolute; bottom: calc(var(--kbh, 120px) + 12px); left: 50%; transform: translateX(-50%); z-index: 5; width: max-content; max-width: calc(100% - 24px);
+  display: grid; gap: 6px; justify-items: center; padding: 8px 12px; border-radius: 14px;
+  background: rgba(16,20,31,.94); border: 1px solid var(--line); box-shadow: 0 12px 30px rgba(0,0,0,.35);
+}
+.eb-main { display: flex; gap: 10px; align-items: center; }
+.eb-tag { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); }
+.eb-main b { font-family: var(--f-mono); font-weight: 500; font-size: 22px; min-width: 3ch; text-align: center; }
+.edit-bar.dragging .eb-main b, .edit-bar.typing .eb-main b { color: var(--gold); }
+.edit-bar.typing { border-color: rgba(220,185,120,.55); }
+.eb-main span#ebInfo { color: var(--muted); font-size: 13px; }
+.eb-main .btn { padding: 5px 12px; font-size: 12px; }
+.eb-keys { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: center; font-size: 10.5px; max-width: 900px; color: var(--muted); }
+.eb-keys kbd { font-family: var(--f-mono); font-size: 10.5px; padding: 1px 5px; margin-right: 2px; border-radius: 4px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); }
+@media (max-width: 700px) { .eb-keys { display: none; } }
 .zoom-box {
   margin-left: auto;
   display: flex; gap: 2px; align-items: center; flex-wrap: wrap;
@@ -196,6 +214,9 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .pop-ctl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; }
 .road-ctl { display: inline-flex; }
 .road-panel { display: grid; justify-items: center; gap: 8px; padding: 12px 8px; border-radius: 18px; }
+.road-panel .keys3d { display: grid; justify-items: center; gap: 2px; border: 1px solid var(--line); background: var(--glass); color: var(--muted); border-radius: 10px; padding: 5px 6px; font-size: 9.5px; letter-spacing: .04em; text-transform: uppercase; }
+.road-panel .keys3d svg { width: 18px; height: 18px; }
+.road-panel .keys3d[aria-pressed=true] { color: var(--gold); border-color: rgba(220,185,120,.5); }
 .road-panel .rl { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .pop-panel.down { bottom: auto; top: calc(100% + 6px); transform-origin: top center; }
 .knob-ctl::after { bottom: auto; top: 100%; }
@@ -354,6 +375,10 @@ table.scores tr.me td { color: var(--gold); }
       <div class="pill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
     </div>
     <div class="wait-hint" id="waitHint" hidden></div>
+    <div class="edit-bar" id="editBar" hidden>
+      <div class="eb-main"><span class="eb-tag">Bearbeiten</span><b id="ebNote">–</b><span id="ebInfo"></span><button class="btn" id="ebDone">Fertig</button></div>
+      <div class="eb-keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Note wählen</span><span><kbd>⇧</kbd>+Pfeile oder ziehen: Note verschieben</span><span>rechte Maustaste ziehen oder <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd><kbd>8</kbd><kbd>6</kbd>: Dauer, <kbd>.</kbd> punktiert</span><span><kbd>+</kbd> dann Buchstaben: Noten einfügen · <kbd>−</kbd> Pause</span><span><kbd>Entf</kbd> löschen · <kbd>Strg</kbd><kbd>Z</kbd> zurück</span></div>
+    </div>
     <div class="metro" id="metro" data-phase="ready" hidden aria-label="Lehrer-Modus: Aufnahme mit Metronom">
       <div class="m-card">
         <div class="m-top">Lehrer-Modus <span class="m-state"><i></i><span id="mState">Bereit</span></span></div>
@@ -386,6 +411,7 @@ table.scores tr.me td { color: var(--gold); }
     <button class="play-btn" id="playBtn" title="Abspielen (Leertaste)"><svg id="playIco" viewBox="0 0 24 24" fill="currentColor"><path d="M7 4.5v15l13-7.5z"/></svg></button>
     <button class="btn icon" id="restartBtn" title="Von vorn (Pos1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7"/><path d="M3 4v5h5"/></svg></button>
     <button class="btn rec-btn" id="recBtn" title="Aufnehmen, was du spielst (R)" aria-label="Aufnahme"><span class="rec-dot"></span></button>
+    <button class="btn rec-btn edit-btn" id="editBtn" title="Noten bearbeiten" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div class="seek">
       <span class="time" id="tNow">0:00</span>
       <input type="range" id="seek" min="0" max="1000" value="0" aria-label="Position im Song">
@@ -407,9 +433,9 @@ table.scores tr.me td { color: var(--gold); }
       <div class="pop-panel"><input type="range" id="guide" min="0" max="100" step="5" value="0" aria-label="Länge der Ziellinie"></div>
     </div>
     <div class="seg" id="viewSeg" role="group" aria-label="Ansicht">
-      <button data-view="rain" aria-pressed="true">Regen</button>
-      <span class="pop-ctl road-ctl" id="roadCtl"><button data-view="road" aria-pressed="false" title="Straße: Neigung beim Darüberfahren einstellen">Straße</button>
-        <span class="pop-panel road-panel"><span class="rl">Straße</span><input type="range" id="road" min="0" max="100" step="1" aria-label="Neigung zwischen Regen und Straße"><span class="rl">Regen</span></span></span>
+      <span class="pop-ctl road-ctl" id="roadCtl"><button data-view="road" id="roadBtn" aria-pressed="true" title="Regen oder Straße: Neigung beim Darüberfahren einstellen">Straße</button>
+        <span class="pop-panel road-panel"><span class="rl">Regen</span><input type="range" id="road" min="0" max="100" step="1" aria-label="Neigung: oben Regen, unten Straße"><span class="rl">Straße</span>
+          <button class="keys3d" id="keys3dBtn" aria-pressed="false" title="Tasten perspektivisch oder senkrecht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 5h10l4 14H3z"/><path d="M10 5l-1 9M14 5l1 9M8.5 14v5M15.5 14v5"/></svg>Tasten</button></span></span>
       <button data-view="sheet" aria-pressed="false">Farbnoten</button>
       <button data-view="score" aria-pressed="false">Noten</button>
     </div>
@@ -609,8 +635,10 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ road: 60, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
+// Regen and Straße share one button now: Regen is the road with no tilt
+if (settings.view === 'rain') { settings.view = 'road'; settings.road = 0; }
 const saveSettings = () => store.set('settings', settings);
 
 /* ---------- Synth ---------- */
@@ -940,6 +968,7 @@ function glowOf(n) { return settings.color === 'hand' ? ROLE[n.part.role].g : PI
 const lb = (arr, time, key) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m][key] < time) lo = m + 1; else hi = m; } return lo; };
 
 const rainLike = () => settings.view === 'rain' || settings.view === 'road';
+let KEY3D = null; // perspective of the keys in the road view, also used to find the key under the pointer
 function render(now) {
   layout();
   cx.setTransform(DPR, 0, 0, DPR, 0, 0);
@@ -951,17 +980,45 @@ function render(now) {
   else if (view === 'sheet') drawSheet(top, bottom, now);
   else drawScore(top, bottom);
   $('#score').hidden = view !== 'score';
-  drawKeyboard(now);
+  KEY3D = null;
+  if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
 }
 
 const ROAD_MAX = 56 * Math.PI / 180;
-function drawRoad(y0, y1, now) {
-  const h = y1 - y0; if (h < 20) return;
+function roadGeo(h) {
   // camera looking along a road that lies flat in front of the keyboard: the hit line stays where it is,
   // far notes get smaller and closer together towards the horizon
   const th = ROAD_MAX * settings.road / 100, f = h * 1.25, c = Math.cos(th), sn = Math.sin(th);
-  const toD = Y => Y * f / (f * c - Y * sn);           // screen height above the hit line -> distance on the road
-  const toY = d => d * c * f / (f + d * sn);            // and back
+  return { f, c, sn,
+    toD: Y => Y * f / (f * c - Y * sn),                // screen height above the hit line -> distance on the road
+    toY: d => d * c * f / (f + d * sn),                // and back
+    scale: d => f / (f + d * sn) };
+}
+const keyCv = document.createElement('canvas'), keyCx = keyCv.getContext('2d');
+function drawKeys3d(now) {
+  // the keys continue the road towards you: drawn flat first, then laid down in the same perspective
+  const y1 = KB.top, kh = KB.h, G = roadGeo(y1);
+  const L = kh * G.f / (G.f * G.c + kh * G.sn);       // key length on the road so the keys fill their strip
+  const rw = Math.round(W * DPR), rh = Math.round(H * DPR);
+  if (keyCv.width !== rw || keyCv.height !== rh) { keyCv.width = rw; keyCv.height = rh; }
+  const keep = cx; cx = keyCx; cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.clearRect(0, 0, W, H);
+  drawKeyboard(now);
+  cx = keep;
+  // glow above the keys stays flat, it already sits on the road at the hit line
+  cx.drawImage(keyCv, 0, 0, rw, Math.round((y1 - 3) * DPR), 0, 0, W, y1 - 3);
+  cx.fillStyle = '#05060a'; cx.fillRect(0, y1 - 3, W, H - y1 + 3);
+  const step = 1.5;
+  for (let Y = 0; Y < kh; Y += step) {
+    const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2), sc = G.scale(-(da + db) / 2);
+    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR), dw = W * sc;
+    cx.drawImage(keyCv, 0, sy, rw, sh, (W - dw) / 2, y1 + Y, dw, Y2 - Y + 0.6);
+  }
+  cx.drawImage(keyCv, 0, (y1 - 3) * DPR, rw, 3 * DPR, 0, y1 - 3, W, 3);
+  KEY3D = { G, L, y1, kh };
+}
+function drawRoad(y0, y1, now) {
+  const h = y1 - y0; if (h < 20) return;
+  const { f, sn, toD, toY } = roadGeo(h);
   const yTop = Math.min(h, toY(h * 6));                 // the road ends at 6 screens of look-ahead, maybe below the top
   const D = toD(yTop);
   const rw = Math.round(W * DPR), rh = Math.round(D * DPR);
@@ -1072,6 +1129,7 @@ function drawSheet(y0, y1, now) {
   const pxs = (W - playX) / (settings.look * 1.4);
   const xOf = time => playX + (time - t) * pxs;
   const ink = '#1b2130';
+  sheetHits = []; sheetGeo = { gap, pxs, playX };
   cx.strokeStyle = 'rgba(27,33,48,.55)'; cx.lineWidth = 1;
   for (let i = 0; i < 5; i++) { [tTop, bTop].forEach(st => { const y = Math.round(st + i * gap) + .5; cx.beginPath(); cx.moveTo(8, y); cx.lineTo(W, y); cx.stroke(); }); }
   if (song) {
@@ -1113,6 +1171,21 @@ function drawSheet(y0, y1, now) {
       if (ACC[pc]) { cx.fillStyle = ink; cx.font = `${gap * 1.6}px "Noto Music", "Segoe UI Symbol", serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(ACC[pc] > 0 ? '♯' : '♭', x - gap * 1.45, y); }
       if (settings.names && gap >= 8 && !acc) { cx.fillStyle = 'rgba(255,255,255,.95)'; cx.font = `600 ${gap * 0.78}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle'; cx.fillText(noteName(n.midi).replace('♯', '').replace('♭', ''), x, y + 0.5); }
       cx.globalAlpha = 1;
+      if (edit.on) {
+        sheetHits.push({ n, x, y });
+        if (n === edit.sel) {
+          cx.strokeStyle = '#c8963c'; cx.lineWidth = 2.5; cx.beginPath(); cx.ellipse(x, y, gap * 1.15, gap * 0.9, -0.35, 0, Math.PI * 2); cx.stroke();
+          cx.strokeStyle = 'rgba(200,150,60,.7)'; cx.lineWidth = 1.5; cx.strokeRect(x, y - gap * 0.5, Math.max(2, xe - x), gap); cx.lineWidth = 1;
+          if (edit.drag && edit.drag.mode !== 'scroll') {
+            // the note name rides above the note while you drag it
+            const lbl = edit.drag.mode === 'pitch' ? noteName(n.midi, true) : durName(n);
+            cx.font = `600 ${Math.max(12, gap * 1.2)}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'bottom';
+            const tw = cx.measureText(lbl).width + 16, bh = Math.max(20, gap * 1.9), by = Math.max(y0 + 4, y - gap * 2 - bh);
+            cx.fillStyle = 'rgba(20,24,38,.92)'; rr(x - tw / 2, by, tw, bh, 8); cx.fill();
+            cx.fillStyle = '#f0d9a8'; cx.fillText(lbl, x, by + bh - 4);
+          }
+        }
+      }
     }
   }
   // clef area
@@ -1515,6 +1588,7 @@ const KEYMAP = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, 
 // Physical key positions (event.code), so the layout works on QWERTZ and QWERTY alike.
 const downKeys = new Map();
 window.addEventListener('keydown', e => {
+  if (edit.on && !e.target.closest('input, select, textarea') && editKey(e)) { e.preventDefault(); return; }
   if (e.target.closest('input, select, textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
   if (metroOpen()) {
     if (e.code === 'Escape') { metroCancel(); return; }
@@ -1539,6 +1613,7 @@ window.addEventListener('keyup', e => { const m = downKeys.get(e.code); if (m !=
 const ptrs = new Map(); let pinch = null;
 function keyAt(x, y) {
   if (y < KB.top) return null;
+  if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y), sc = G.scale(d); x = W / 2 + (x - W / 2) / sc; y = y1 + (-d) / L * kh; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && k.black && x >= k.x && x <= k.x + k.w && y <= KB.top + KB.h * 0.62) return m; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && !k.black && x >= k.x && x < k.x + k.w) return m; }
   return null;
@@ -1546,18 +1621,20 @@ function keyAt(x, y) {
 stage.addEventListener('pointerdown', e => {
   if (e.target !== cv) return;
   const r = stage.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top;
+  if (edit.on && settings.view === 'sheet' && y < KB.top && song) { stage.setPointerCapture(e.pointerId); editDown(e, x, y); return; }
   ptrs.set(e.pointerId, { x, y, note: null });
   stage.setPointerCapture(e.pointerId);
   if (ptrs.size === 2) { ptrs.forEach(p => { if (p.note != null) { noteOff(p.note - (settings.transp | 0)); p.note = null; } }); const [p1, p2] = [...ptrs.values()]; pinch = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), range: { ...range } }; return; }
   const m = keyAt(x, y); if (m != null) { synth.ensure(); ptrs.get(e.pointerId).note = m + (settings.transp | 0); noteOn(m, 90); }
 });
 stage.addEventListener('pointermove', e => {
+  if (edit.drag && edit.drag.id === e.pointerId) { const r = stage.getBoundingClientRect(); editMove(e.clientX - r.left, e.clientY - r.top); return; }
   const p = ptrs.get(e.pointerId); if (!p) return;
   const r = stage.getBoundingClientRect(); p.x = e.clientX - r.left; p.y = e.clientY - r.top;
   if (pinch && ptrs.size === 2) { const [p1, p2] = [...ptrs.values()]; const d = Math.hypot(p1.x - p2.x, p1.y - p2.y); const f = pinch.d / Math.max(20, d); const span = (pinch.range.b - pinch.range.a) * f; const c = (pinch.range.a + pinch.range.b) / 2; setRange(c - span / 2, c + span / 2); return; }
   if (p.note != null) { const m = keyAt(p.x, p.y); const real = p.note - (settings.transp | 0); if (m !== real) { noteOff(real); p.note = null; if (m != null) { p.note = m + (settings.transp | 0); noteOn(m, 90); } } }
 });
-const endPtr = e => { const p = ptrs.get(e.pointerId); if (!p) return; if (p.note != null) noteOff(p.note - (settings.transp | 0)); ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; };
+const endPtr = e => { if (edit.drag && edit.drag.id === e.pointerId) { edit.drag = null; editBar(); return; } const p = ptrs.get(e.pointerId); if (!p) return; if (p.note != null) noteOff(p.note - (settings.transp | 0)); ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; };
 stage.addEventListener('pointerup', endPtr); stage.addEventListener('pointercancel', endPtr);
 
 /* ---------- Transport ---------- */
@@ -1586,8 +1663,8 @@ const fmt = s => { s = Math.max(0, s); return Math.floor(s / 60) + ':' + String(
 
 function segInit(id, key, onChange) {
   const el = $(id);
-  const sync = () => el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', b.dataset[key] === settings[key]));
-  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; settings[key] = b.dataset[key]; saveSettings(); sync(); onChange && onChange(); });
+  const sync = () => el.querySelectorAll('button').forEach(b => { if (b.dataset[key] !== undefined) b.setAttribute('aria-pressed', b.dataset[key] === settings[key]); });
+  el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset[key] === undefined) return; settings[key] = b.dataset[key]; saveSettings(); sync(); onChange && onChange(); });
   sync();
 }
 segInit('#modeSeg', 'mode', () => { if (song) { seek(t); updateHud(); } });
@@ -1903,7 +1980,17 @@ function eventsToNotes(ev, keepTime) {
 }
 function loadRecording(item) {
   const notes = item.notes.map(([midi, start, end, vel]) => ({ midi, start, end, vel }));
-  const beats = [];
+  const beats = item.beats ? item.beats.map(([time, bar, n, d]) => ({ time, bar: !!bar, n, d })) : [];
+  if (item.parts) {
+    // an edited version keeps its hands and its bars
+    const parts = item.parts.map(p => ({ name: p.name, ch: 0, program: p.program || 0, drum: !!p.drum, role: p.role, notes: [] }));
+    item.notes.forEach(([midi, start, end, vel, pi]) => (parts[pi] || parts[0]).notes.push({ midi, start, end, vel }));
+    parts.forEach(p => p.notes.sort((a, b) => a.start - b.start || a.midi - b.midi));
+    if (item.bpm && !beats.length) { const spb = 60 / item.bpm, [n, d] = item.sig, end = item.notes.reduce((m, x) => Math.max(m, x[2]), 0) + spb * n; for (let i = 0; i * spb <= end; i++) beats.push({ time: i * spb, bar: i % n === 0, n, d }); }
+    const s = makeSongFinal(item.name, parts.filter(p => p.notes.length), beats, (item.meta && item.meta.keySf) || 0, { spell: item.meta && item.meta.spell, swing: item.meta && item.meta.swing });
+    s.source = 'Eigene Version'; s.recId = item.id; s.metro = !!item.bpm;
+    loadSong(s); return;
+  }
   if (item.bpm) {
     const spb = 60 / item.bpm, [n, d] = item.sig, end = notes.reduce((m, x) => Math.max(m, x.end), 0) + spb * n;
     for (let i = 0; i * spb <= end; i++) beats.push({ time: i * spb, bar: i % n === 0, n, d });
@@ -2002,13 +2089,201 @@ function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl)
 popToggle('#guideCtl', '#guideBtn', () => { if (+$('#guide').value === 0) setGuide(guideIsPre() ? 50 : 60); });
 document.addEventListener('pointerdown', e => { document.querySelectorAll('.pop-ctl.open').forEach(c => { if (!c.contains(e.target)) { c.classList.remove('open'); c.querySelector('.pop-btn').setAttribute('aria-expanded', 'false'); } }); });
 $('#guide').oninput = e => setGuide(+e.target.value); syncGuide();
-$('#road').value = settings.road;
+function syncRoad() {
+  $('#road').value = 100 - settings.road;
+  $('#roadBtn').textContent = settings.road > 0 ? 'Straße' : 'Regen';
+  $('#keys3dBtn').setAttribute('aria-pressed', !!settings.keys3d);
+  $('#keys3dBtn').title = settings.keys3d ? 'Tasten perspektivisch (klicken für senkrecht)' : 'Tasten senkrecht (klicken für perspektivisch)';
+}
+syncRoad();
+$('#keys3dBtn').onclick = e => { e.stopPropagation(); settings.keys3d = !settings.keys3d; saveSettings(); syncRoad(); };
 $('#road').oninput = e => {
-  settings.road = +e.target.value;
+  settings.road = 100 - +e.target.value; syncRoad();
   // moving the slider means the road view is wanted
-  if (settings.view !== 'road') { settings.view = 'road'; document.querySelectorAll('#viewSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'road')); syncGuide(); }
+  if (settings.view !== 'road') { settings.view = 'road'; document.querySelectorAll('#viewSeg button[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'road')); syncGuide(); }
   saveSettings();
 };
+
+/* ---------- Note editor (works in the Farbnoten view) ---------- */
+const edit = { on: false, typing: false, sel: null, prevView: null, undo: [], song: null, drag: null, saveT: 0 };
+let sheetHits = [], sheetGeo = null;
+const DUR_NAMES = [[4, 'Ganze'], [3, 'punktierte Halbe'], [2, 'Halbe'], [1.5, 'punktierte Viertel'], [1, 'Viertel'], [0.75, 'punktierte Achtel'], [0.5, 'Achtel'], [0.375, 'punktierte Sechzehntel'], [0.25, 'Sechzehntel']];
+const DUR_KEYS = { '1': 4, '2': 2, '4': 1, '8': 0.5, '6': 0.25 };
+function quarterAt(time) {
+  const B = song.beats; if (B.length < 2) return 0.5;
+  const i = Math.min(B.length - 2, Math.max(0, lb(B, time + 1e-6, 'time') - 1));
+  return (B[i + 1].time - B[i].time) * (B[i].d || 4) / 4;
+}
+function nominal(n) { const u = quarterAt(n.start) / 4; return Math.max(1, Math.round((n.end - n.start) / u)) * u; }
+function quarters(n) { return nominal(n) / quarterAt(n.start); }
+function durName(n) { const q = quarters(n), hit = DUR_NAMES.find(([v]) => Math.abs(v - q) < 0.01); return hit ? hit[1] : q.toFixed(2).replace('.', ',') + ' Viertel'; }
+function setDur(n, q) { const len = q * quarterAt(n.start); n.end = n.start + len - Math.min(0.03, len * 0.04); }
+const HAND_NAMES = { R: 'rechte Hand', L: 'linke Hand', A: 'Begleitung', M: 'Schlagzeug' };
+function editOk() { if (edit.song !== song) { edit.song = song; edit.undo = []; edit.sel = null; } if (edit.sel && !song.all.includes(edit.sel)) edit.sel = null; }
+function pushUndo() { editOk(); edit.undo.push(song.parts.map(p => p.notes.map(n => [n.midi, n.start, n.end, n.vel]))); if (edit.undo.length > 100) edit.undo.shift(); }
+function editDone() {
+  song.parts.forEach(p => p.notes.sort((a, b) => a.start - b.start || a.midi - b.midi));
+  song.all = song.parts.flatMap(p => p.notes).sort((a, b) => a.start - b.start || a.midi - b.midi);
+  song.duration = song.all.reduce((m, n) => Math.max(m, n.end), 0);
+  song.maxDur = song.all.reduce((m, n) => Math.max(m, n.end - n.start), 0);
+  song.firstStart = song.all.length ? song.all[0].start : 0;
+  // more notes at the end need more beats
+  const B = song.beats;
+  if (B.length >= 2) {
+    const sp = B[B.length - 1].time - B[B.length - 2].time; let since = 0;
+    for (let j = B.length - 1; j >= 0 && !B[j].bar; j--) since++;
+    while (B[B.length - 1].time < song.duration + 2) { const l = B[B.length - 1]; since++; const bar = since % (l.n || 4) === 0; if (bar) since = 0; B.push({ time: l.time + sp, bar, n: l.n, d: l.d }); }
+  }
+  rebuildYou(); score = null; $('#tEnd').textContent = fmt(song.duration);
+  seek(t, true); editBar(); editSave();
+}
+function editSave() {
+  clearTimeout(edit.saveT);
+  edit.saveT = setTimeout(() => {
+    // your corrections are kept as your own version in the library, the original stays untouched
+    const list = store.get('recordings', []);
+    let item = song.recId && list.find(x => x.id === song.recId);
+    if (!item) { item = { id: Date.now(), name: (song.title + ' (bearbeitet)').slice(0, 40) }; list.unshift(item); song.recId = item.id; song.title = item.name; $('#songTitle').textContent = item.name; }
+    const parts = song.parts;
+    item.notes = song.all.map(n => [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel, parts.indexOf(n.part)]);
+    item.parts = parts.map(p => ({ name: p.name, role: p.role, program: p.program, drum: p.drum }));
+    item.meta = { spell: song.spell, swing: song.swing, keySf: song.keySf };
+    if (!item.bpm) item.beats = song.beats.map(b => [+b.time.toFixed(3), b.bar ? 1 : 0, b.n, b.d]);
+    store.set('recordings', list.slice(0, 30)); renderRecs();
+  }, 400);
+}
+function setView(v) { settings.view = v; document.querySelectorAll('#viewSeg button[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v)); syncGuide(); saveSettings(); }
+function editable() { return song.all.filter(n => n.part.role !== 'M'); }
+function editToggle(on = !edit.on) {
+  if (on && !song) return;
+  edit.on = on; $('#editBtn').classList.toggle('on', on); $('#editBtn').setAttribute('aria-pressed', on);
+  if (on) {
+    editOk();
+    if (playing) togglePlay();
+    if (settings.view !== 'sheet') { edit.prevView = settings.view; setView('sheet'); }
+    if (!edit.sel) edit.sel = editable().find(n => n.start >= t - 0.01) || editable()[0] || null;
+  } else {
+    edit.drag = null; edit.typing = false;
+    if (edit.prevView) { setView(edit.prevView); edit.prevView = null; }
+  }
+  editBar();
+}
+function editBar() {
+  const el = $('#editBar'); el.hidden = !edit.on; if (!edit.on) return;
+  const n = edit.sel;
+  $('#ebNote').textContent = n ? noteName(n.midi, true) : '–';
+  $('#ebInfo').textContent = edit.typing ? 'Eingabe: Buchstaben C D E F G A H (B = B♭), # erhöht · Esc beendet' : n ? durName(n) + ' · ' + (HAND_NAMES[n.part.role] || '') : 'Note anklicken';
+  el.classList.toggle('typing', edit.typing);
+  el.classList.toggle('dragging', !!(edit.drag && edit.drag.mode !== 'scroll'));
+}
+function preview(n) { synth.ensure(); synth.playAuto(n.midi, n.vel || 90, 0.4, 1, 'guide'); }
+function follow(n) {
+  if (!n || !sheetGeo) return;
+  const x = sheetGeo.playX + (n.start - t) * sheetGeo.pxs;
+  if (x < sheetGeo.playX * 0.7 || x > W * 0.78) seek(n.start - 0.25, true);
+}
+function editStep(dir) {
+  const list = editable(); if (!list.length) return;
+  const i = edit.sel ? list.indexOf(edit.sel) : -1;
+  edit.sel = list[Math.max(0, Math.min(list.length - 1, i < 0 ? 0 : i + dir))];
+  follow(edit.sel); preview(edit.sel); editBar();
+}
+function insertAfter(n, midi) {
+  // a letter after + adds that note right after the selected one, − adds a rest of the same length; the rest of this hand moves later
+  pushUndo(); const amt = nominal(n), p = n.part;
+  p.notes.forEach(o => { if (o !== n && o.start > n.start + 1e-3) { o.start += amt; o.end += amt; } });
+  if (midi != null) { const nn = { midi, start: n.start + amt, end: n.start + amt + (n.end - n.start), vel: n.vel, part: p, state: 0 }; p.notes.push(nn); edit.sel = nn; }
+  editDone(); follow(edit.sel); if (midi != null) preview(edit.sel);
+}
+// German letters: H is B natural, B is B flat
+const LETTER_PC = { c: 0, d: 2, e: 4, f: 5, g: 7, a: 9, h: 11, b: 10 };
+function nearestMidi(pc, near) { let best = 0; for (let m = 21; m <= 108; m++) if (m % 12 === pc && (!best || Math.abs(m - near) < Math.abs(best - near))) best = m; return best; }
+function chordStep(n, dir) {
+  // plain up/down moves the cursor to the next higher or lower note sounding at the same time, else to the nearest note in that direction
+  const list = editable().filter(o => o !== n && o.start < n.end && o.end > n.start && (dir > 0 ? o.midi > n.midi : o.midi < n.midi));
+  return list.sort((a, b) => Math.abs(a.midi - n.midi) - Math.abs(b.midi - n.midi) || Math.abs(a.start - n.start) - Math.abs(b.start - n.start))[0] || null;
+}
+function moveInTime(n, dir) {
+  const u = quarterAt(n.start) / 4, len = n.end - n.start;
+  n.start = Math.max(0, n.start + dir * u); n.end = n.start + len;
+}
+function editUndo() {
+  const snap = edit.undo.pop(); if (!snap) return;
+  const pi = edit.sel ? song.parts.indexOf(edit.sel.part) : -1, st = edit.sel ? edit.sel.start : t;
+  snap.forEach((arr, i) => { const p = song.parts[i]; if (p) p.notes = arr.map(([midi, start, end, vel]) => ({ midi, start, end, vel, part: p, state: 0 })); });
+  edit.sel = pi >= 0 ? song.parts[pi].notes.reduce((b, o) => !b || Math.abs(o.start - st) < Math.abs(b.start - st) ? o : b, null) : null;
+  editDone();
+}
+function editKey(e) {
+  editOk();
+  const k = e.key, n = edit.sel;
+  if ((e.ctrlKey || e.metaKey) && (k === 'z' || k === 'Z')) { editUndo(); return true; }
+  if (e.ctrlKey || e.metaKey || e.altKey) return false;
+  if (edit.typing) {
+    // after +: every letter adds a note, Esc, Enter or an arrow ends the input
+    const pc = LETTER_PC[k.toLowerCase()];
+    if (pc !== undefined && n && !e.repeat) { insertAfter(n, nearestMidi(pc, n.midi)); return true; }
+    if (k === 'Escape' || k === 'Enter' || k.startsWith('Arrow')) { edit.typing = false; editBar(); if (k === 'Escape' || k === 'Enter') return true; }
+    else if (k.length === 1 && k !== '+' && k !== '-' && k !== '#') { return true; }
+  }
+  if (k === 'Escape') { editToggle(false); return true; }
+  if (k.startsWith('Arrow') && !e.shiftKey) {
+    // plain arrows move the cursor
+    if (k === 'ArrowLeft' || k === 'ArrowRight') { editStep(k === 'ArrowRight' ? 1 : -1); return true; }
+    if (!n) return true;
+    const o = chordStep(n, k === 'ArrowUp' ? 1 : -1); if (o) { edit.sel = o; follow(o); preview(o); editBar(); }
+    return true;
+  }
+  if (!n) return false;
+  if (k === '#') { pushUndo(); n.midi = Math.min(108, n.midi + 1); editDone(); preview(n); return true; }
+  if (k.startsWith('Arrow')) {
+    // Shift + arrows move the note itself: up/down in pitch, left/right in time by a sixteenth
+    pushUndo();
+    if (k === 'ArrowUp' || k === 'ArrowDown') { n.midi = Math.max(21, Math.min(108, n.midi + (k === 'ArrowUp' ? 1 : -1))); editDone(); preview(n); }
+    else { moveInTime(n, k === 'ArrowRight' ? 1 : -1); editDone(); follow(n); }
+    return true;
+  }
+  if (DUR_KEYS[k] !== undefined) { pushUndo(); setDur(n, DUR_KEYS[k]); editDone(); return true; }
+  if (k === '.' || k === ',') { pushUndo(); const q = quarters(n), dotted = DUR_NAMES.some(([v, nm]) => nm.startsWith('punktierte') && Math.abs(v - q) < 0.01); setDur(n, dotted ? q / 1.5 : q * 1.5); editDone(); return true; }
+  if (k === '+') { edit.typing = true; editBar(); return true; }
+  if (k === '-') { insertAfter(n, null); return true; }
+  if (k === 'Delete' || k === 'Backspace') {
+    pushUndo(); const list = editable(), i = list.indexOf(n);
+    n.part.notes.splice(n.part.notes.indexOf(n), 1);
+    edit.sel = list[i + 1] || list[i - 1] || null; editDone(); return true;
+  }
+  return false;
+}
+function editDown(e, x, y) {
+  editOk();
+  const g = sheetGeo ? sheetGeo.gap : 8;
+  let hit = null, best = g * 1.6;
+  for (const h of sheetHits) { const d = Math.hypot(h.x - x, h.y - y); if (d < best) { best = d; hit = h.n; } }
+  const right = e.button === 2;
+  if (hit) edit.sel = hit;
+  const n = edit.sel;
+  if (right && n) edit.drag = { id: e.pointerId, mode: 'dur', x0: x, len0: n.end - n.start, undone: false };
+  else if (!right && hit) { edit.drag = { id: e.pointerId, mode: 'pitch', y0: y, midi0: hit.midi, undone: false }; preview(hit); }
+  else if (!right) edit.drag = { id: e.pointerId, mode: 'scroll', x0: x, t0: t };
+  editBar();
+}
+function editMove(x, y) {
+  const d = edit.drag, n = edit.sel, G = sheetGeo; if (!d || !G) return;
+  if (d.mode === 'scroll') { seek(d.t0 - (x - d.x0) / G.pxs, true); return; }
+  if (!n) return;
+  if (d.mode === 'pitch') {
+    // up is higher, down is lower; the note keeps its place in time
+    const m = Math.max(21, Math.min(108, d.midi0 + Math.round((d.y0 - y) / (G.gap * 0.32))));
+    if (m !== n.midi) { if (!d.undone) { pushUndo(); d.undone = true; } n.midi = m; editDone(); preview(n); }
+  } else {
+    const u = quarterAt(n.start) / 4, raw = d.len0 + (x - d.x0) / G.pxs, len = Math.max(u, Math.round(raw / u) * u);
+    const end = n.start + len - Math.min(0.03, len * 0.04);
+    if (Math.abs(end - n.end) > 1e-4) { if (!d.undone) { pushUndo(); d.undone = true; } n.end = end; editDone(); }
+  }
+}
+$('#editBtn').onclick = () => editToggle();
+$('#ebDone').onclick = () => editToggle(false);
+stage.addEventListener('contextmenu', e => { if (edit.on) e.preventDefault(); });
 
 /* ---------- Main loop ---------- */
 function frame(now) {
@@ -2026,7 +2301,7 @@ function frame(now) {
 loadSong(builtin(BUILTIN[3]));
 updateRangeLabel();
 requestAnimationFrame(t0 => { lastNow = t0; requestAnimationFrame(frame); });
-window.mmm = { get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
+window.mmm = { edit, hits: () => sheetHits, get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
 <!--APP-END-->
