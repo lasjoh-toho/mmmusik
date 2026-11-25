@@ -46,7 +46,7 @@ body {
 #app {
   height: 100%;
   display: grid;
-  grid-template-rows: auto auto 1fr auto;
+  grid-template-rows: auto 1fr auto;
   background:
     radial-gradient(120% 70% at 50% -10%, rgba(120,110,255,.10), transparent 60%),
     radial-gradient(80% 60% at 100% 100%, rgba(220,185,120,.06), transparent 60%),
@@ -149,7 +149,7 @@ header.bar {
 .hud .v { font-family: var(--f-mono); font-size: 15px; font-variant-numeric: tabular-nums; }
 .hud .v.big { font-size: 20px; color: var(--gold); }
 .wait-hint {
-  position: absolute; top: 12px; left: 50%; transform: translateX(-50%); white-space: nowrap;
+  position: absolute; top: 20px; left: 50%; transform: translateX(-50%); white-space: nowrap;
   background: rgba(10,13,22,.72); border: 1px solid var(--line); border-radius: 10px;
   padding: 7px 12px; font-size: 13px; pointer-events: none;
 }
@@ -178,6 +178,15 @@ header.bar {
 .store-acts .btn { padding: 6px 12px; font-size: 12px; }
 .btn.danger { color: #ff8a96; border-color: rgba(255,93,108,.35); }
 .btn.danger.armed { background: rgba(255,93,108,.18); color: #fff; }
+.hands { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
+.hand { width: 36px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); display: grid; place-items: center; padding: 0; }
+.hand svg { width: 22px; height: 26px; overflow: visible; }
+.hand .h { fill: var(--bg); stroke: currentColor; stroke-width: 1.3; }
+.hand text { font: 700 7px Inter, system-ui, sans-serif; fill: currentColor; }
+.hand[aria-pressed=true] { color: var(--gold); }
+.hand[aria-pressed=true] .h { fill: currentColor; }
+.hand[aria-pressed=true] text { fill: var(--bg); }
+.hand:hover { background: var(--glass-2); }
 .zoom-box {
   margin-left: auto;
   display: flex; gap: 2px; align-items: center; flex-wrap: wrap;
@@ -204,7 +213,11 @@ footer.transport {
 .play-btn svg { width: 18px; height: 18px; }
 .seek { flex: 1 1 260px; display: flex; align-items: center; gap: 10px; min-width: 0; }
 .song-meta { flex: 1 1 220px; }
-.overview { position: relative; height: 40px; border-bottom: 1px solid var(--line); background: rgba(7,9,15,.85); touch-action: none; cursor: pointer; }
+.overview { position: absolute; left: 0; right: 0; top: 0; height: 12px; z-index: 4; opacity: .5; background: rgba(7,9,15,.55); touch-action: none; cursor: pointer; transition: height .18s ease, opacity .18s ease, background .18s ease; }
+.overview:hover, .overview.active { height: 46px; opacity: 1; background: rgba(7,9,15,.9); border-bottom: 1px solid var(--line); }
+.overview .ov-t { opacity: 0; transition: opacity .18s; }
+.overview:hover .ov-t, .overview.active .ov-t { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .overview, .overview .ov-t { transition: none; } }
 .overview canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; outline: none; }
 .overview canvas:focus-visible { box-shadow: inset 0 0 0 2px rgba(220,185,120,.6); }
 .ov-t { position: absolute; top: 50%; transform: translateY(-50%); pointer-events: none; padding: 2px 6px; border-radius: 6px; background: rgba(7,9,15,.75); font-size: 11px; }
@@ -235,7 +248,11 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .road-panel .rl { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .pop-panel.down { bottom: auto; top: calc(100% + 6px); transform-origin: top center; }
 .knob-ctl::after { bottom: auto; top: 100%; }
-.knobs { display: flex; gap: 6px; align-items: flex-start; }
+.knobs { display: flex; gap: 0; align-items: flex-start; }
+.knobs .knob-ctl { width: 66px; }
+.tempo-ctl { display: flex; align-items: center; gap: 8px; }
+.tempo-ctl input { width: 130px; }
+.tempo-ctl .t-pct { font-family: var(--f-mono); font-size: 12px; color: var(--fg); min-width: 4.5ch; text-align: right; font-variant-numeric: tabular-nums; }
 .knob-ctl { flex-direction: column; align-items: center; gap: 1px; }
 .knob { position: relative; width: 38px; height: 38px; padding: 0; border-radius: 50%; display: grid; place-items: center; }
 .knob svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(135deg); }
@@ -351,21 +368,17 @@ table.scores tr.me td { color: var(--gold); }
       <div class="song-title" id="songTitle">Kein Song geladen</div>
       <div class="song-sub" id="songSub">Öffne die Bibliothek und wähle ein Lied</div>
     </div>
-    <div class="knobs" aria-label="Tempo und Lautstärke">
-      <div class="pop-ctl knob-ctl" id="speedCtl">
-        <button class="knob pop-btn" id="speedBtn" title="Tempo" aria-label="Tempo" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="speedArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="speedPct">100</span></button>
-        <span class="k-lbl">Tempo</span>
-        <div class="pop-panel down"><input type="range" id="speed" min="25" max="150" step="5" value="100" aria-label="Tempo"></div>
+    <label class="tempo-ctl" title="Tempo des Liedes (↑ ↓)"><span class="k-lbl">Tempo</span><input type="range" id="speed" min="25" max="110" step="5" value="100" aria-label="Tempo des Liedes"><span class="t-pct" id="speedPct">100 %</span></label>
+    <div class="knobs" aria-label="Lautstärke">
+      <div class="pop-ctl knob-ctl" id="volGuideCtl">
+        <button class="knob pop-btn" id="volGuideBtn" title="Lautstärke: wie es klingen soll" aria-label="Lautstärke: wie es klingen soll" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="volGuideArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="volGuidePct">60</span></button>
+        <span class="k-lbl">Vorlage</span>
+        <div class="pop-panel down"><input type="range" id="volGuide" min="0" max="100" step="1" value="60" aria-label="Lautstärke: wie es klingen soll"></div>
       </div>
       <div class="pop-ctl knob-ctl" id="volLiveCtl">
         <button class="knob pop-btn" id="volLiveBtn" title="Lautstärke: dein Spiel" aria-label="Lautstärke: dein Spiel" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="volLiveArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="volLivePct">80</span></button>
         <span class="k-lbl">Du</span>
         <div class="pop-panel down"><input type="range" id="volLive" min="0" max="100" step="1" value="80" aria-label="Lautstärke: dein Spiel"></div>
-      </div>
-      <div class="pop-ctl knob-ctl" id="volGuideCtl">
-        <button class="knob pop-btn" id="volGuideBtn" title="Lautstärke: wie es klingen soll" aria-label="Lautstärke: wie es klingen soll" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="volGuideArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="volGuidePct">60</span></button>
-        <span class="k-lbl">Vorlage</span>
-        <div class="pop-panel down"><input type="range" id="volGuide" min="0" max="100" step="1" value="60" aria-label="Lautstärke: wie es klingen soll"></div>
       </div>
       <div class="pop-ctl knob-ctl" id="volAccCtl">
         <button class="knob pop-btn" id="volAccBtn" title="Lautstärke: Begleitung" aria-label="Lautstärke: Begleitung" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="volAccArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="volAccPct">70</span></button>
@@ -379,13 +392,13 @@ table.scores tr.me td { color: var(--gold); }
       <button class="btn icon" id="setBtn" title="Stimmen, Bestenliste und Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="7" cy="18" r="2" fill="currentColor"/></svg></button>
     </div>
   </header>
-  <div class="overview" id="overview" title="Ziehen: Ausschnitt verschieben · Klicken: Noten an dieser Stelle zeigen">
-    <canvas id="ovCv" role="slider" tabindex="0" aria-label="Position im Song" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></canvas>
-    <span class="time ov-t ov-now" id="tNow">0:00</span><span class="time ov-t ov-end" id="tEnd">0:00</span>
-  </div>
 
   <main id="stage">
     <canvas id="cv"></canvas>
+    <div class="overview" id="overview" title="Ziehen: Ausschnitt verschieben · Klicken: Noten an dieser Stelle zeigen">
+    <canvas id="ovCv" role="slider" tabindex="0" aria-label="Position im Song" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"></canvas>
+    <span class="time ov-t ov-now" id="tNow">0:00</span><span class="time ov-t ov-end" id="tEnd">0:00</span>
+  </div>
     <div id="score" hidden><div id="scoreInner"></div><div id="scoreMsg" class="note"></div></div>
     <div class="hud" id="hud" hidden>
       <div class="pill"><span class="k">Punkte</span><span class="v big" id="hScore">0</span></div>
@@ -442,10 +455,9 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="wait" aria-pressed="false">Üben</button>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
-    <div class="seg" id="handSeg" role="group" aria-label="Welche Hand übst du?">
-      <button data-hands="L" aria-pressed="false" title="Nur die linke Hand üben, die rechte spielt die App">Links</button>
-      <button data-hands="both" aria-pressed="true" title="Beide Hände üben">Beide</button>
-      <button data-hands="R" aria-pressed="false" title="Nur die rechte Hand üben, die linke spielt die App">Rechts</button>
+    <div class="hands" id="handSeg" role="group" aria-label="Welche Hand übst du? Volle Hand: du spielst, Umriss: die App spielt">
+      <button class="hand" id="handL" aria-pressed="true" title="Linke Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 28" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)"><rect class="h" x="1.6" y="12.5" width="4.2" height="9.5" rx="2.1" transform="rotate(-32 3.7 21)"/><rect class="h" x="6.3" y="4.6" width="3.5" height="12" rx="1.75"/><rect class="h" x="10.2" y="2.6" width="3.5" height="13.5" rx="1.75"/><rect class="h" x="14.1" y="4" width="3.5" height="12" rx="1.75"/><rect class="h" x="18" y="7.6" width="3.1" height="9.5" rx="1.55"/><rect class="h" x="5.6" y="12.6" width="15.8" height="13" rx="4.5"/></g><text x="13.5" y="22.3" text-anchor="middle">L</text></svg></button>
+      <button class="hand" id="handR" aria-pressed="true" title="Rechte Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 28" aria-hidden="true"><g><rect class="h" x="1.6" y="12.5" width="4.2" height="9.5" rx="2.1" transform="rotate(-32 3.7 21)"/><rect class="h" x="6.3" y="4.6" width="3.5" height="12" rx="1.75"/><rect class="h" x="10.2" y="2.6" width="3.5" height="13.5" rx="1.75"/><rect class="h" x="14.1" y="4" width="3.5" height="12" rx="1.75"/><rect class="h" x="18" y="7.6" width="3.1" height="9.5" rx="1.55"/><rect class="h" x="5.6" y="12.6" width="15.8" height="13" rx="4.5"/></g><text x="13.5" y="22.3" text-anchor="middle">R</text></svg></button>
     </div>
     <div class="view-group">
     <div class="pop-ctl" id="guideCtl">
@@ -1700,7 +1712,7 @@ function togglePlay() {
 function restart() { if (!song) return; ensureRange(); seek(song.firstStart - (settings.mode === 'watch' ? 1 : 2.5)); setPlaying(true); }
 $('#playBtn').onclick = togglePlay; $('#restartBtn').onclick = () => { synth.ensure(); restart(); };
 let seeking = false;
-function setSpeed(v) { settings.speed = Math.max(25, Math.min(150, v)); knobShow('speed', settings.speed, 25, 150); saveSettings(); }
+function setSpeed(v) { settings.speed = Math.max(25, Math.min(110, v)); $('#speed').value = settings.speed; $('#speedPct').textContent = settings.speed + ' %'; saveSettings(); }
 $('#speed').oninput = e => setSpeed(+e.target.value);
 const fmt = s => { s = Math.max(0, s); return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0'); };
 
@@ -1711,7 +1723,14 @@ function segInit(id, key, onChange) {
   sync();
 }
 segInit('#modeSeg', 'mode', () => { if (song) { seek(t); updateHud(); } });
-segInit('#handSeg', 'hands', () => { if (song) { rebuildYou(); seek(t); updateHud(); } });
+function syncHands() { $('#handL').setAttribute('aria-pressed', settings.hands !== 'R'); $('#handR').setAttribute('aria-pressed', settings.hands !== 'L'); }
+// each hand toggles between "you play it" (full) and "the app plays it" (outline); at least one hand stays yours
+['L', 'R'].forEach(h => { $('#hand' + h).onclick = () => {
+  const on = { L: settings.hands !== 'R', R: settings.hands !== 'L' }; on[h] = !on[h];
+  settings.hands = on.L && on.R ? 'both' : on.L ? 'L' : on.R ? 'R' : 'both';
+  saveSettings(); syncHands(); if (song) { rebuildYou(); seek(t); updateHud(); }
+}; });
+syncHands();
 segInit('#viewSeg', 'view', () => { peekPrev = null; syncGuide(); });
 
 /* ---------- HUD ---------- */
@@ -2130,7 +2149,6 @@ function knobShow(id, v, min, max) { $('#' + id + 'Pct').textContent = v; $('#' 
   $('#' + id).oninput = e => set(+e.target.value); set(settings[id]);
   popToggle('#' + id + 'Ctl', '#' + id + 'Btn');
 });
-popToggle('#speedCtl', '#speedBtn');
 popToggle('#mBpmCtl', '#mBpmBtn');
 function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl); const o = !c.classList.contains('open'); c.classList.toggle('open', o); $(btn).setAttribute('aria-expanded', o); if (o && onOpen) onOpen(); }; }
 popToggle('#guideCtl', '#guideBtn', () => { if (+$('#guide').value === 0) setGuide(guideIsPre() ? 50 : 60); });
@@ -2386,7 +2404,7 @@ function drawOverview() {
   const c = ovCx; c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, w, h);
   if (!song || !song.duration) return;
   const pad = 48, iw = w - pad * 2, dur = song.duration, xOf = tm => pad + Math.max(0, Math.min(1, tm / dur)) * iw;
-  if (ov.song !== song || ov.all !== song.all || ov.w !== w) {
+  if (ov.song !== song || ov.all !== song.all || ov.w !== w || ov.h !== h) {
     // the notes of the whole song as a tiny piano roll, drawn once per song or edit
     ov.song = song; ov.all = song.all; ov.w = w; ov.h = h;
     ovMap.width = ovCv.width; ovMap.height = ovCv.height;
@@ -2415,6 +2433,7 @@ ovCv.addEventListener('pointerdown', e => {
   ovCv.setPointerCapture(e.pointerId);
   // grabbing the window keeps the grip, grabbing elsewhere centres the window on the pointer
   const inside = tm >= a && tm <= b;
+  $('#overview').classList.add('active');
   ov.drag = { id: e.pointerId, x0: x, moved: false, offset: inside ? tm - t : (b - a) / 2 - (t - a) };
 });
 ovCv.addEventListener('pointermove', e => {
@@ -2423,7 +2442,7 @@ ovCv.addEventListener('pointermove', e => {
   d.moved = true; seeking = true; seek(ovTime(e.offsetX) - d.offset, true);
 });
 const ovUp = e => {
-  const d = ov.drag; if (!d || d.id !== e.pointerId) return; ov.drag = null; seeking = false;
+  const d = ov.drag; if (!d || d.id !== e.pointerId) return; ov.drag = null; seeking = false; $('#overview').classList.remove('active');
   if (!d.moved && e.type === 'pointerup') {
     // a click: jump there and show the notes until you play on
     if (playing) togglePlay();
