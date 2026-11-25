@@ -600,7 +600,16 @@ table.scores tr.me td { color: var(--gold); }
     <section class="field">
       <h3>Klang</h3>
       <label for="soundSel">Instrument</label>
-      <select id="soundSel"><option value="grand">Flügel</option><option value="epiano">E-Piano (Jazz)</option><option value="organ">Jazz-Orgel</option></select>
+      <select id="soundSel">
+        <optgroup label="Klavier"><option value="concert">Konzertflügel (echte Aufnahmen)</option><option value="grand">Flügel (synthetisch)</option><option value="harpsi">Cembalo</option></optgroup>
+        <optgroup label="Elektrisch"><option value="epiano">E-Piano (Rhodes-Stil)</option><option value="wurli">E-Piano (Wurlitzer-Stil)</option><option value="clav">Clavinet</option><option value="organ">Jazz-Orgel (Hammond-Stil)</option></optgroup>
+        <optgroup label="Synthesizer"><option value="moog">Analog-Lead (Moog-Stil)</option><option value="moogbass">Analog-Bass (Moog-Stil)</option><option value="brass">Synth-Brass (Prophet-Stil)</option><option value="pad">Streicher-Pad</option></optgroup>
+        <optgroup label="Weitere"><option value="vibes">Vibraphon</option><option value="marimba">Marimba</option></optgroup>
+      </select>
+      <p class="note" id="soundNote" hidden></p>
+      <label for="drumSel">Schlagzeug zur Begleitung</label>
+      <select id="drumSel"><option value="off">Aus</option><option value="file">Nur aus der MIDI-Datei</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="swing">Swing (Besen-Ride)</option><option value="shuffle">Shuffle / Blues</option><option value="bossa">Bossa Nova</option><option value="waltz">Walzer</option><option value="latin">Percussion (Conga, Shaker, Cowbell)</option></select>
+      <p class="note">Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien spielen immer mit, außer bei „Aus“. Beim Üben im Wartemodus pausiert es.</p>
       <label for="vol">Gesamtlautstärke</label>
       <input type="range" id="vol" min="0" max="100" value="70">
       <p class="note">Oben in der Leiste regelst du getrennt: „Du“ ist dein eigenes Spiel, „Vorlage“ die Stimmen, die du übst, so wie sie klingen sollen, und „Begleitung“ alles Übrige.</p>
@@ -722,7 +731,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 // Regen and Straße share one button now: Regen is the road with no tilt
 if (settings.view === 'rain') { settings.view = 'road'; settings.road = 0; }
@@ -749,16 +758,114 @@ const synth = {
   },
   setVol(v) { if (this.master) this.master.gain.value = v / 100 * 0.6; },
   setBus(k, v) { if (this.bus) this.bus[k].gain.value = v / 100; },
+  // recorded grand piano (Salamander Grand Piano by Alexander Holm, CC BY 3.0), one sample every minor third
+  piano: { buf: new Map(), state: 'idle' },
+  loadPiano() {
+    if (this.piano.state !== 'idle' || !this.ensure()) return;
+    this.piano.state = 'loading'; soundNote();
+    const NAMES = { 9: 'A', 0: 'C', 3: 'Ds', 6: 'Fs' }, jobs = [];
+    for (let m = 21; m <= 108; m += 3) {
+      const url = 'https://tonejs.github.io/audio/salamander/' + NAMES[m % 12] + (Math.floor(m / 12) - 1) + '.mp3';
+      jobs.push(fetch(url).then(r => { if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); }).then(b => new Promise((res, rej) => this.ctx.decodeAudioData(b, res, rej))).then(ab => this.piano.buf.set(m, ab)));
+    }
+    Promise.all(jobs).then(() => { this.piano.state = 'ready'; soundNote(); }).catch(() => { this.piano.state = 'failed'; soundNote(); });
+  },
+  sampleVoice(m, vel, gainMul, bus) {
+    const c = this.ctx, now = c.currentTime;
+    let s = 21; this.piano.buf.forEach((_, k) => { if (Math.abs(k - m) < Math.abs(s - m)) s = k; });
+    const src = c.createBufferSource(); src.buffer = this.piano.buf.get(s); src.playbackRate.value = Math.pow(2, (m - s) / 12);
+    const tone = c.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1200 + Math.pow(vel / 127, 1.5) * 9000;
+    const out = c.createGain(); out.gain.value = Math.pow(vel / 127, 1.6) * 1.15 * gainMul;
+    src.connect(tone).connect(out).connect(this.bus[bus] || this.master); src.start(now);
+    return { stop(at) { const t0 = Math.max(at || c.currentTime, c.currentTime); out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, 0.18); try { src.stop(t0 + 1.6); } catch (e) {} } };
+  },
+  // drum kit, General MIDI note numbers, synthesised
+  noise: null,
+  drum(note, vel, at) {
+    if (!this.ensure()) return;
+    const c = this.ctx, t0 = Math.max(at || c.currentTime, c.currentTime), v = Math.pow(vel / 127, 1.3) * 0.9;
+    if (!this.noise) { const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.noise = n; }
+    const dest = this.bus.acc;
+    const env = (g, peak, dec, att = 0.002) => { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + att); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dec); };
+    const noise = (type, freq, q, peak, dec) => { const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q; const g = c.createGain(); env(g, peak, dec); src.connect(f).connect(g).connect(dest); src.start(t0, Math.random() * 0.5); src.stop(t0 + dec + 0.05); };
+    const tone = (type, f0, f1, peak, dec, sweep = 0.05) => { const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + sweep); const g = c.createGain(); env(g, peak, dec); o.connect(g).connect(dest); o.start(t0); o.stop(t0 + dec + 0.05); };
+    if (note === 35 || note === 36) { tone('sine', 150, 48, v * 1.1, 0.42, 0.09); noise('lowpass', 900, 0.7, v * 0.12, 0.02); }
+    else if (note === 38 || note === 40) { tone('triangle', 230, 170, v * 0.45, 0.12); noise('bandpass', 1900, 0.7, v * 0.55, 0.19); }
+    else if (note === 37) { tone('square', 820, 760, v * 0.18, 0.04, 0.01); noise('bandpass', 2600, 2, v * 0.2, 0.04); }
+    else if (note === 39) { [0, 0.011, 0.023].forEach(d => { const a = t0 + d; noise('bandpass', 1300, 1.2, v * 0.4, a - t0 + 0.09); }); }
+    else if (note === 42 || note === 44) noise('highpass', 7600, 0.7, v * 0.22, 0.05);
+    else if (note === 46) noise('highpass', 7000, 0.7, v * 0.22, 0.32);
+    else if (note === 49 || note === 57 || note === 52 || note === 55) noise('highpass', 5200, 0.5, v * 0.3, 1.4);
+    else if (note === 51 || note === 59 || note === 53) { noise('bandpass', 6200, 1.4, v * 0.16, 0.6); tone('sine', 3200, 3150, v * 0.04, 0.5, 0.3); }
+    else if (note >= 41 && note <= 50) { const f = 70 + (note - 41) * 18; tone('sine', f * 1.6, f, v * 0.7, 0.35, 0.12); }
+    else if (note === 54) noise('highpass', 8500, 1, v * 0.18, 0.12);
+    else if (note === 56) { tone('square', 560, 560, v * 0.12, 0.2, 0.01); tone('square', 845, 845, v * 0.08, 0.15, 0.01); }
+    else if (note >= 60 && note <= 68) { const f = [380, 290, 340, 250, 200, 180, 520, 430, 300][note - 60]; tone('sine', f * 1.15, f, v * 0.55, note === 62 ? 0.07 : 0.22, 0.03); }
+    else if (note === 69 || note === 70 || note === 82) noise('highpass', 6000, 1, v * 0.16, 0.07);
+    else if (note === 75 || note === 76 || note === 77) tone('sine', note === 75 ? 2500 : 1400, note === 75 ? 2500 : 1350, v * 0.25, 0.06, 0.01);
+    else noise('bandpass', 2000, 1, v * 0.2, 0.1);
+  },
   voice(m, vel, gainMul = 1, bus = 'live') {
     if (!this.ensure()) return null;
     const c = this.ctx, now = c.currentTime, f = 440 * Math.pow(2, (m - 69) / 12);
     const v = Math.pow(vel / 127, 1.4) * 0.32 * gainMul;
+    let sound = settings.sound;
+    if (sound === 'concert') { if (this.piano.state === 'ready') return this.sampleVoice(m, vel, gainMul, bus); this.loadPiano(); sound = 'grand'; }
     const out = c.createGain(); out.gain.value = 0; out.connect(this.bus[bus] || this.master);
     const oscs = []; const osc = (type, freq) => { const o = c.createOscillator(); o.type = type; o.frequency.value = freq; oscs.push(o); return o; };
     const gain = (val) => { const g = c.createGain(); g.gain.value = val; return g; };
+    const lp = (freq, q = 0.7) => { const b = c.createBiquadFilter(); b.type = 'lowpass'; b.frequency.value = freq; b.Q.value = q; return b; };
     let decay, release = 0.07;
-    const sound = settings.sound;
-    if (sound === 'epiano') {
+    if (sound === 'moog' || sound === 'moogbass') {
+      // two detuned saws and a square an octave down through a resonant 24 dB ladder-like low-pass with its own envelope
+      const bass = sound === 'moogbass', fq = bass ? f / 2 : f;
+      const f1 = lp(100, bass ? 6 : 8), f2 = lp(100, 0.8);
+      const peak = Math.min(16000, fq * (bass ? 10 : 14) * (0.5 + vel / 127)), sus = Math.min(12000, fq * (bass ? 2.2 : 4));
+      [f1, f2].forEach(fl => { fl.frequency.setValueAtTime(fq * 1.2, now); fl.frequency.exponentialRampToValueAtTime(peak, now + 0.012); fl.frequency.exponentialRampToValueAtTime(sus, now + (bass ? 0.25 : 0.45)); });
+      osc('sawtooth', fq * 1.003).connect(gain(0.5)).connect(f1); osc('sawtooth', fq * 0.997).connect(gain(0.5)).connect(f1); osc('square', fq / 2).connect(gain(bass ? 0.6 : 0.3)).connect(f1);
+      f1.connect(f2).connect(out);
+      decay = bass ? 3 : 30; release = bass ? 0.06 : 0.12;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.9, now + 0.006);
+      out.gain.exponentialRampToValueAtTime(v * (bass ? 0.55 : 0.7), now + 0.3); if (bass) out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'brass') {
+      const fl = lp(f, 2.5); fl.frequency.setValueAtTime(f * 1.5, now); fl.frequency.linearRampToValueAtTime(Math.min(14000, f * (5 + vel / 32)), now + 0.09); fl.frequency.exponentialRampToValueAtTime(Math.min(9000, f * 3.5), now + 0.6);
+      [1.004, 0.996, 1].forEach((d, i) => osc(i === 2 ? 'square' : 'sawtooth', f * d).connect(gain(i === 2 ? 0.15 : 0.4)).connect(fl));
+      fl.connect(out); decay = 30; release = 0.18;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.75, now + 0.05); out.gain.exponentialRampToValueAtTime(v * 0.6, now + 0.4);
+    } else if (sound === 'pad') {
+      const fl = lp(Math.min(6000, f * 4), 0.5), vib = osc('sine', 5.2), vg = gain(f * 0.004); vib.connect(vg);
+      [1.006, 0.994, 1.0015, 0.9985, 2.001].forEach((d, i) => { const o = osc('sawtooth', f * d); vg.connect(o.frequency); o.connect(gain(i === 4 ? 0.12 : 0.25)).connect(fl); });
+      fl.connect(out); decay = 40; release = 0.6;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.6, now + 0.35);
+    } else if (sound === 'clav') {
+      // bright plucked string through a narrow band, like a clavinet pickup
+      const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = Math.min(6000, f * 3.2); bp.Q.value = 1.2;
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = f * 0.9;
+      osc('sawtooth', f).connect(hp); osc('square', f * 1.001).connect(gain(0.6)).connect(hp); hp.connect(bp).connect(out);
+      decay = Math.max(0.6, 2.4 - (m - 36) * 0.02); release = 0.03;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.3, now + 0.002); out.gain.exponentialRampToValueAtTime(v * 0.5, now + 0.12); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'harpsi') {
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = f * 1.5;
+      osc('sawtooth', f).connect(hp); osc('sawtooth', f * 2.002).connect(gain(0.5)).connect(hp); hp.connect(out);
+      decay = Math.max(0.8, 3 - (m - 36) * 0.03); release = 0.05;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.8, now + 0.002); out.gain.exponentialRampToValueAtTime(v * 0.3, now + 0.15); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'wurli') {
+      // reedy electric piano: FM with an odd ratio, a bit of bark when played hard, tremolo
+      const car = osc('sine', f), mod = osc('sine', f * 3), mg = gain(0);
+      mg.gain.setValueAtTime(f * (0.4 + vel / 127 * 1.8), now); mg.gain.exponentialRampToValueAtTime(Math.max(1, f * 0.2), now + 0.6);
+      mod.connect(mg).connect(car.frequency);
+      const sq = osc('square', f), sqf = lp(f * 3); const sqg = gain(0.12 * vel / 127); sq.connect(sqf).connect(sqg);
+      const trem = gain(1), lfo = osc('sine', 5.5), lfoG = gain(0.18); lfo.connect(lfoG).connect(trem.gain);
+      car.connect(trem); sqg.connect(trem); trem.connect(out);
+      decay = Math.max(1, 3.6 - (m - 21) * 0.03); release = 0.1;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v, now + 0.004); out.gain.exponentialRampToValueAtTime(v * 0.4, now + 0.4); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'vibes' || sound === 'marimba') {
+      const vib = sound === 'vibes';
+      osc('sine', f).connect(out); osc('sine', f * (vib ? 4 : 3.93)).connect(gain(vib ? 0.25 : 0.4)).connect(out); if (!vib) osc('sine', f * 9.9).connect(gain(0.08)).connect(out);
+      if (vib) { const lfo = osc('sine', 5), lg = gain(v * 0.35); lfo.connect(lg).connect(out.gain); }
+      decay = vib ? Math.max(1.5, 5 - (m - 48) * 0.04) : Math.max(0.35, 1.2 - (m - 48) * 0.015); release = vib ? 0.25 : 0.05;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.1, now + 0.002); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'epiano') {
       // two-operator FM tine with a soft bell and gentle tremolo
       const car = osc('sine', f), mod = osc('sine', f), modG = gain(0);
       const idx = f * (0.6 + vel / 127 * 2.4);
@@ -809,6 +916,34 @@ const synth = {
   playAuto(m, vel, dur, mul, bus) { const v = this.voice(m, vel, mul, bus); if (!v) return; v.stop(this.ctx.currentTime + dur); this.auto.add(v); setTimeout(() => this.auto.delete(v), dur * 1000 + 800); },
   stopAuto() { this.auto.forEach(v => v.stop()); this.auto.clear(); }
 };
+
+function soundNote() {
+  const el = document.getElementById('soundNote'); if (!el) return;
+  const st = synth.piano.state;
+  el.hidden = settings.sound !== 'concert';
+  el.textContent = st === 'ready' ? 'Echte Flügel-Aufnahmen geladen (Salamander Grand Piano von Alexander Holm, CC BY 3.0).'
+    : st === 'loading' ? 'Die Flügel-Aufnahmen werden geladen (etwa 4 MB) … bis dahin klingt der synthetische Flügel.'
+    : st === 'failed' ? 'Die Flügel-Aufnahmen ließen sich nicht laden (offline oder in der Vorschau gesperrt). Es klingt der synthetische Flügel.'
+    : 'Die Aufnahmen werden beim ersten Ton geladen (etwa 4 MB).';
+}
+/* Drum grooves: hits per beat as [fraction of the beat, GM drum note, velocity] */
+const GROOVES = {
+  pop: (b, n) => [[0, b % 2 ? 38 : 36, b % 2 ? 100 : 110], [0, 42, 70], [0.5, 42, 50], ...(b === n - 1 ? [[0.5, 36, 80]] : [])],
+  rock: (b, n) => [[0, b % 2 ? 38 : 36, 115], [0, 42, 90], [0.5, 42, 70], ...(b % 2 === 0 && b > 0 ? [[0.5, 36, 95]] : []), ...(b === 0 ? [[0, 49, 0]] : [])],
+  swing: (b) => [[0, 51, 85], ...(b % 2 ? [[2 / 3, 51, 70], [0, 44, 75]] : []), [0, 36, 35]],
+  shuffle: (b) => [[0, 42, 85], [2 / 3, 42, 60], [0, b % 2 ? 38 : 36, b % 2 ? 105 : 110]],
+  bossa: (b, n) => { const bar = [[[0, 36, 95], [0, 37, 80]], [[0.75, 36, 80], [0.5, 37, 75]], [[0, 36, 95]], [[0.75, 36, 80], [0, 37, 80], [0.5, 37, 70]]][b % 4]; return [...bar, [0, 70, 55], [0.25, 70, 35], [0.5, 70, 50], [0.75, 70, 35]]; },
+  waltz: (b) => b === 0 ? [[0, 36, 105], [0, 42, 60]] : [[0, 38, 55], [0, 42, 75]],
+  latin: (b, n) => [[0, 64, b === 0 ? 100 : 70], [0.5, 63, 80], [0.75, 62, 60], [0, 70, 50], [0.25, 70, 30], [0.5, 70, 45], [0.75, 70, 30], ...(b % 2 === 0 ? [[0, 56, 70]] : [[0.5, 56, 55]])]
+};
+function grooveHits(b0, b1, speed) {
+  // all drum hits of the groove for the beat that starts at b0 (seconds in the song), as audio times
+  const style = settings.drums; if (!GROOVES[style] || !song || !synth.ctx) return;
+  const i = song.beats.indexOf(b0);
+  let pos = 0; for (let j = i; j > 0 && !song.beats[j].bar; j--) pos++;
+  const len = (b1 ? b1.time : b0.time + 0.5) - b0.time, n = b0.n || 4;
+  GROOVES[style](pos, n).forEach(([fr, note, vel]) => { if (vel > 0) synth.drum(note, vel, synth.ctx.currentTime + (b0.time + fr * len - t) / (speed / 100)); });
+}
 
 /* ---------- MIDI file parser ---------- */
 function parseMidi(buf, title) {
@@ -1587,11 +1722,14 @@ function advance(dt) {
   }
   // teacher recordings keep their metronome, so the student hears the same beat while practising
   if (song.metro && settings.metroClick === 'on' && synth.ctx && nt > t) for (const b of song.beats) if (b.time >= t && b.time < nt) metroClick(synth.ctx.currentTime + 0.005, b.bar ? 2 : 0);
+  // drum groove: when a beat starts, schedule its hits
+  if (GROOVES[settings.drums] && settings.mode !== 'wait' && synth.ctx && nt > t) { const B = song.beats; for (let i = lb(B, t, 'time'); i < B.length && B[i].time < nt; i++) if (B[i].time >= t) grooveHits(B[i], B[i + 1], settings.speed); }
   // auto-played notes
   while (autoIdx < song.all.length && song.all[autoIdx].start < nt) {
     const n = song.all[autoIdx++];
     if (n.start < t - 0.05) continue;
-    const role = n.part.role; if (role === 'M') continue;
+    const role = n.part.role;
+    if (role === 'M') { if (settings.drums !== 'off' && settings.mode !== 'wait' && n.part.drum) synth.drum(n.midi, n.vel); continue; }
     const you = isYou(n);
     const dur = (n.end - n.start) / (settings.speed / 100);
     const bus = (handRole(role) && (settings.mode === 'watch' || youRole(role))) ? 'guide' : 'acc';
@@ -2174,7 +2312,9 @@ $('#setBtn').onclick = () => openPanel(song ? 'tracks' : 'settings');
 $('#panelClose').onclick = closePanel;
 
 // settings controls
-$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); };
+$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (settings.sound === 'concert') synth.loadPiano(); soundNote(); };
+$('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); };
+soundNote();
 $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings.color = e.target.value; saveSettings(); };
 $('#namesChk').checked = settings.names; $('#namesChk').onchange = e => { settings.names = e.target.checked; saveSettings(); };
 $('#germanChk').checked = settings.german; $('#germanChk').onchange = e => { settings.german = e.target.checked; saveSettings(); updateRangeLabel(); };

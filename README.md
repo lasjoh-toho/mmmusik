@@ -27,7 +27,13 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Eingebaute Lieder: sechs gemeinfreie Klassiker und Kinderlieder plus Jazz & Ragtime (Swing-Blues mit Walking Bass, When the Saints Go Marching In, The Entertainer).
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - **Alles bleibt im Browser**: Aufnahmen, bearbeitete Versionen, zuletzt geöffnete Dateien, Bestenlisten und Einstellungen. Jeder Song lässt sich einzeln löschen oder als .mid herunterladen; unter Einstellungen → „Gespeichert in diesem Browser“ gibt es „Alles exportieren“ (Sicherung als .json), „Sicherung laden“ und „Alles löschen“.
-- Klangfarben Flügel, E-Piano und Jazz-Orgel.
+- **Instrumente** (Einstellungen → Klang)
+  - Klavier: Konzertflügel aus echten Aufnahmen, Flügel (synthetisch), Cembalo.
+  - Elektrisch: E-Piano im Rhodes- und im Wurlitzer-Stil, Clavinet, Jazz-Orgel.
+  - Synthesizer: Analog-Lead und Analog-Bass im Moog-Stil (verstimmte Sägezähne, Sub-Oszillator, resonantes Tiefpassfilter mit Hüllkurve), Synth-Brass, Flächenklang.
+  - Weitere: Vibraphon, Marimba.
+  - Der Konzertflügel lädt beim ersten Auswählen die Klavieraufnahmen aus dem Netz (*Salamander Grand Piano* von Alexander Holm, Lizenz CC BY 3.0). Ohne Internet klingt der synthetische Flügel.
+- **Schlagzeug zur Begleitung**: Pop, Rock, Swing (Besen-Ride), Shuffle/Blues, Bossa Nova, Walzer oder Percussion (Conga, Shaker, Cowbell). Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien klingen jetzt als Schlagzeug mit; „Aus“ schaltet alles ab.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
 - **Noten-Editor** (Stift-Knopf unten): korrigiert Noten in der Farbnoten-Ansicht. Korrekturen werden als eigene Version in der Bibliothek gespeichert, das Original bleibt unverändert.
   - Pfeiltasten bewegen die Auswahl (links/rechts zur nächsten Note, hoch/runter durch den Akkord).
@@ -37,7 +43,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - `+` und dann Buchstaben (`C D E F G A H`, `B` = B♭) fügen Noten nach der Auswahl ein, `#` erhöht, `−` fügt eine Pause ein. Die folgenden Noten derselben Hand rücken dabei nach hinten.
   - `Entf` löscht, `Strg+Z` macht rückgängig, `Esc` beendet.
 - **Lehrer-Modus (Aufnahme)**: Der rote Punkt (oder R) blendet die Noten aus und zeigt ein Metronom. Tempo (Drehknopf auf dem Fuß des Metronoms, auch per Tippen), Takt (2/4, 3/4, 4/4, 6/8), Einzählen (aus, 1 oder 2 Takte) und Klick (immer, nur beim Einzählen, stumm) sind einstellbar. Nach dem Einzählen läuft die Aufnahme taktgenau; Auftakte bleiben erhalten. So spielt die Lehrerin ein Stück ein, und der Schüler übt es danach mit Notenregen, Farbnoten oder Notensatz, auf Wunsch mit demselben Metronom-Klick. Zeitpunkt, Anschlagstärke und Haltepedal bleiben so erhalten, wie gespielt wurde. Aufnahmen werden im Browser gespeichert, lassen sich umbenennen, als Notenregen abspielen und als .mid-Datei mit Tempo und Taktart herunterladen.
-- Tempo 25–150 %, Springen, Notennamen (deutsch mit H oder englisch).
+- Springen, Notennamen (deutsch mit H oder englisch).
 
 ## Veröffentlichen mit GitHub Pages
 
