@@ -88,6 +88,9 @@ header.bar {
 .chip-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
 .chip-dot.on { background: var(--good); box-shadow: 0 0 10px var(--good); }
 .chip-dot.err { background: var(--bad); }
+.plug-btn { position: relative; }
+.plug-btn .chip-dot { position: absolute; right: 6px; top: 6px; width: 7px; height: 7px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
 /* Stage */
 #stage { position: relative; min-height: 0; overflow: hidden; touch-action: none; }
@@ -181,11 +184,14 @@ header.bar {
 .hands { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--glass); border: 1px solid var(--line); }
 .hand { width: 36px; height: 32px; border: 0; border-radius: 999px; background: transparent; color: var(--muted); display: grid; place-items: center; padding: 0; }
 .hand svg { width: 22px; height: 26px; overflow: visible; }
-.hand .h { fill: var(--bg); stroke: currentColor; stroke-width: 1.3; }
-.hand text { font: 700 7px Inter, system-ui, sans-serif; fill: currentColor; }
+.hand line { stroke-linecap: round; }
+/* outline = a slightly bigger hand in the colour with the same hand in the background colour on top, so no inner lines show */
+.hand .o line { stroke: currentColor; } .hand .o rect { fill: currentColor; stroke: currentColor; }
+.hand .i line { stroke: #10131c; } .hand .i rect { fill: #10131c; }
+.hand text { font: 700 7.5px Inter, system-ui, sans-serif; fill: currentColor; }
 .hand[aria-pressed=true] { color: var(--gold); }
-.hand[aria-pressed=true] .h { fill: currentColor; }
-.hand[aria-pressed=true] text { fill: var(--bg); }
+.hand[aria-pressed=true] .i { display: none; }
+.hand[aria-pressed=true] text { fill: #10131c; }
 .hand:hover { background: var(--glass-2); }
 .zoom-box {
   margin-left: auto;
@@ -249,9 +255,20 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .pop-panel.down { bottom: auto; top: calc(100% + 6px); transform-origin: top center; }
 .knob-ctl::after { bottom: auto; top: 100%; }
 .knobs { display: flex; gap: 0; align-items: flex-start; }
-.knobs .knob-ctl { width: 66px; }
+.knobs .knob-ctl { width: 50px; }
+.knobs .k-lbl { white-space: nowrap; }
 .tempo-ctl { display: flex; align-items: center; gap: 8px; }
-.tempo-ctl input { width: 130px; }
+.t-track { position: relative; display: block; width: 150px; height: 24px; }
+.t-track input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; -webkit-appearance: none; appearance: none; background: transparent; cursor: pointer; }
+.t-track input::-webkit-slider-runnable-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--gold) var(--p, 50%), rgba(255,255,255,.14) var(--p, 50%)); }
+.t-track input::-moz-range-track { height: 4px; border-radius: 2px; background: linear-gradient(to right, var(--gold) var(--p, 50%), rgba(255,255,255,.14) var(--p, 50%)); }
+.t-track input::-webkit-slider-thumb { -webkit-appearance: none; width: 36px; height: 22px; margin-top: -9px; opacity: 0; }
+.t-track input::-moz-range-thumb { width: 36px; height: 22px; opacity: 0; border: 0; }
+/* the number itself is the handle */
+.t-thumb { position: absolute; top: 1px; width: 36px; height: 22px; margin-left: -18px; border-radius: 11px; display: grid; place-items: center; pointer-events: none;
+  background: var(--gold); color: var(--gold-ink); font: 600 11.5px var(--f-mono); font-variant-numeric: tabular-nums; box-shadow: 0 2px 8px rgba(0,0,0,.35); transition: transform .12s; }
+.t-track:hover .t-thumb, .t-track:active .t-thumb { transform: scale(1.08); }
+.t-track input:focus-visible + .t-thumb { box-shadow: 0 0 0 2px rgba(220,185,120,.5); }
 .tempo-ctl { gap: 6px; }
 .t-step { width: 24px; height: 24px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: 500 15px/1 var(--f-mono); display: grid; place-items: center; }
 .t-step:hover { background: var(--glass-2); border-color: rgba(220,185,120,.5); }
@@ -372,7 +389,7 @@ table.scores tr.me td { color: var(--gold); }
       <div class="song-title" id="songTitle">Kein Song geladen</div>
       <div class="song-sub" id="songSub">Öffne die Bibliothek und wähle ein Lied</div>
     </div>
-    <div class="tempo-ctl" title="Tempo des Liedes (↑ ↓)"><span class="k-lbl">Tempo</span><button class="t-step" id="speedDown" aria-label="Langsamer">−</button><input type="range" id="speed" min="25" max="110" step="5" value="100" aria-label="Tempo des Liedes"><button class="t-step" id="speedUp" aria-label="Schneller">+</button><span class="t-pct" id="speedPct">100 %</span></div>
+    <div class="tempo-ctl" title="Tempo des Liedes (↑ ↓)"><span class="k-lbl">Tempo</span><button class="t-step" id="speedDown" aria-label="Langsamer">−</button><span class="t-track"><input type="range" id="speed" min="25" max="110" step="5" value="100" aria-label="Tempo des Liedes in Prozent"><span class="t-thumb" id="speedPct" aria-hidden="true">100</span></span><button class="t-step" id="speedUp" aria-label="Schneller">+</button></div>
     <div class="knobs" aria-label="Lautstärke">
       <div class="pop-ctl knob-ctl" id="volGuideCtl">
         <button class="knob pop-btn" id="volGuideBtn" title="Lautstärke: wie es klingen soll" aria-label="Lautstärke: wie es klingen soll" aria-expanded="false"><svg viewBox="0 0 36 36"><circle class="k-track" cx="18" cy="18" r="14" pathLength="100"/><circle class="k-val" id="volGuideArc" cx="18" cy="18" r="14" pathLength="100"/></svg><span class="k-pct" id="volGuidePct">60</span></button>
@@ -391,7 +408,7 @@ table.scores tr.me td { color: var(--gold); }
       </div>
     </div>
     <div class="head-actions">
-      <button class="btn" id="midiBtn" title="MIDI-Keyboard verbinden"><span class="chip-dot" id="midiDot"></span><span class="txt" id="midiTxt">Keyboard verbinden</span></button>
+      <button class="btn icon plug-btn" id="midiBtn" title="MIDI-Keyboard verbinden" aria-label="MIDI-Keyboard verbinden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4"/><path d="M6.5 7h11v3.5a5.5 5.5 0 0 1-11 0z"/><path d="M12 16v2.5a2.5 2.5 0 0 0 2.5 2.5H17"/></svg><span class="chip-dot" id="midiDot"></span><span class="sr" id="midiTxt">Keyboard verbinden</span></button>
       <button class="btn" id="libBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span class="txt">Songs</span></button>
       <button class="btn icon" id="setBtn" title="Stimmen, Bestenliste und Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="7" cy="18" r="2" fill="currentColor"/></svg></button>
     </div>
@@ -460,8 +477,8 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
     <div class="hands" id="handSeg" role="group" aria-label="Welche Hand übst du? Volle Hand: du spielst, Umriss: die App spielt">
-      <button class="hand" id="handL" aria-pressed="true" title="Linke Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 28" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)"><rect class="h" x="1.6" y="12.5" width="4.2" height="9.5" rx="2.1" transform="rotate(-32 3.7 21)"/><rect class="h" x="6.3" y="4.6" width="3.5" height="12" rx="1.75"/><rect class="h" x="10.2" y="2.6" width="3.5" height="13.5" rx="1.75"/><rect class="h" x="14.1" y="4" width="3.5" height="12" rx="1.75"/><rect class="h" x="18" y="7.6" width="3.1" height="9.5" rx="1.55"/><rect class="h" x="5.6" y="12.6" width="15.8" height="13" rx="4.5"/></g><text x="13.5" y="22.3" text-anchor="middle">L</text></svg></button>
-      <button class="hand" id="handR" aria-pressed="true" title="Rechte Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 28" aria-hidden="true"><g><rect class="h" x="1.6" y="12.5" width="4.2" height="9.5" rx="2.1" transform="rotate(-32 3.7 21)"/><rect class="h" x="6.3" y="4.6" width="3.5" height="12" rx="1.75"/><rect class="h" x="10.2" y="2.6" width="3.5" height="13.5" rx="1.75"/><rect class="h" x="14.1" y="4" width="3.5" height="12" rx="1.75"/><rect class="h" x="18" y="7.6" width="3.1" height="9.5" rx="1.55"/><rect class="h" x="5.6" y="12.6" width="15.8" height="13" rx="4.5"/></g><text x="13.5" y="22.3" text-anchor="middle">R</text></svg></button>
+      <button class="hand" id="handL" aria-pressed="true" title="Linke Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 26" aria-hidden="true"><g transform="translate(24 0) scale(-1 1)"><g class="o"><line x1="6.6" y1="17.2" x2="2.9" y2="11.6" stroke-width="6.1"/><line x1="8.4" y1="13" x2="8.3" y2="4.6" stroke-width="5.699999999999999"/><line x1="11.8" y1="12" x2="11.8" y2="2.9" stroke-width="5.8"/><line x1="15.2" y1="12.5" x2="15.3" y2="4.2" stroke-width="5.699999999999999"/><line x1="18.3" y1="14.2" x2="18.6" y2="7.8" stroke-width="5.3"/><rect x="6" y="10.2" width="14.6" height="14" rx="5.2" stroke-width="2.4"/></g><g class="i"><line x1="6.6" y1="17.2" x2="2.9" y2="11.6" stroke-width="3.7"/><line x1="8.4" y1="13" x2="8.3" y2="4.6" stroke-width="3.3"/><line x1="11.8" y1="12" x2="11.8" y2="2.9" stroke-width="3.4"/><line x1="15.2" y1="12.5" x2="15.3" y2="4.2" stroke-width="3.3"/><line x1="18.3" y1="14.2" x2="18.6" y2="7.8" stroke-width="2.9"/><rect x="6" y="10.2" width="14.6" height="14" rx="5.2"/></g></g><text x="10.7" y="20.4" text-anchor="middle">L</text></svg></button>
+      <button class="hand" id="handR" aria-pressed="true" title="Rechte Hand: voll = du spielst, Umriss = die App spielt"><svg viewBox="0 0 24 26" aria-hidden="true"><g><g class="o"><line x1="6.6" y1="17.2" x2="2.9" y2="11.6" stroke-width="6.1"/><line x1="8.4" y1="13" x2="8.3" y2="4.6" stroke-width="5.699999999999999"/><line x1="11.8" y1="12" x2="11.8" y2="2.9" stroke-width="5.8"/><line x1="15.2" y1="12.5" x2="15.3" y2="4.2" stroke-width="5.699999999999999"/><line x1="18.3" y1="14.2" x2="18.6" y2="7.8" stroke-width="5.3"/><rect x="6" y="10.2" width="14.6" height="14" rx="5.2" stroke-width="2.4"/></g><g class="i"><line x1="6.6" y1="17.2" x2="2.9" y2="11.6" stroke-width="3.7"/><line x1="8.4" y1="13" x2="8.3" y2="4.6" stroke-width="3.3"/><line x1="11.8" y1="12" x2="11.8" y2="2.9" stroke-width="3.4"/><line x1="15.2" y1="12.5" x2="15.3" y2="4.2" stroke-width="3.3"/><line x1="18.3" y1="14.2" x2="18.6" y2="7.8" stroke-width="2.9"/><rect x="6" y="10.2" width="14.6" height="14" rx="5.2"/></g></g><text x="13.3" y="20.4" text-anchor="middle">R</text></svg></button>
     </div>
     <div class="view-group">
     <div class="pop-ctl" id="guideCtl">
@@ -1641,7 +1658,7 @@ function bindInputs() {
   ins.forEach(i => { i.onmidimessage = (sel.value === 'all' || sel.value === i.id) ? onMidiMsg : null; });
   const n = ins.length;
   midiDot.className = 'chip-dot' + (n ? ' on' : '');
-  midiTxt.textContent = n ? (n === 1 ? ins[0].name : n + ' Geräte') : 'Kein Keyboard gefunden';
+  midiTxt.textContent = n ? (n === 1 ? ins[0].name : n + ' Geräte') : 'Kein Keyboard gefunden'; midiBtn.title = 'MIDI-Keyboard: ' + midiTxt.textContent;
 }
 $('#midiSel').onchange = bindInputs;
 async function connectMidi(silent) {
@@ -1649,7 +1666,7 @@ async function connectMidi(silent) {
   try { midiAccess = await navigator.requestMIDIAccess(); midiAccess.onstatechange = bindInputs; bindInputs(); }
   catch (e) { if (!silent) midiFail('Der Zugriff auf MIDI wurde blockiert. In dieser Vorschau ist das gesperrt: öffne die App direkt im Browser (GitHub Pages oder die heruntergeladene index.html).'); }
 }
-function midiFail(text) { midiDot.className = 'chip-dot err'; midiTxt.textContent = 'MIDI nicht verfügbar'; openPanel('settings'); const n = $('#midiNote'); n.innerHTML = ''; const d = document.createElement('div'); d.className = 'msg'; d.textContent = text; n.before(d); setTimeout(() => d.remove(), 12000); }
+function midiFail(text) { midiDot.className = 'chip-dot err'; midiTxt.textContent = 'MIDI nicht verfügbar'; midiBtn.title = 'MIDI nicht verfügbar'; openPanel('settings'); const n = $('#midiNote'); n.innerHTML = ''; const d = document.createElement('div'); d.className = 'msg'; d.textContent = text; n.before(d); setTimeout(() => d.remove(), 12000); }
 midiBtn.onclick = () => { synth.ensure(); connectMidi(false); };
 try { navigator.permissions && navigator.permissions.query({ name: 'midi' }).then(p => { if (p.state === 'granted') connectMidi(true); }).catch(() => {}); } catch (e) {}
 
@@ -1726,7 +1743,12 @@ function togglePlay() {
 function restart() { if (!song) return; ensureRange(); seek(song.firstStart - (settings.mode === 'watch' ? 1 : 2.5)); setPlaying(true); }
 $('#playBtn').onclick = togglePlay; $('#restartBtn').onclick = () => { synth.ensure(); restart(); };
 let seeking = false;
-function setSpeed(v) { settings.speed = Math.max(25, Math.min(110, v)); $('#speed').value = settings.speed; $('#speedPct').textContent = settings.speed + ' %'; saveSettings(); }
+function setSpeed(v) {
+  settings.speed = Math.max(25, Math.min(110, v)); $('#speed').value = settings.speed; $('#speedPct').textContent = settings.speed;
+  // place the number on the handle: the native thumb is 36px wide and travels within the track
+  const f = (settings.speed - 25) / 85, w = 150; $('#speedPct').style.left = (18 + f * (w - 36)) + 'px';
+  $('#speed').style.setProperty('--p', (f * 100) + '%'); saveSettings();
+}
 $('#speed').oninput = e => setSpeed(+e.target.value);
 $('#speedDown').onclick = () => setSpeed(settings.speed - 5);
 $('#speedUp').onclick = () => setSpeed(settings.speed + 5);
