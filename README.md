@@ -34,7 +34,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Instrumente**: Der Knopf vor dem Tempo zeigt das aktuelle Instrument als Icon und öffnet in der Mitte des Fensters eine nach Gruppen sortierte Auswahl mit allen Instrumenten und Schlagzeug-Stilen (auch unter Einstellungen → Klang).
   - Klavier: Konzertflügel aus echten Aufnahmen, Flügel (synthetisch), Cembalo.
   - Elektrisch: E-Piano im Rhodes- und im Wurlitzer-Stil, Clavinet, Jazz-Orgel.
-  - Synthesizer: Analog-Lead und Analog-Bass im Moog-Stil (verstimmte Sägezähne, Sub-Oszillator, resonantes Tiefpassfilter mit Hüllkurve), Synth-Brass, Flächenklang.
+  - Synthesizer: Analog-Lead und Analog-Bass im Moog-Stil (verstimmte Sägezähne, Sub-Oszillator, resonantes Tiefpassfilter mit Hüllkurve), Synth-Brass, Flächenklang, Theremin (fast reiner Ton, gleitet immer vom letzten Ton zum nächsten, mit wachsendem Vibrato; spielt einstimmig).
   - Streicher (echte Aufnahmen): Streichorchester (Violinen, Celli und Kontrabass je nach Lage, leicht verstimmt gedoppelt), Violine, Cello, Kontrabass.
   - Bläser (echte Aufnahmen): Blechbläser-Satz (Trompete, Horn, Posaune, Tuba je nach Lage), Trompete, Posaune, Waldhorn, Tuba, Querflöte, Klarinette, Saxophon.
   - Gitarre (echte Aufnahmen): Konzertgitarre.
