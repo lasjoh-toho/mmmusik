@@ -39,7 +39,8 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Der Konzertflügel spielt echte Klavieraufnahmen (*Salamander Grand Piano* von Alexander Holm, Lizenz CC BY 3.0). Sie liegen im Ordner `samples/salamander` neben der App. Läuft die App ohne Webserver direkt aus einem Ordner, holt sie die Aufnahmen aus dem Programmordner (nach „Ordner öffnen“) oder aus dem Internet; „Flügel-Aufnahmen im Programmordner speichern“ legt sie dann dort ab.
 - **Schlagzeug zur Begleitung**: Pop, Rock, Swing (Besen-Ride), Shuffle/Blues, Bossa Nova, Walzer oder Percussion (Conga, Shaker, Cowbell). Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien klingen jetzt als Schlagzeug mit; „Aus“ schaltet alles ab.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
-- Auf der Straße sind die Noten kleine erhabene Blöcke mit Schatten. Das Leuchten über einer fälligen Taste ist rund und in der Mitte am hellsten; ist die Note vorbei, blendet es langsam aus.
+- Alle Noten sind so breit wie eine schwarze Taste und gleiten auf eigenen, dunkleren Spuren heran.
+- Auf der Straße sind die Noten kleine erhabene Blöcke mit Schatten. Klingende Noten stehen vorn ein wenig über die Kante der Tasten. Das Leuchten über einer fälligen Taste ist rund und in der Mitte am hellsten; ist die Note vorbei, blendet es langsam aus.
 - **Noten-Editor** (Stift-Knopf unten): korrigiert Noten in der Farbnoten-Ansicht. Korrekturen werden als eigene Version in der Bibliothek gespeichert, das Original bleibt unverändert.
   - Pfeiltasten bewegen die Auswahl (links/rechts zur nächsten Note, hoch/runter durch den Akkord).
   - Shift + Pfeile verschieben die Note: hoch/runter in der Tonhöhe, links/rechts um ein Sechzehntel in der Zeit.
