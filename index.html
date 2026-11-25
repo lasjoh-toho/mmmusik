@@ -278,26 +278,45 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .inst-ctl::after { bottom: auto; top: 100%; }
 .inst-btn svg { width: 22px; height: 22px; }
 .inst-ctl:hover .inst-btn, .inst-ctl.open .inst-btn { color: var(--gold); border-color: rgba(220,185,120,.5); }
-.dp-veil { position: absolute; inset: 0; z-index: 30; display: grid; place-items: center; padding: 16px; background: rgba(5,7,12,.55); backdrop-filter: blur(6px); }
+.dp-veil { position: fixed; inset: 0; z-index: 60; display: grid; place-items: center; padding: 16px; background: rgba(5,7,12,.55); backdrop-filter: blur(6px); }
 .dp-veil[hidden] { display: none; }
-.dp-card { width: min(860px, 100%); max-height: 100%; overflow: auto; display: grid; gap: 12px; padding: 16px; border-radius: 18px; background: rgba(16,20,31,.98); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
+.dp-card { position: relative; width: min(1280px, 100%); height: min(920px, 100%); max-height: 100%; overflow: hidden; display: flex; flex-direction: column; gap: 12px; padding: 16px; border-radius: 18px; background: rgba(16,20,31,.98); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
 .dp-head { display: flex; align-items: center; gap: 12px; }
 .dp-head b { font-family: var(--f-display); font-size: 16px; }
 .dp-head input { flex: 1; min-width: 0; background: var(--glass); border: 1px solid var(--line); border-radius: 10px; color: var(--fg); padding: 6px 10px; font: inherit; }
 .dp-cfg { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .dp-bpm { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
 .dp-bpm input { width: 64px; background: var(--glass); border: 1px solid var(--line); border-radius: 8px; color: var(--fg); padding: 5px 6px; font: inherit; }
-.dp-grid { display: grid; gap: 3px; overflow-x: auto; padding-bottom: 4px; }
-.dp-row { display: grid; grid-template-columns: 92px repeat(var(--steps), minmax(18px, 1fr)); gap: 3px; align-items: center; }
+.dp-grid { display: grid; align-content: start; gap: 3px; overflow: auto; padding-bottom: 4px; flex: 1; min-height: 120px; }
+.dp-card > .note { margin: 0; }
+.dp-row { display: grid; grid-template-columns: 120px repeat(var(--steps), minmax(20px, 1fr)); gap: 3px; align-items: center; }
 .dp-row > span { font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; }
 .dp-row > span:hover { color: var(--fg); }
 .dp-row button { height: 24px; padding: 0; border-radius: 6px; border: 1px solid rgba(255,255,255,.06); background: rgba(255,255,255,.04); cursor: pointer; }
 .dp-row button.beat { background: rgba(255,255,255,.08); }
 .dp-row button.bar { box-shadow: inset 2px 0 0 rgba(220,185,120,.45); }
-.dp-row button:not([data-v="0"]) { background: rgba(220,185,120,.75); }
-.dp-row button[data-v="60"] { background: rgba(220,185,120,.35); }
-.dp-row button[data-v="100"] { background: rgba(220,185,120,.75); }
-.dp-row button[data-v="127"] { background: #f0c879; box-shadow: 0 0 10px rgba(240,200,121,.5); }
+.dp-row > span { display: flex; align-items: center; gap: 4px; }
+.dp-row > span .rm { margin-left: auto; opacity: 0; border: 0; background: none; color: var(--muted); height: auto; padding: 0 4px; font-size: 11px; cursor: pointer; }
+.dp-row:hover > span .rm { opacity: 1; }
+.dp-row > span .rm:hover { color: #ff8a96; }
+.dp-row button.on { position: relative; background: rgba(240,200,121, calc(.22 + .78 * var(--a))); border-color: rgba(240,200,121,.5); }
+.dp-row button.on.fx::after { content: ""; position: absolute; top: 3px; right: 3px; width: 5px; height: 5px; border-radius: 50%; background: #1b2130; }
+.dp-row button.on.rep::before { content: ""; position: absolute; inset: 30% 18%; background: repeating-linear-gradient(90deg, rgba(27,33,48,.55) 0 2px, transparent 2px 5px); }
+.dp-row button.sel { outline: 2px solid #fff; outline-offset: 1px; }
+.dp-swing { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.dp-swing input { width: 120px; }
+.dp-swing b { font-family: var(--f-mono); font-weight: 400; color: var(--fg); min-width: 4ch; }
+.dp-add select { background: var(--glass); border: 1px dashed rgba(220,185,120,.45); color: var(--gold); border-radius: 10px; padding: 6px 10px; font: inherit; font-size: 12.5px; }
+.dp-fx { position: absolute; z-index: 3; width: 320px; max-height: calc(100% - 16px); overflow-y: auto; display: grid; gap: 10px; padding: 14px; border-radius: 16px; background: rgba(22,27,40,.98); border: 1px solid rgba(220,185,120,.45); box-shadow: 0 24px 60px rgba(0,0,0,.55); transform-origin: var(--ox, 50%) var(--oy, 50%); animation: fxIn .22s cubic-bezier(.2,.9,.3,1.2); }
+.dp-fx[hidden] { display: none; }
+@keyframes fxIn { from { transform: scale(.08); opacity: .2; } }
+@media (prefers-reduced-motion: reduce) { .dp-fx { animation: none; } }
+.dp-fx-head { display: flex; align-items: center; justify-content: space-between; }
+.dp-fx-head b { font-family: var(--f-display); font-size: 14px; }
+.dp-fx label { display: grid; grid-template-columns: 74px 1fr 52px; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+.dp-fx output { font-family: var(--f-mono); font-size: 11px; color: var(--fg); text-align: right; }
+.dp-fx-rep { display: flex; align-items: center; justify-content: space-between; font-size: 12px; color: var(--muted); }
+.dp-fx-acts { display: flex; gap: 6px; justify-content: flex-end; }
 .dp-row button.now { outline: 2px solid rgba(255,255,255,.55); outline-offset: -2px; }
 .dp-acts { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
 /* the instrument picker opens in the middle of the window, below the header (the header is its containing block) */
@@ -605,10 +624,26 @@ table.scores tr.me td { color: var(--gold); }
           <span class="seg" id="dpSig"><button data-dp-beats="3">3/4</button><button data-dp-beats="4">4/4</button></span>
           <span class="seg" id="dpLen"><button data-dp-bars="1">1 Takt</button><button data-dp-bars="2">2 Takte</button></span>
           <label class="dp-bpm">Tempo <input type="number" id="dpBpm" min="40" max="220" value="100"></label>
+          <label class="dp-swing" title="Swing: jedes zweite Sechzehntel kommt etwas später, bis hin zum Triolen-Gefühl">Swing <input type="range" id="dpSwing" min="0" max="100" step="1" value="0"><b id="dpSwingV">0 %</b></label>
           <button class="btn primary" id="dpPlay">▶ Probehören</button>
         </div>
         <div class="dp-grid" id="dpGrid"></div>
-        <p class="note">Klick auf ein Feld: Schlag setzen. Nochmal klicken: betont, dann leise, dann wieder leer. Das Pattern wird sofort gespeichert und läuft als Schlagzeug mit jedem Lied mit.</p>
+        <div class="dp-add"><select id="dpAdd" aria-label="Weiteren Sound als Spur hinzufügen"></select></div>
+        <p class="note">Klick auf ein leeres Feld setzt einen Schlag. Klick auf einen Schlag öffnet ihn groß im Effekt-Editor: Lautstärke, Timing, Tonhöhe, Ausklang, Equalizer, Echo und Wirbel; ein Punkt im Feld zeigt, dass es Effekte hat. Klick auf den Namen einer Spur spielt den Klang, ✕ entfernt die Spur. Alles wird sofort gespeichert und läuft als Schlagzeug mit jedem Lied mit.</p>
+        <div class="dp-fx" id="dpFx" hidden role="dialog" aria-label="Effekte für diesen Schlag">
+          <div class="dp-fx-head"><b id="dpFxTitle">Schlag</b><button class="btn icon" id="dpFxClose" aria-label="Schließen">✕</button></div>
+          <label>Lautstärke <input type="range" id="fxV" min="1" max="127"><output id="fxVo"></output></label>
+          <label>Timing <input type="range" id="fxOff" min="-50" max="50" step="1"><output id="fxOffo"></output></label>
+          <label>Tonhöhe <input type="range" id="fxPit" min="-12" max="12" step="1"><output id="fxPito"></output></label>
+          <label>Ausklang <input type="range" id="fxDec" min="30" max="250" step="5"><output id="fxDeco"></output></label>
+          <label>Bässe <input type="range" id="fxLo" min="-12" max="12" step="1"><output id="fxLoo"></output></label>
+          <label>Mitten <input type="range" id="fxMid" min="-12" max="12" step="1"><output id="fxMido"></output></label>
+          <label>Höhen <input type="range" id="fxHi" min="-12" max="12" step="1"><output id="fxHio"></output></label>
+          <label>Echo <input type="range" id="fxEcho" min="0" max="90" step="5"><output id="fxEchoo"></output></label>
+          <div class="dp-fx-rep">Echo-Abstand <span class="seg" id="fxEchoN"><button data-en="4">1/4</button><button data-en="8">1/8</button><button data-en="12">1/8 T</button><button data-en="16">1/16</button></span></div>
+          <div class="dp-fx-rep">Wirbel <span class="seg" id="fxRep"><button data-rep="1">1×</button><button data-rep="2">2×</button><button data-rep="3">3×</button><button data-rep="4">4×</button></span></div>
+          <div class="dp-fx-acts"><button class="btn" id="fxDel">Entfernen</button><button class="btn" id="fxTry">▶ Anhören</button><button class="btn primary" id="fxDone">Fertig</button></div>
+        </div>
         <div class="dp-acts"><button class="btn" id="dpDel">Pattern löschen</button><button class="btn" id="dpCopy">Kopie</button><button class="btn primary" id="dpDone">Fertig</button></div>
       </div>
     </div>
@@ -1018,14 +1053,29 @@ const synth = {
   },
   // drum kit, General MIDI note numbers, synthesised
   noise: null,
-  drum(note, vel, at) {
+  drum(note, vel, at, fx) {
     if (!this.ensure()) return;
+    const pr = fx && fx.pit ? Math.pow(2, fx.pit / 12) : 1, dm = fx && fx.dec ? fx.dec : 1;
     const c = this.ctx, t0 = Math.max(at || c.currentTime, c.currentTime), v = Math.pow(vel / 127, 1.3) * 0.9;
     if (!this.noise) { const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.noise = n; }
-    const dest = this.bus.acc;
+    let dest = this.bus.acc;
+    // per-hit equalizer (bass, mids, treble) and echo in note values of the current tempo
+    if (fx && (fx.lo || fx.mid || fx.hi || fx.echo)) {
+      const inG = c.createGain(); let node = inG;
+      [['lowshelf', 180, fx.lo], ['peaking', 1400, fx.mid], ['highshelf', 5500, fx.hi]].forEach(([type, fq, db]) => { if (!db) return; const b = c.createBiquadFilter(); b.type = type; b.frequency.value = fq; b.gain.value = db; if (type === 'peaking') b.Q.value = 0.9; node.connect(b); node = b; });
+      node.connect(this.bus.acc);
+      if (fx.echo) {
+        const dl = c.createDelay(2), fb = c.createGain(), wet = c.createGain(), spb = this._spb || 0.5;
+        dl.delayTime.value = Math.min(1.9, spb * 4 / (fx.echoN || 8)); fb.gain.value = Math.min(0.75, fx.echo * 0.8); wet.gain.value = 0.35 + fx.echo * 0.5;
+        node.connect(dl); dl.connect(fb).connect(dl); dl.connect(wet).connect(this.bus.acc);
+        // the tail dies away by itself; cut the loop when it is silent
+        setTimeout(() => { try { fb.disconnect(); dl.disconnect(); } catch (e) {} }, (t0 - c.currentTime + 6) * 1000);
+      }
+      dest = inG;
+    }
     const env = (g, peak, dec, att = 0.002) => { g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(Math.max(0.0002, peak), t0 + att); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dec); };
-    const noise = (type, freq, q, peak, dec) => { const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; const f = c.createBiquadFilter(); f.type = type; f.frequency.value = freq; f.Q.value = q; const g = c.createGain(); env(g, peak, dec); src.connect(f).connect(g).connect(dest); src.start(t0, Math.random() * 0.5); src.stop(t0 + dec + 0.05); };
-    const tone = (type, f0, f1, peak, dec, sweep = 0.05) => { const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + sweep); const g = c.createGain(); env(g, peak, dec); o.connect(g).connect(dest); o.start(t0); o.stop(t0 + dec + 0.05); };
+    const noise = (type, freq, q, peak, dec) => { const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; const f = c.createBiquadFilter(); f.type = type; f.frequency.value = Math.min(18000, freq * pr); f.Q.value = q; const g = c.createGain(); dec *= dm; env(g, peak, dec); src.connect(f).connect(g).connect(dest); src.start(t0, Math.random() * 0.5); src.stop(t0 + dec + 0.05); };
+    const tone = (type, f0, f1, peak, dec, sweep = 0.05) => { f0 *= pr; f1 *= pr; dec *= dm; const o = c.createOscillator(); o.type = type; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f1, t0 + sweep); const g = c.createGain(); env(g, peak, dec); o.connect(g).connect(dest); o.start(t0); o.stop(t0 + dec + 0.05); };
     if (note === 35 || note === 36) { tone('sine', 150, 48, v * 1.1, 0.42, 0.09); noise('lowpass', 900, 0.7, v * 0.12, 0.02); }
     else if (note === 38 || note === 40) { tone('triangle', 230, 170, v * 0.45, 0.12); noise('bandpass', 1900, 0.7, v * 0.55, 0.19); }
     else if (note === 37) { tone('square', 820, 760, v * 0.18, 0.04, 0.01); noise('bandpass', 2600, 2, v * 0.2, 0.04); }
@@ -1303,13 +1353,29 @@ const GROOVES = {
 };
 /* own drum patterns: a grid of sixteenths per beat, made in the pattern editor */
 const DP_ROWS = [[49, 'Crash'], [51, 'Ride'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [48, 'Tom hoch'], [45, 'Tom tief'], [38, 'Snare'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [70, 'Shaker'], [56, 'Kuhglocke']];
+// every sound the drum kit can make, for extra rows in the pattern editor
+const DRUM_SOUNDS = [[49, 'Crash'], [57, 'Crash 2'], [55, 'Splash'], [52, 'China'], [51, 'Ride'], [53, 'Ride-Glocke'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [44, 'Hi-Hat Pedal'], [50, 'Tom 1'], [48, 'Tom hoch'], [47, 'Tom mittel'], [45, 'Tom tief'], [43, 'Standtom'], [41, 'Standtom tief'], [38, 'Snare'], [40, 'Snare 2'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [35, 'Bass 2'], [54, 'Tamburin'], [56, 'Kuhglocke'], [60, 'Bongo hoch'], [61, 'Bongo tief'], [62, 'Conga gedämpft'], [63, 'Conga hoch'], [64, 'Conga tief'], [65, 'Timbale hoch'], [66, 'Timbale tief'], [67, 'Agogo hoch'], [68, 'Agogo tief'], [69, 'Cabasa'], [70, 'Shaker'], [82, 'Shaker 2'], [75, 'Claves'], [76, 'Holzblock hoch'], [77, 'Holzblock tief']];
+const drumName = m => (DRUM_SOUNDS.find(x => x[0] === +m) || [0, 'Klang ' + m])[1];
+// a step is a velocity, or {v, off, pit, dec, rep} once it has effects
+const hv = x => x && typeof x === 'object' ? x.v : (x || 0);
+function patHits(p, bb) {
+  // the hits of one beat: [fraction of the beat, drum note, velocity, effects]
+  const out = [], sw = (p.swing || 0) / 100 / 12;
+  for (const [note, row] of Object.entries(p.steps)) for (let k = 0; k < 4; k++) {
+    const x = row[bb * 4 + k], v = hv(x); if (!v) continue;
+    const fx = typeof x === 'object' ? x : null, rep = (fx && fx.rep) || 1;
+    const at = k / 4 + (k % 2 ? sw : 0) + ((fx && fx.off) || 0) * 0.25;
+    for (let j = 0; j < rep; j++) out.push([at + j * 0.25 / rep, +note, Math.max(1, Math.round(v * (1 - j * 0.12))), fx]);
+  }
+  return out;
+}
 const drumPats = () => store.get('drumPats', []);
 const patOf = style => typeof style === 'string' && style.startsWith('p:') ? drumPats().find(x => 'p:' + x.id === style) : null;
 function grooveOf(style) {
   if (GROOVES[style]) return GROOVES[style];
   const p = patOf(style); if (!p) return null;
   // b = beat counted from the first bar of the song, so two-bar patterns stay in step
-  return (b, n, abs) => { const bb = abs % p.beats, out = []; for (const [note, row] of Object.entries(p.steps)) for (let k = 0; k < 4; k++) { const v = row[bb * 4 + k]; if (v) out.push([k / 4, +note, v]); } return out; };
+  return (b, n, abs) => patHits(p, abs % p.beats);
 }
 function grooveHits(b0, b1, speed) {
   // all drum hits of the groove for the beat that starts at b0 (seconds in the song), as audio times
@@ -1318,7 +1384,8 @@ function grooveHits(b0, b1, speed) {
   let pos = 0; for (let j = i; j > 0 && !song.beats[j].bar; j--) pos++;
   const first = song.beats.findIndex(b => b.bar), abs = Math.max(0, i - Math.max(0, first));
   const len = (b1 ? b1.time : b0.time + 0.5) - b0.time, n = b0.n || 4;
-  G(pos, n, abs).forEach(([fr, note, vel]) => { if (vel > 0) synth.drum(note, vel, synth.ctx.currentTime + (b0.time + fr * len - t) / (speed / 100)); });
+  synth._spb = len / (speed / 100);
+  G(pos, n, abs).forEach(([fr, note, vel, fx]) => { if (vel > 0) synth.drum(note, vel, synth.ctx.currentTime + (b0.time + fr * len - t) / (speed / 100), fx); });
 }
 
 /* ---------- MIDI file parser ---------- */
@@ -3233,7 +3300,7 @@ function dpNew() {
   const n = drumPats().length + 1, steps = {};
   DP_ROWS.forEach(([m]) => steps[m] = new Array(16).fill(0));
   [0, 8].forEach(i => steps[36][i] = 127); [4, 12].forEach(i => steps[38][i] = 100); for (let i = 0; i < 16; i += 2) steps[42][i] = i % 4 ? 60 : 100;
-  return { id: Date.now().toString(36), name: 'Mein Pattern ' + n, beats: 4, steps };
+  return { id: Date.now().toString(36), name: 'Mein Pattern ' + n, beats: 4, steps, rows: DP_ROWS.map(r => r[0]), swing: 0 };
 }
 function dpOpen(id) {
   let p = id ? drumPats().find(x => x.id === id) : null;
@@ -3245,30 +3312,93 @@ function dpOpen(id) {
   $('#dpBpm').value = song && song.beats.length > 1 ? Math.round(60 / (song.beats[1].time - song.beats[0].time)) : 100;
   dpRender();
 }
-function dpClose() { dpStop(); $('#dpVeil').hidden = true; renderDrumLists(); syncInst(); }
+function dpClose() { fxClose(); dpStop(); $('#dpVeil').hidden = true; renderDrumLists(); syncInst(); }
 function dpBeatsPerBar(p) { return p.bar || (p.beats % 3 === 0 && p.beats !== 12 ? 3 : 4); }
+const dpRows = p => p.rows || DP_ROWS.map(r => r[0]);
+function dpCell(x, m, i, bar) {
+  const v = hv(x), o = x && typeof x === 'object' ? x : null;
+  const cls = [i % 4 === 0 ? 'beat' : '', i % (bar * 4) === 0 && i ? 'bar' : '', v ? 'on' : '', o && (o.off || o.pit || (o.dec && o.dec !== 1) || o.lo || o.mid || o.hi || o.echo) ? 'fx' : '', o && o.rep > 1 ? 'rep' : ''].filter(Boolean).join(' ');
+  return `<button type="button" data-m="${m}" data-i="${i}" class="${cls}" style="--a:${(v / 127).toFixed(2)}" aria-label="${drumName(m)}, Schlag ${Math.floor(i / 4) + 1}, Sechzehntel ${i % 4 + 1}${v ? ', an' : ''}"></button>`;
+}
 function dpRender() {
   const p = dpGet(); if (!p) return;
   const bar = dpBeatsPerBar(p), steps = p.beats * 4, el = $('#dpGrid'); el.style.setProperty('--steps', steps);
   document.querySelectorAll('#dpSig button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.dpBeats === bar));
   document.querySelectorAll('#dpLen button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.dpBars === p.beats / bar));
-  el.innerHTML = DP_ROWS.map(([m, nm]) => `<div class="dp-row"><span data-try="${m}" title="Anhören">${nm}</span>` +
-    Array.from({ length: steps }, (_, i) => `<button type="button" data-m="${m}" data-i="${i}" data-v="${(p.steps[m] || [])[i] || 0}" class="${i % 4 === 0 ? 'beat' : ''}${i % (bar * 4) === 0 && i ? ' bar' : ''}" aria-label="${nm}, Schlag ${Math.floor(i / 4) + 1}, Sechzehntel ${i % 4 + 1}"></button>`).join('') + '</div>').join('');
+  $('#dpSwing').value = p.swing || 0; $('#dpSwingV').textContent = (p.swing || 0) + ' %';
+  el.innerHTML = dpRows(p).map(m => `<div class="dp-row"><span data-try="${m}" title="Anhören">${drumName(m)}<button type="button" class="rm" data-rm="${m}" title="Spur entfernen" aria-label="${drumName(m)} entfernen">✕</button></span>` +
+    Array.from({ length: steps }, (_, i) => dpCell((p.steps[m] || [])[i], m, i, bar)).join('') + '</div>').join('');
+  const have = new Set(dpRows(p));
+  $('#dpAdd').innerHTML = '<option value="">＋ Sound als Spur hinzufügen …</option>' + DRUM_SOUNDS.filter(([m]) => !have.has(m)).map(([m, nm]) => `<option value="${m}">${nm}</option>`).join('');
 }
 function dpResize(bar, bars) {
   const p = dpGet(); if (!p) return;
   const beats = bar * bars;
-  DP_ROWS.forEach(([m]) => { const r = p.steps[m] || []; p.steps[m] = Array.from({ length: beats * 4 }, (_, i) => r[i] ?? (bars === 2 && i >= bar * 4 ? r[i - bar * 4] || 0 : 0)); });
+  dpRows(p).map(m => [m]).forEach(([m]) => { const r = p.steps[m] || []; p.steps[m] = Array.from({ length: beats * 4 }, (_, i) => r[i] ?? (bars === 2 && i >= bar * 4 ? r[i - bar * 4] || 0 : 0)); });
   p.beats = beats; p.bar = bar; dpPut(p); dpRender();
 }
 $('#dpGrid').onclick = e => {
+  const rm = e.target.closest('[data-rm]');
+  if (rm) { const p = dpGet(); p.rows = dpRows(p).filter(m => m !== +rm.dataset.rm); delete p.steps[rm.dataset.rm]; dpPut(p); fxClose(); dpRender(); return; }
   const tr = e.target.closest('[data-try]'); if (tr) { synth.ensure(); synth.drum(+tr.dataset.try, 100); return; }
   const b = e.target.closest('button[data-m]'); if (!b) return;
   const p = dpGet(); const m = b.dataset.m, i = +b.dataset.i, row = p.steps[m] || (p.steps[m] = new Array(p.beats * 4).fill(0));
-  const v = { 0: 100, 100: 127, 127: 60, 60: 0 }[row[i] || 0] ?? 0;
-  row[i] = v; b.dataset.v = v; dpPut(p);
-  if (v && !dp.timer) { synth.ensure(); synth.drum(+m, v); }
+  // an empty step gets a hit; a hit opens big in the effect editor
+  if (!hv(row[i])) { row[i] = 100; dpPut(p); b.outerHTML = dpCell(100, m, i, dpBeatsPerBar(p)); if (!dp.timer) { synth.ensure(); synth.drum(+m, 100); } return; }
+  fxOpen(m, i, b);
 };
+$('#dpAdd').onchange = e => {
+  const m = +e.target.value; if (!m) return; const p = dpGet();
+  p.rows = [...dpRows(p), m]; p.steps[m] = p.steps[m] || new Array(p.beats * 4).fill(0); dpPut(p); dpRender();
+  synth.ensure(); synth.drum(m, 100);
+  const g = $('#dpGrid'); g.scrollTop = g.scrollHeight;
+};
+$('#dpSwing').oninput = e => { const p = dpGet(); if (!p) return; p.swing = +e.target.value; $('#dpSwingV').textContent = p.swing + ' %'; dpPut(p); };
+/* the effect editor for one hit */
+const fx = { m: null, i: -1 };
+function fxGet() { const p = dpGet(), x = p && (p.steps[fx.m] || [])[fx.i]; return { p, x: x && typeof x === 'object' ? x : { v: hv(x) || 100 } }; }
+function fxSet(ch) { const { p, x } = fxGet(); Object.assign(x, ch); const plain = !x.off && !x.pit && (!x.dec || x.dec === 1) && (!x.rep || x.rep === 1) && !x.lo && !x.mid && !x.hi && !x.echo; p.steps[fx.m][fx.i] = plain ? x.v : x; dpPut(p); fxSync(); const b = $(`#dpGrid button[data-m="${fx.m}"][data-i="${fx.i}"]`); if (b) { b.outerHTML = dpCell(p.steps[fx.m][fx.i], fx.m, fx.i, dpBeatsPerBar(p)); $(`#dpGrid button[data-m="${fx.m}"][data-i="${fx.i}"]`).classList.add('sel'); } }
+function fxSync() {
+  const { x } = fxGet();
+  $('#fxV').value = x.v; $('#fxVo').textContent = Math.round(x.v / 1.27) + ' %';
+  $('#fxOff').value = Math.round((x.off || 0) * 100); $('#fxOffo').textContent = (x.off > 0 ? '+' : '') + Math.round((x.off || 0) * 100) + ' %';
+  $('#fxPit').value = x.pit || 0; $('#fxPito').textContent = (x.pit > 0 ? '+' : '') + (x.pit || 0) + ' HT';
+  $('#fxDec').value = Math.round((x.dec || 1) * 100); $('#fxDeco').textContent = Math.round((x.dec || 1) * 100) + ' %';
+  document.querySelectorAll('#fxRep button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.rep === (x.rep || 1)));
+  [['Lo', 'lo'], ['Mid', 'mid'], ['Hi', 'hi']].forEach(([id, k]) => { $('#fx' + id).value = x[k] || 0; $('#fx' + id + 'o').textContent = (x[k] > 0 ? '+' : '') + (x[k] || 0) + ' dB'; });
+  $('#fxEcho').value = Math.round((x.echo || 0) * 100); $('#fxEchoo').textContent = Math.round((x.echo || 0) * 100) + ' %';
+  document.querySelectorAll('#fxEchoN button').forEach(b => b.setAttribute('aria-pressed', +b.dataset.en === (x.echoN || 8)));
+}
+function fxOpen(m, i, cell) {
+  fx.m = m; fx.i = i;
+  document.querySelectorAll('#dpGrid .sel').forEach(x => x.classList.remove('sel')); cell.classList.add('sel');
+  const box = $('#dpFx'), card = box.parentElement.getBoundingClientRect(), r = cell.getBoundingClientRect();
+  $('#dpFxTitle').textContent = drumName(m) + ' · Schlag ' + (Math.floor(i / 4) + 1) + (i % 4 ? '.' + (i % 4 + 1) : '');
+  box.hidden = false; box.style.animation = 'none'; void box.offsetWidth; box.style.animation = '';
+  const bw = box.offsetWidth, bh = box.offsetHeight;
+  let left = r.left - card.left + r.width / 2 - bw / 2, top = r.bottom - card.top + 10;
+  if (top + bh > card.height - 8) top = r.top - card.top - bh - 10;
+  left = Math.max(8, Math.min(card.width - bw - 8, left)); top = Math.max(8, top);
+  box.style.left = left + 'px'; box.style.top = top + 'px';
+  // grows out of the step that was clicked
+  box.style.setProperty('--ox', (r.left - card.left + r.width / 2 - left) + 'px'); box.style.setProperty('--oy', (r.top - card.top + r.height / 2 - top) + 'px');
+  fxSync(); fxTry();
+}
+function fxClose() { $('#dpFx').hidden = true; fx.m = null; document.querySelectorAll('#dpGrid .sel').forEach(x => x.classList.remove('sel')); }
+function fxTry() { const { x } = fxGet(); synth.ensure(); synth._spb = 60 / Math.max(40, Math.min(220, +$('#dpBpm').value || 100)); const now = synth.ctx.currentTime + 0.02, rep = x.rep || 1; for (let j = 0; j < rep; j++) synth.drum(+fx.m, Math.round(x.v * (1 - j * 0.12)), now + j * 0.06, x); }
+$('#fxV').oninput = e => fxSet({ v: +e.target.value });
+$('#fxOff').oninput = e => fxSet({ off: +e.target.value / 100 });
+$('#fxPit').oninput = e => fxSet({ pit: +e.target.value });
+$('#fxDec').oninput = e => fxSet({ dec: +e.target.value / 100 });
+['#fxV', '#fxPit', '#fxDec'].forEach(id => $(id).addEventListener('change', fxTry));
+$('#fxLo').oninput = e => fxSet({ lo: +e.target.value }); $('#fxMid').oninput = e => fxSet({ mid: +e.target.value }); $('#fxHi').oninput = e => fxSet({ hi: +e.target.value });
+$('#fxEcho').oninput = e => fxSet({ echo: +e.target.value / 100 });
+['#fxLo', '#fxMid', '#fxHi', '#fxEcho'].forEach(id => $(id).addEventListener('change', fxTry));
+$('#fxEchoN').onclick = e => { const b = e.target.closest('button'); if (!b) return; fxSet({ echoN: +b.dataset.en }); fxTry(); };
+$('#fxRep').onclick = e => { const b = e.target.closest('button'); if (!b) return; fxSet({ rep: +b.dataset.rep }); fxTry(); };
+$('#fxTry').onclick = fxTry;
+$('#fxDone').onclick = fxClose; $('#dpFxClose').onclick = fxClose;
+$('#fxDel').onclick = () => { const p = dpGet(); p.steps[fx.m][fx.i] = 0; dpPut(p); const b = $(`#dpGrid button[data-m="${fx.m}"][data-i="${fx.i}"]`); if (b) b.outerHTML = dpCell(0, fx.m, fx.i, dpBeatsPerBar(p)); fxClose(); };
 $('#dpName').oninput = e => { const p = dpGet(); if (!p) return; p.name = e.target.value.trim() || 'Pattern'; dpPut(p); };
 $('#dpSig').onclick = e => { const b = e.target.closest('button'); if (!b) return; const p = dpGet(); dpResize(+b.dataset.dpBeats, p.beats / dpBeatsPerBar(p) >= 2 ? 2 : 1); };
 $('#dpLen').onclick = e => { const b = e.target.closest('button'); if (!b) return; const p = dpGet(); dpResize(dpBeatsPerBar(p), +b.dataset.dpBars); };
@@ -3276,13 +3406,14 @@ function dpStop() { clearInterval(dp.timer); dp.timer = 0; $('#dpPlay').textCont
 $('#dpPlay').onclick = () => {
   if (dp.timer) { dpStop(); return; }
   if (!synth.ensure()) return;
-  const c = synth.ctx; dp.a0 = c.currentTime + 0.08; dp.next = 0; $('#dpPlay').textContent = '■ Stopp';
+  const c = synth.ctx; dp.a0 = c.currentTime + 0.1; dp.next = 0; $('#dpPlay').textContent = '■ Stopp';
   let shown = -1;
   dp.timer = setInterval(() => {
     const p = dpGet(); if (!p) { dpStop(); return; }
     const spb = 60 / Math.max(40, Math.min(220, +$('#dpBpm').value || 100)), st = spb / 4, steps = p.beats * 4;
-    while (dp.a0 + dp.next * st < c.currentTime + 0.12) {
-      const i = dp.next % steps; for (const [m, row] of Object.entries(p.steps)) if (row[i]) synth.drum(+m, row[i], dp.a0 + dp.next * st);
+    // a whole beat at a time, so swing and timing shifts land where they belong
+    while (dp.a0 + dp.next * spb < c.currentTime + 0.2) {
+      synth._spb = spb; const t0 = dp.a0 + dp.next * spb; patHits(p, dp.next % p.beats).forEach(([fr, m, v, f]) => synth.drum(m, v, t0 + fr * spb, f));
       dp.next++;
     }
     // the column that sounds now
