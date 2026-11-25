@@ -1356,6 +1356,7 @@ function render(now) {
   $('#score').hidden = view !== 'score' && view !== 'page';
   KEY3D = null;
   if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
+  if (view === 'road' && settings.road > 0) drawNoteLips();
 }
 
 const ROAD_MAX = 56 * Math.PI / 180;
@@ -1417,12 +1418,31 @@ function drawRoad(y0, y1, now) {
   if (yTop < h - 1) { const sky = cx.createLinearGradient(0, y0, 0, y1 - yTop); sky.addColorStop(0, 'rgba(7,9,15,1)'); sky.addColorStop(1, 'rgba(20,24,38,1)'); cx.fillStyle = sky; cx.fillRect(0, y0, W, h - yTop); }
   cx.restore();
 }
+// a path as wide as a black key, centred on the key
+const lane = k => { const bw = KB.ww * 0.6; return k.black ? { x: k.x, w: k.w } : { x: k.x + (k.w - bw) / 2, w: bw }; };
+// on the road the sounding notes stand a little over the front edge of the keys, like blocks reaching onto them
+function drawNoteLips() {
+  if (!song) return;
+  const lift = Math.min(1, settings.road / 40), y = KB.top - 2;
+  for (let i = lb(song.all, t - song.maxDur - 0.05, 'start'); i < song.all.length; i++) {
+    const n = song.all[i]; if (n.start > t) break; if (n.end <= t || n.part.role === 'M') continue;
+    const k = KB.keys[n.midi]; if (!k) continue;
+    const l = lane(k), x = l.x + 1, w = l.w - 2, d = lift * Math.max(3, Math.min(8, w * 0.28)) + 3;
+    cx.globalAlpha = dimRole(n.part.role) ? 0.6 : 1;
+    cx.fillStyle = 'rgba(0,0,0,.35)'; rr(x + 1, y + 2, w, d + 2, 3); cx.fill();
+    cx.fillStyle = colorOf(n, true); rr(x, y, w, d, 3); cx.fill();
+    cx.fillStyle = 'rgba(0,0,0,.25)'; rr(x, y + d * 0.45, w, d * 0.55, 3); cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x + 2, y, w - 4, 1);
+    cx.globalAlpha = 1;
+  }
+}
 function drawRain(y0, y1, now, ppsFix) {
   const h = y1 - y0; if (h < 20) return;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
   // lane background: subtle stripes for black keys
   const g = cx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(10,12,20,0)'); g.addColorStop(1, 'rgba(30,34,52,.55)'); cx.fillStyle = g; cx.fillRect(0, y0, W, h);
-  for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && k.black) { cx.fillStyle = 'rgba(0,0,0,.18)'; cx.fillRect(k.x, y0, k.w, h); } if (k && !k.black && m % 12 === 0) { cx.fillStyle = 'rgba(255,255,255,.05)'; cx.fillRect(k.x, y0, 1, h); } }
+  // every key has its own path, all as wide as a black key and darker than the ground; the notes glide along them
+  for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (!k) continue; const l = lane(k); cx.fillStyle = k.black ? 'rgba(0,0,0,.30)' : 'rgba(0,0,0,.20)'; cx.fillRect(l.x, y0, l.w, h); if (!k.black && m % 12 === 0) { cx.fillStyle = 'rgba(255,255,255,.05)'; cx.fillRect(k.x, y0, 1, h); } }
   if (!song) { cx.restore(); return; }
   const pps = ppsFix || h / settings.look, look = h / pps;
   // beat lines
@@ -1467,7 +1487,7 @@ function drawRain(y0, y1, now, ppsFix) {
     const k = KB.keys[n.midi];
     const yb = y1 - (n.start - t) * pps, yt = y1 - (n.end - t) * pps;
     if (!k) { (n.midi < KB.lo ? offL : offR).push([yt, yb, n]); continue; }
-    const pad = k.black ? 1 : 2, x = k.x + pad, w = k.w - pad * 2, hh = Math.max(4, yb - yt);
+    const l = lane(k), x = l.x + 1, w = l.w - 2, hh = Math.max(4, yb - yt);
     const acc = dimRole(n.part.role);
     cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
     const c1 = settings.color === 'hand' ? colorOf(n, k.black) : colorOf(n);
