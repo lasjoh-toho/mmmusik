@@ -7,15 +7,17 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 ## Funktionen
 
 - **Notenregen**: farbige Balken über einer Klaviatur, Farben als Regenbogen pro Oktave (C rot bis H violett, Halbtöne dunkler) oder nach Hand.
-- **Farbnoten**: Klaviersystem mit kräftig-dunklen farbigen Notenköpfen und Längen-Schweifen. Eine kommende Note kündigt sich durch einen anschwellenden Farbton auf ihrer Taste an; den Vorlauf stellt in den Notenansichten derselbe Mini-Knopf ein, der im Notenregen die Ziellinie regelt.
-- **Leuchtstreifen**: Solange eine Taste gespielt werden soll, leuchtet oben auf ihr ein farbiger Streifen; triffst du sie richtig, glüht er deutlich stärker.
+- **Farbnoten**: Klaviersystem mit kräftig-dunklen farbigen Notenköpfen und Längen-Schweifen. Eine kommende Note kündigt sich wie eine brennende Lunte an: ab Höhe der schwarzen Tasten wandert ihre Farbe die Taste hinauf und wird dabei kräftiger; den Vorlauf stellt in den Notenansichten derselbe Mini-Knopf ein, der im Notenregen die Ziellinie regelt.
+- **Leuchtstreifen**: Ist die Note fällig, kommt die Farbe oben an und bleibt als kräftiger Streifen mit Leuchten nach oben stehen, solange die Taste gehalten werden soll; triffst du sie richtig, blitzt das Leuchten auf.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.
-- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Lautstärke und Ziellinie sitzen als kleine Knöpfe in der unteren Leiste und öffnen beim Darüberfahren einen senkrechten Regler. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
+- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Ziellinie und Vorlauf sitzen als kleiner Knopf in der unteren Leiste. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
 - **Drei Modi**
   - *Zuhören*: die App spielt alles vor.
   - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.
   - *Highscore*: Echtzeit mit Punkten (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
-- **Zoom auf Tastaturbereiche**: Ausschnitt verschieben und vergrößern (Buttons, Mausrad, Shift+Mausrad, Zwei-Finger-Geste), „Auto“ passt den Ausschnitt an den Song an.
+- **Links / Beide / Rechts**: Übe nur eine Hand; die andere spielt die App als Begleitung.
+- **Drehregler in der Kopfleiste** für Tempo und drei Lautstärken: *Du* (dein Spiel), *Vorlage* (wie es klingen soll) und *Begleitung*. Sie zeigen den Wert in Prozent und werden beim Darüberfahren zum senkrechten Schieberegler.
+- **Zoom auf Tastaturbereiche**: Ausschnitt verschieben und vergrößern (Buttons, Mausrad, Shift+Mausrad, Zwei-Finger-Geste), „Auto“ passt den Ausschnitt an den Song an. War zu stark gezoomt, wächst der Bereich beim Start automatisch auf den Umfang des Liedes.
 - **Songs**
   - Suche nach frei lizenzierten MIDI-Dateien auf Wikimedia Commons direkt in der App.
   - Eigene `.mid`-Dateien per Drag & Drop, Dateiauswahl oder URL.
