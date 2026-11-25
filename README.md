@@ -18,6 +18,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - *Highscore*: Echtzeit mit Punkten (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
 - **Links / Beide / Rechts**: Übe nur eine Hand; die andere spielt die App als Begleitung.
 - **Drehregler in der Kopfleiste** für Tempo und drei Lautstärken: *Du* (dein Spiel), *Vorlage* (wie es klingen soll) und *Begleitung*. Sie zeigen den Wert in Prozent und werden beim Darüberfahren zum senkrechten Schieberegler.
+- **Übersichtsleiste** unter der Kopfleiste: das ganze Lied als kleine Notenrolle, der gerade sichtbare Ausschnitt ist hervorgehoben. Ausschnitt ziehen verschiebt die Stelle; ein Klick springt dorthin und zeigt die Noten, bis du weiterspielst.
 - **Zoom auf Tastaturbereiche**: Ausschnitt verschieben und vergrößern (Buttons, Mausrad, Shift+Mausrad, Zwei-Finger-Geste), „Auto“ passt den Ausschnitt an den Song an. War zu stark gezoomt, wächst der Bereich beim Start automatisch auf den Umfang des Liedes.
 - **Songs**
   - Suche nach frei lizenzierten MIDI-Dateien auf Wikimedia Commons direkt in der App.
