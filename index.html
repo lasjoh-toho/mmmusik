@@ -594,7 +594,7 @@ table.scores tr.me td { color: var(--gold); }
       <div class="pill"><span class="k">Punkte</span><span class="v big" id="hScore">0</span></div>
       <div class="pill"><span class="k">Kombo</span><span class="v" id="hCombo">0×</span></div>
       <div class="pill" id="accPill"><span class="k">Genauigkeit</span><span class="v" id="hAcc">–</span></div>
-      <div class="pill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
+      <div class="pill" id="bestPill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
     </div>
     <div class="wait-hint" id="waitHint" hidden></div>
     <div class="edit-bar" id="editBar" hidden>
@@ -2401,6 +2401,8 @@ const youRole = r => (r === 'R' && settings.hands !== 'L') || (r === 'L' && sett
 const handRole = r => r === 'R' || r === 'L';
 // 'chord' (Üben · Warten) waits until all notes of the moment are held together, 'play' (Üben · 50–100 %) runs at the chosen tempo without points
 if (settings.mode === 'wait') settings.mode = 'chord';
+// mistakes are only called out in Highscore; while practising they stay quiet
+const loud = () => settings.mode === 'score';
 const waitish = () => settings.mode === 'wait' || settings.mode === 'chord';
 // the hand you are not practising plays along like accompaniment
 const dimRole = r => r === 'A' || (settings.mode !== 'watch' && handRole(r) && !youRole(r));
@@ -2454,7 +2456,7 @@ function advance(dt) {
   if (settings.mode === 'score' || settings.mode === 'play') {
     const lim = nt - tol();
     while (youIdx < youNotes.length && youNotes[youIdx].start < lim) {
-      const n = youNotes[youIdx++]; if (n.state === 0) { n.state = 2; sc.miss++; sc.total++; sc.combo = 0; popups.push({ midi: n.midi, txt: 'Verpasst', c: '#ff8a96', t0: performance.now() }); updateHud(); }
+      const n = youNotes[youIdx++]; if (n.state === 0) { n.state = 2; sc.miss++; sc.total++; sc.combo = 0; if (loud()) popups.push({ midi: n.midi, txt: 'Verpasst', c: '#ff8a96', t0: performance.now() }); updateHud(); }
     }
   } else if (waitish()) { while (youIdx < youNotes.length && youNotes[youIdx].state !== 0) youIdx++; }
   t = nt;
@@ -2473,7 +2475,7 @@ function judge(m, now) {
   if (!song || settings.mode === 'watch' || !playing) return true;
   if (settings.mode === 'chord') {
     const g = chordGroup();
-    if (!g.some(n => n.midi === m)) { sc.wrong++; sc.combo = 0; popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
+    if (!g.some(n => n.midi === m)) { sc.wrong++; sc.combo = 0; if (loud()) popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
     if (g.every(n => n.midi === m || pressed.has(n.midi))) {
       g.forEach(n => { n.state = 1; sc.hits++; sc.total++; sc.combo++; flashes.push({ midi: n.midi, t0: now, c: glowOf(n) }); });
       sc.best = Math.max(sc.best, sc.combo); updateHud();
@@ -2486,7 +2488,7 @@ function judge(m, now) {
     if (n.state !== 0 || n.midi !== m) continue;
     const d = Math.abs(n.start - t); if (d <= w + (waitish() ? 0.02 : 0) && d < bd) { best = n; bd = d; }
   }
-  if (!best) { sc.wrong++; sc.combo = 0; popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
+  if (!best) { sc.wrong++; sc.combo = 0; if (loud()) popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
   best.state = 1; sc.hits++; sc.total++; sc.combo++; sc.best = Math.max(sc.best, sc.combo);
   const real = bd / (settings.speed / 100);
   let pts, txt;
@@ -2506,7 +2508,7 @@ function noteOn(m, vel = 96) {
   const now = performance.now();
   const good = judge(m, now);
   let c = 'rgba(220,185,120,.95)';
-  if (settings.mode !== 'watch' && playing && song) c = good ? (settings.color === 'hand' ? ROLE.R.c : PITCH[m % 12]) : 'rgba(255,107,122,.95)';
+  if (settings.mode !== 'watch' && playing && song) c = good ? (settings.color === 'hand' ? ROLE.R.c : PITCH[m % 12]) : loud() ? 'rgba(255,107,122,.95)' : 'rgba(200,205,220,.55)';
   else c = PITCH[m % 12];
   pressed.set(m, { c, good });
   if (settings.mode === 'watch' || !playing) flashes.push({ midi: m, t0: now, c: PITCH_GLOW[m % 12] });
@@ -2745,6 +2747,7 @@ function updateHud() {
   $('#hud .pill .k').textContent = settings.mode === 'score' ? 'Punkte' : 'Getroffen';
   $('#hCombo').textContent = sc.combo + '×';
   $('#accPill').hidden = settings.mode !== 'score';
+  $('#bestPill').hidden = settings.mode !== 'score';
   $('#hAcc').textContent = judged ? Math.round(sc.hits / judged * 100) + '%' : '–';
   const b = bestFor(songKey); $('#hBest').textContent = b == null ? '–' : b.toLocaleString('de-DE');
 }
