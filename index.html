@@ -755,7 +755,7 @@ table.scores tr.me td { color: var(--gold); }
       <select id="soundSel">
         <optgroup label="Klavier"><option value="concert">Konzertflügel (echte Aufnahmen)</option><option value="grand">Flügel (synthetisch)</option><option value="harpsi">Cembalo</option></optgroup>
         <optgroup label="Elektrisch"><option value="epiano">E-Piano (Rhodes-Stil)</option><option value="wurli">E-Piano (Wurlitzer-Stil)</option><option value="clav">Clavinet</option><option value="organ">Jazz-Orgel (Hammond-Stil)</option></optgroup>
-        <optgroup label="Synthesizer"><option value="moog">Analog-Lead (Moog-Stil)</option><option value="moogbass">Analog-Bass (Moog-Stil)</option><option value="brass">Synth-Brass (Prophet-Stil)</option><option value="pad">Streicher-Pad</option></optgroup>
+        <optgroup label="Synthesizer"><option value="moog">Analog-Lead (Moog-Stil)</option><option value="moogbass">Analog-Bass (Moog-Stil)</option><option value="brass">Synth-Brass (Prophet-Stil)</option><option value="pad">Streicher-Pad</option><option value="theremin">Theremin</option></optgroup>
         <optgroup label="Streicher (echte Aufnahmen)"><option value="strings">Streichorchester</option><option value="violin">Violine</option><option value="cello">Cello</option><option value="contrabass">Kontrabass</option></optgroup>
         <optgroup label="Bläser (echte Aufnahmen)"><option value="brasssec">Blechbläser-Satz</option><option value="trumpet">Trompete</option><option value="trombone">Posaune</option><option value="horn">Waldhorn</option><option value="tuba">Tuba</option><option value="flute">Querflöte</option><option value="clarinet">Klarinette</option><option value="sax">Saxophon</option></optgroup>
         <optgroup label="Gitarre (echte Aufnahmen)"><option value="guitar">Konzertgitarre</option></optgroup>
@@ -1155,6 +1155,17 @@ const synth = {
       const ng = gain(0); ng.gain.setValueAtTime(0.5, now); ng.gain.exponentialRampToValueAtTime(0.12, now + 0.25); ns.connect(bp).connect(ng).connect(out);
       decay = 40; release = 0.15;
       out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.9, now + 0.08);
+    } else if (sound === 'theremin') {
+      // theremin: an almost pure tone that always slides from the last note, with a vibrato that grows as the note is held
+      const from = this._glide, f0 = from != null ? 440 * Math.pow(2, (from - 69) / 12) : f;
+      const gt = from != null ? Math.min(0.45, 0.1 + Math.abs(m - from) * 0.016) : 0;
+      const o1 = osc('sine', f0), o2 = osc('triangle', f0);
+      [o1, o2].forEach(o => { o.frequency.setValueAtTime(f0, now); if (gt) o.frequency.exponentialRampToValueAtTime(f, now + gt); });
+      const lfo = osc('sine', 5.7), lg = gain(0); lg.gain.setValueAtTime(0, now); lg.gain.linearRampToValueAtTime(f * 0.013, now + gt + 0.7); lfo.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency);
+      const lpf = lp(Math.min(6000, f * 5)); o1.connect(lpf); o2.connect(gain(0.1)).connect(lpf); lpf.connect(out);
+      if (this.bendCents) [o1, o2].forEach(o => o.detune.value = this.bendCents);
+      decay = 60; release = 0.11;
+      out.gain.setValueAtTime(from != null ? v * 0.55 : 0, now); out.gain.linearRampToValueAtTime(v * 1.05, now + (from != null ? 0.05 : 0.09));
     } else if (sound === 'organ') {
       // drawbar organ: sustained harmonics, key click percussion, vibrato
       const vib = osc('sine', 6.4), vibG = gain(f * 0.0045); vib.connect(vibG);
@@ -1176,6 +1187,8 @@ const synth = {
     }
     oscs.forEach(o => { o.start(now); o.stop(now + decay + 0.1); });
     return {
+      t0: now,
+      bend(cents) { if (sound === 'theremin') oscs.forEach(o => { if (o.detune && o.frequency.value > 20) o.detune.setTargetAtTime(cents, c.currentTime, 0.02); }); },
       stop(at) {
         const t0 = Math.max(at || c.currentTime, c.currentTime);
         out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, release);
@@ -1188,15 +1201,24 @@ const synth = {
     this.noteOff(m, true);
     const k = ORCH[settings.sound]; let from = null;
     if (k && k.glide && this.live.size) { const last = [...this.live.keys()].pop(), lv = this.live.get(last); if (lv && lv.t0 !== undefined && this.ctx.currentTime - lv.t0 > 0.06) from = last; }
+    if (settings.sound === 'theremin' && this.ensure()) {
+      // one voice only; it slides from the held note, or from the last one if that ended a moment ago
+      const now = this.ctx.currentTime;
+      if (this.live.size) from = [...this.live.keys()].pop(); else if (this._th && now - this._th.t < 1.2) from = this._th.m;
+      if (from === m) from = null;
+      this.live.forEach(v => v.stop(now + 0.04)); this.live.clear(); this.held.clear();
+      this._th = { m, t: now };
+    }
     this._glide = from;
     const v = this.voice(m, vel); this._glide = null;
-    if (v) { this.live.set(m, v); if (from !== null) { const pv = this.live.get(from); if (pv) { pv.stop(this.ctx.currentTime + 0.05); this.live.delete(from); this.held.delete(from); } } }
+    if (v) { this.live.set(m, v); if (from !== null && settings.sound !== 'theremin') { const pv = this.live.get(from); if (pv) { pv.stop(this.ctx.currentTime + 0.05); this.live.delete(from); this.held.delete(from); } } }
     this.held.delete(m);
   },
   // pitch bend wheel: up to two semitones, on the recorded instruments
   bendCents: 0,
   bend(cents) { this.bendCents = cents; this.live.forEach(v => v.bend && v.bend(cents)); },
   noteOff(m, force) {
+    if (this._th && this._th.m === m && this.ctx) this._th.t = this.ctx.currentTime;
     const v = this.live.get(m); if (!v) return;
     if (this.pedal && !force) { this.held.add(m); return; }
     v.stop(); this.live.delete(m);
@@ -3184,6 +3206,7 @@ const INSTS = [
   ['flute', 'Querflöte', IC('<path d="M2 18L28 9l1.5 3L3.5 21z"/><circle cx="10" cy="17.3" r="1.1"/><circle cx="14" cy="16" r="1.1"/><circle cx="18" cy="14.6" r="1.1"/><circle cx="22" cy="13.2" r="1.1"/><path d="M6 17.5l-1 -2.5"/>')],
   ['clarinet', 'Klarinette', IC('<path d="M14 2h4v4l1 18c0 2 4 3 4 6H9c0-3 4-4 4-6l1-18z"/><circle cx="16" cy="11" r="1"/><circle cx="16" cy="15" r="1"/><circle cx="16" cy="19" r="1"/><path d="M15 2V0" opacity=".6"/>')],
   ['sax', 'Saxophon', IC('<path d="M17 2l-3 2v15c0 5 2.5 8 7 8s6-3 6-6v-3l3-2"/><path d="M14 4l-3-1"/><circle cx="19" cy="9" r="1.2"/><circle cx="19" cy="13" r="1.2"/><circle cx="19" cy="17" r="1.2"/><path d="M25 18l2.5-2"/>')],
+  ['theremin', 'Theremin', IC('<rect x="4" y="17" width="20" height="8" rx="2"/><path d="M20 17V3"/><path d="M4 21c-2.5 0-3-3-1-4.5" opacity=".8"/><path d="M8 28l1-3M20 28l-1-3"/><path d="M26 9c1.5 1 1.5 3 0 4M28.5 7c3 2.2 3 6.8 0 9" opacity=".6"/>')],
   ['vibes', 'Vibraphon', IC('<path d="M4 9h6v9H4zM12 9h6v8h-6zM20 9h6v7h-6z"/><path d="M7 18v7M15 17v8M23 16v9"/><path d="M27 4l-4 6M23 9.5l1-1"/><circle cx="23" cy="10" r="1.6"/>')],
   ['marimba', 'Marimba', IC('<path d="M3 8h4v15H3zM9 9h4v12H9zM15 10h4v10h-4zM21 11h4v8h-4z"/><path d="M2 26h26"/><path d="M29 3l-5 8"/><circle cx="23.5" cy="11.5" r="1.8"/>')],
   ['harp', 'Harfe', IC('<path d="M8 28V5c6 0 9 3 11 8s6 8 9 8v4H8"/><path d="M12 7v18M15.5 9v16M19 14v11M22.5 19v6"/>')],
