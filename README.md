@@ -7,6 +7,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 ## Funktionen
 
 - **Notenregen**: farbige Balken über einer Klaviatur, Farben als Regenbogen pro Oktave (C rot bis H violett, Halbtöne dunkler) oder nach Hand.
+- **Straße**: Die Noten kommen wie auf einer Straße aus der Tiefe auf dich zu. Fährst du über den Knopf „Straße“, öffnet sich darüber ein Schieberegler, mit dem du den Blickwinkel stufenlos zwischen Regen (flach von oben) und Straße (flach zum Horizont) einstellst.
 - **Farbnoten**: Klaviersystem mit kräftig-dunklen farbigen Notenköpfen und Längen-Schweifen. Eine kommende Note kündigt sich wie eine brennende Lunte an: ab Höhe der schwarzen Tasten wandert ihre Farbe die Taste hinauf und wird dabei kräftiger; den Vorlauf stellt in den Notenansichten derselbe Mini-Knopf ein, der im Notenregen die Ziellinie regelt.
 - **Leuchtstreifen**: Ist die Note fällig, kommt die Farbe oben an und bleibt als kräftiger Streifen mit Leuchten nach oben stehen, solange die Taste gehalten werden soll; triffst du sie richtig, blitzt das Leuchten auf.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.

@@ -194,6 +194,9 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 }
 .pop-ctl:hover .pop-panel, .pop-ctl:focus-within .pop-panel, .pop-ctl.open .pop-panel { opacity: 1; pointer-events: auto; transform: translateX(-50%) scaleY(1); }
 .pop-ctl::after { content: ""; position: absolute; left: 0; right: 0; bottom: 100%; height: 10px; }
+.road-ctl { display: inline-flex; }
+.road-panel { display: grid; justify-items: center; gap: 8px; padding: 12px 8px; border-radius: 18px; }
+.road-panel .rl { font-size: 9.5px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
 .pop-panel.down { bottom: auto; top: calc(100% + 6px); transform-origin: top center; }
 .knob-ctl::after { bottom: auto; top: 100%; }
 .knobs { display: flex; gap: 6px; align-items: flex-start; }
@@ -405,6 +408,8 @@ table.scores tr.me td { color: var(--gold); }
     </div>
     <div class="seg" id="viewSeg" role="group" aria-label="Ansicht">
       <button data-view="rain" aria-pressed="true">Regen</button>
+      <span class="pop-ctl road-ctl" id="roadCtl"><button data-view="road" aria-pressed="false" title="Straße: Neigung beim Darüberfahren einstellen">Straße</button>
+        <span class="pop-panel road-panel"><span class="rl">Straße</span><input type="range" id="road" min="0" max="100" step="1" aria-label="Neigung zwischen Regen und Straße"><span class="rl">Regen</span></span></span>
       <button data-view="sheet" aria-pressed="false">Farbnoten</button>
       <button data-view="score" aria-pressed="false">Noten</button>
     </div>
@@ -604,7 +609,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ road: 60, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 const saveSettings = () => store.set('settings', settings);
 
@@ -903,7 +908,9 @@ const sc = { score: 0, combo: 0, best: 0, hits: 0, perfect: 0, good: 0, ok: 0, m
 let kbOct = 60;
 
 /* ---------- Canvas ---------- */
-const cv = $('#cv'), cx = cv.getContext('2d'), stage = $('#stage');
+const cv = $('#cv'), stage = $('#stage'); let cx = cv.getContext('2d');
+// the road view draws the rain into this canvas first and then lays it down in perspective
+const roadCv = document.createElement('canvas'), roadCx = roadCv.getContext('2d');
 let W = 0, H = 0, DPR = 1;
 function resize() { DPR = Math.min(2, window.devicePixelRatio || 1); W = stage.clientWidth; H = stage.clientHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
 new ResizeObserver(resize).observe(stage); resize();
@@ -932,27 +939,61 @@ function colorOf(n, dark) {
 function glowOf(n) { return settings.color === 'hand' ? ROLE[n.part.role].g : PITCH_GLOW[n.midi % 12]; }
 const lb = (arr, time, key) => { let lo = 0, hi = arr.length; while (lo < hi) { const m = (lo + hi) >> 1; if (arr[m][key] < time) lo = m + 1; else hi = m; } return lo; };
 
+const rainLike = () => settings.view === 'rain' || settings.view === 'road';
 function render(now) {
   layout();
   cx.setTransform(DPR, 0, 0, DPR, 0, 0);
   cx.clearRect(0, 0, W, H);
   const view = settings.view;
   const top = 0, bottom = KB.top;
-  if (view === 'rain') drawRain(top, bottom, now);
+  if (view === 'rain' || (view === 'road' && settings.road <= 0)) drawRain(top, bottom, now);
+  else if (view === 'road') drawRoad(top, bottom, now);
   else if (view === 'sheet') drawSheet(top, bottom, now);
   else drawScore(top, bottom);
   $('#score').hidden = view !== 'score';
   drawKeyboard(now);
 }
 
-function drawRain(y0, y1, now) {
+const ROAD_MAX = 56 * Math.PI / 180;
+function drawRoad(y0, y1, now) {
+  const h = y1 - y0; if (h < 20) return;
+  // camera looking along a road that lies flat in front of the keyboard: the hit line stays where it is,
+  // far notes get smaller and closer together towards the horizon
+  const th = ROAD_MAX * settings.road / 100, f = h * 1.25, c = Math.cos(th), sn = Math.sin(th);
+  const toD = Y => Y * f / (f * c - Y * sn);           // screen height above the hit line -> distance on the road
+  const toY = d => d * c * f / (f + d * sn);            // and back
+  const yTop = Math.min(h, toY(h * 6));                 // the road ends at 6 screens of look-ahead, maybe below the top
+  const D = toD(yTop);
+  const rw = Math.round(W * DPR), rh = Math.round(D * DPR);
+  if (roadCv.width !== rw || roadCv.height !== rh) { roadCv.width = rw; roadCv.height = rh; }
+  const keep = cx; cx = roadCx;
+  cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.fillStyle = '#07090f'; cx.fillRect(0, 0, W, D); // opaque, so overlapping strips leave no seams
+  drawRain(0, D, now, h / settings.look);
+  cx = keep;
+  cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
+  // lay the flat picture down strip by strip, each one scaled around the centre
+  const step = 1.5;
+  cx.imageSmoothingEnabled = true;
+  for (let Y = 0; Y < yTop; Y += step) {
+    const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2), sc = f / (f + (da + db) / 2 * sn);
+    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR), dw = W * sc;
+    cx.drawImage(roadCv, 0, sy, rw, sh, (W - dw) / 2, y1 - Y2, dw, Y2 - Y + 0.6);
+  }
+  // haze towards the horizon
+  const hz = cx.createLinearGradient(0, y1 - yTop, 0, y1 - yTop * 0.55);
+  hz.addColorStop(0, 'rgba(20,24,38,1)'); hz.addColorStop(1, 'rgba(20,24,38,0)');
+  cx.fillStyle = hz; cx.fillRect(0, y1 - yTop, W, yTop * 0.45 + 1);
+  if (yTop < h - 1) { const sky = cx.createLinearGradient(0, y0, 0, y1 - yTop); sky.addColorStop(0, 'rgba(7,9,15,1)'); sky.addColorStop(1, 'rgba(20,24,38,1)'); cx.fillStyle = sky; cx.fillRect(0, y0, W, h - yTop); }
+  cx.restore();
+}
+function drawRain(y0, y1, now, ppsFix) {
   const h = y1 - y0; if (h < 20) return;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
   // lane background: subtle stripes for black keys
   const g = cx.createLinearGradient(0, y0, 0, y1); g.addColorStop(0, 'rgba(10,12,20,0)'); g.addColorStop(1, 'rgba(30,34,52,.55)'); cx.fillStyle = g; cx.fillRect(0, y0, W, h);
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && k.black) { cx.fillStyle = 'rgba(0,0,0,.18)'; cx.fillRect(k.x, y0, k.w, h); } if (k && !k.black && m % 12 === 0) { cx.fillStyle = 'rgba(255,255,255,.05)'; cx.fillRect(k.x, y0, 1, h); } }
   if (!song) { cx.restore(); return; }
-  const look = settings.look, pps = h / look;
+  const pps = ppsFix || h / settings.look, look = h / pps;
   // beat lines
   const bi = lb(song.beats, t, 'time');
   for (let i = bi; i < song.beats.length; i++) { const b = song.beats[i]; const y = y1 - (b.time - t) * pps; if (y < y0) break; cx.fillStyle = b.bar ? 'rgba(220,185,120,.16)' : 'rgba(255,255,255,.035)'; cx.fillRect(0, y, W, 1); }
@@ -1103,7 +1144,7 @@ function drawKeyboard(now) {
   const colOfRole = (r, m) => settings.color === 'hand' ? ROLE[r].c : PITCH[m % 12];
   // announcement: like a burning fuse the colour climbs the key from the black-key line to the top, getting stronger
   const soon = new Map();
-  if (song && settings.view !== 'rain' && settings.pre > 0) {
+  if (song && !rainLike() && settings.pre > 0) {
     const pre = settings.pre;
     for (let i = lb(song.all, t + 0.001, 'start'); i < song.all.length; i++) {
       const n = song.all[i]; const dt = n.start - t; if (dt > pre) break; if (dt <= 0) continue;
@@ -1940,7 +1981,7 @@ $('#germanChk').checked = settings.german; $('#germanChk').onchange = e => { set
 $('#look').value = settings.look; $('#lookVal').textContent = settings.look; $('#look').oninput = e => { settings.look = +e.target.value; $('#lookVal').textContent = settings.look; saveSettings(); };
 setSpeed(settings.speed);
 // one mini control: in the falling-notes view it sets the guide line length, in the notation views the lead time of the key tint
-const guideIsPre = () => settings.view !== 'rain';
+const guideIsPre = () => !rainLike();
 function syncGuide() {
   const pre = guideIsPre(), v = pre ? Math.round(settings.pre * 25) : settings.guide;
   $('#guide').value = v; $('#guideCtl').classList.toggle('on', v > 0);
@@ -1961,6 +2002,13 @@ function popToggle(ctl, btn, onOpen) { $(btn).onclick = () => { const c = $(ctl)
 popToggle('#guideCtl', '#guideBtn', () => { if (+$('#guide').value === 0) setGuide(guideIsPre() ? 50 : 60); });
 document.addEventListener('pointerdown', e => { document.querySelectorAll('.pop-ctl.open').forEach(c => { if (!c.contains(e.target)) { c.classList.remove('open'); c.querySelector('.pop-btn').setAttribute('aria-expanded', 'false'); } }); });
 $('#guide').oninput = e => setGuide(+e.target.value); syncGuide();
+$('#road').value = settings.road;
+$('#road').oninput = e => {
+  settings.road = +e.target.value;
+  // moving the slider means the road view is wanted
+  if (settings.view !== 'road') { settings.view = 'road'; document.querySelectorAll('#viewSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === 'road')); syncGuide(); }
+  saveSettings();
+};
 
 /* ---------- Main loop ---------- */
 function frame(now) {
