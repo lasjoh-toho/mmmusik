@@ -99,6 +99,45 @@ header.bar {
   position: absolute; bottom: calc(var(--kbh, 120px) + 14px); left: max(16px, env(safe-area-inset-left, 0px));
   display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
 }
+.metro {
+  position: absolute; left: 0; right: 0; top: 0; bottom: var(--kbh, 120px); z-index: 6;
+  display: flex; flex-direction: column; padding: 16px; overflow: auto;
+  background: radial-gradient(120% 90% at 50% 0%, #161b2b 0%, #0a0d16 60%, #07090f 100%);
+}
+.metro[hidden] { display: none; }
+.m-card { margin: auto; width: min(640px, 100%); display: grid; gap: clamp(8px, 1.6vh, 14px); justify-items: center; }
+.m-top { display: flex; gap: 10px; align-items: center; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.m-top .m-state { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); font-family: var(--f-mono); letter-spacing: .04em; text-transform: none; color: var(--fg); }
+.m-top .m-state i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.metro[data-phase=count] .m-state i { background: var(--gold); }
+.metro[data-phase=rec] .m-state i { background: #ff5d6c; animation: recpulse 1s ease-in-out infinite; }
+.m-stage { display: flex; gap: clamp(16px, 5vw, 48px); align-items: center; }
+.m-svg { width: clamp(70px, 15vh, 150px); height: auto; overflow: visible; }
+.m-svg .body { fill: url(#mBody); stroke: rgba(255,255,255,.12); }
+.m-svg .face { fill: #0b0e17; }
+.m-svg .tick { stroke: rgba(255,255,255,.16); stroke-width: 1; }
+.m-svg .arm { stroke: #e9edf6; stroke-width: 2.4; stroke-linecap: round; }
+.m-svg .weight { fill: var(--gold); }
+.m-svg .pivot { fill: #e9edf6; }
+.m-num { display: grid; justify-items: center; min-width: 4ch; }
+.m-num b { font-family: var(--f-mono); font-weight: 500; font-size: clamp(44px, 10vh, 100px); line-height: 1; color: var(--fg); font-variant-numeric: tabular-nums; transition: color .1s; }
+.metro[data-phase=count] .m-num b { color: var(--gold); }
+.m-num span { font-size: 12px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.m-beats { display: flex; gap: 10px; }
+.m-beats i { width: 14px; height: 14px; border-radius: 50%; background: rgba(255,255,255,.1); transition: background .08s, transform .08s, box-shadow .08s; }
+.m-beats i.acc { width: 18px; height: 18px; margin-top: -2px; }
+.m-beats i.on { background: var(--gold); transform: scale(1.15); box-shadow: 0 0 18px rgba(220,185,120,.6); }
+.metro[data-phase=rec] .m-beats i.on { background: #ff8a96; box-shadow: 0 0 18px rgba(255,93,108,.55); }
+.m-cfg { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; align-items: center; }
+.metro:not([data-phase=ready]) .m-cfg { display: none; }
+.m-cfg .m-f { display: grid; gap: 4px; justify-items: center; font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+.m-tempo { display: flex; align-items: center; gap: 6px; }
+.m-tempo input[type=range] { width: 140px; }
+.m-tempo output { font-family: var(--f-mono); font-size: 15px; color: var(--fg); min-width: 3ch; text-align: right; }
+.m-acts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.metro[data-phase=ready] .m-hint { display: none; }
+@media (max-width: 600px) { .m-top { display: none; } .m-svg { width: 64px; } .m-num b { font-size: 48px; } .m-tempo input[type=range] { width: 100px; } }
+.m-hint { font-size: 12px; color: var(--muted); text-align: center; max-width: 46ch; }
 .hud .pill {
   background: rgba(10,13,22,.72); border: 1px solid var(--line); backdrop-filter: blur(8px);
   border-radius: 10px; padding: 6px 11px; display: grid; gap: 1px;
@@ -312,6 +351,31 @@ table.scores tr.me td { color: var(--gold); }
       <div class="pill"><span class="k">Rekord</span><span class="v" id="hBest">–</span></div>
     </div>
     <div class="wait-hint" id="waitHint" hidden></div>
+    <div class="metro" id="metro" data-phase="ready" hidden aria-label="Lehrer-Modus: Aufnahme mit Metronom">
+      <div class="m-card">
+        <div class="m-top">Lehrer-Modus <span class="m-state"><i></i><span id="mState">Bereit</span></span></div>
+        <div class="m-stage">
+          <svg class="m-svg" viewBox="0 0 120 170" aria-hidden="true">
+            <defs><linearGradient id="mBody" x1="0" x2="1"><stop offset="0" stop-color="#2a3145"/><stop offset=".5" stop-color="#1b2131"/><stop offset="1" stop-color="#131826"/></linearGradient></defs>
+            <path class="body" d="M42 6 H78 L112 164 H8 Z" stroke-linejoin="round"/>
+            <path class="face" d="M47 18 H73 L96 138 H24 Z"/>
+            <g id="mTicks"></g>
+            <g id="mArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mWeight" x="52" y="60" width="16" height="12" rx="3"/></g>
+            <circle class="pivot" cx="60" cy="140" r="4"/>
+          </svg>
+          <div class="m-num"><b id="mNum">4/4</b><span id="mSub">Takt</span></div>
+        </div>
+        <div class="m-beats" id="mBeats"></div>
+        <div class="m-cfg">
+          <div class="m-f">Tempo<span class="m-tempo"><button class="btn icon-btn" id="mSlower" aria-label="Langsamer">−</button><input type="range" id="mBpm" min="40" max="208" step="1" aria-label="Tempo in Schlägen pro Minute"><output id="mBpmVal"></output><button class="btn icon-btn" id="mFaster" aria-label="Schneller">+</button><button class="btn" id="mTap" title="Im Tempo mehrmals tippen">Tippen</button></span></div>
+          <div class="m-f">Takt<span class="seg" id="mSigSeg"><button data-metro-sig="2/4">2/4</button><button data-metro-sig="3/4">3/4</button><button data-metro-sig="4/4">4/4</button><button data-metro-sig="6/8">6/8</button></span></div>
+          <div class="m-f">Einzählen<span class="seg" id="mCountSeg"><button data-metro-count="0">Aus</button><button data-metro-count="1">1 Takt</button><button data-metro-count="2">2 Takte</button></span></div>
+          <div class="m-f">Klick<span class="seg" id="mClickSeg"><button data-metro-click="on">Immer</button><button data-metro-click="count">Nur Einzählen</button><button data-metro-click="off">Stumm</button></span></div>
+        </div>
+        <div class="m-acts"><button class="btn primary" id="mGo">Einzählen und aufnehmen</button><button class="btn" id="mCancel">Abbrechen</button></div>
+        <p class="m-hint" id="mHint">Spiel im Takt des Metronoms. Die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.</p>
+      </div>
+    </div>
     <div class="drop-veil" id="dropVeil" hidden>MIDI-Datei hier ablegen</div>
   </main>
 
@@ -540,7 +604,7 @@ const ROLE = {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', hands: 'both', volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 const saveSettings = () => store.set('settings', settings);
 
@@ -1310,6 +1374,8 @@ function advance(dt) {
     const g = nextGroupStart();
     if (g !== null && nt >= g) { nt = Math.max(t, g); waiting = true; } else waiting = false;
   }
+  // teacher recordings keep their metronome, so the student hears the same beat while practising
+  if (song.metro && settings.metroClick === 'on' && synth.ctx && nt > t) for (const b of song.beats) if (b.time >= t && b.time < nt) metroClick(synth.ctx.currentTime + 0.005, b.bar ? 2 : 0);
   // auto-played notes
   while (autoIdx < song.all.length && song.all[autoIdx].start < nt) {
     const n = song.all[autoIdx++];
@@ -1409,6 +1475,10 @@ const KEYMAP = { KeyA: 0, KeyW: 1, KeyS: 2, KeyE: 3, KeyD: 4, KeyF: 5, KeyT: 6, 
 const downKeys = new Map();
 window.addEventListener('keydown', e => {
   if (e.target.closest('input, select, textarea') || e.metaKey || e.ctrlKey || e.altKey) return;
+  if (metroOpen()) {
+    if (e.code === 'Escape') { metroCancel(); return; }
+    if ((e.code === 'Space' || e.code === 'Enter') && !e.repeat) { e.preventDefault(); metroGoStop(); return; }
+  }
   if (e.code === 'Space') { e.preventDefault(); togglePlay(); return; }
   if (e.code === 'Home') { restart(); return; }
   if (e.code === 'KeyR' && !e.repeat && !KEYMAP.KeyR) { toggleRec(); return; }
@@ -1656,19 +1726,125 @@ renderRecent();
 /* ---------- Recording: keeps exact timing, velocity and sustain pedal ---------- */
 let rec = null;
 function recEvent(type, m, v) { if (rec) rec.ev.push([type, m, v, (performance.now() - rec.t0) / 1000]); }
-function toggleRec() {
+// Teacher mode: the R button opens a metronome screen instead of the notes; it counts in and records in time
+const metro = { phase: 'ready', timer: 0, a0: 0, spb: 0.5, n: 4, d: 4, countBeats: 4, nextBeat: 0, taps: [] };
+const metroOpen = () => !$('#metro').hidden;
+function metroSig() { const [n, d] = settings.metroSig.split('/').map(Number); return { n, d }; }
+function metroSetPhase(ph) {
+  metro.phase = ph; $('#metro').dataset.phase = ph;
+  $('#mState').textContent = ph === 'ready' ? 'Bereit' : ph === 'count' ? 'Einzählen' : 'Aufnahme';
+  $('#mGo').textContent = ph === 'ready' ? (settings.metroCount === '0' ? 'Aufnehmen' : 'Einzählen und aufnehmen') : 'Fertig';
+  $('#mCancel').textContent = ph === 'ready' ? 'Abbrechen' : 'Verwerfen';
+  $('#recBtn').classList.toggle('on', ph !== 'ready');
+}
+function metroLayout() {
+  const { n } = metroSig();
+  const el = $('#mBeats'); el.innerHTML = '';
+  for (let i = 0; i < n; i++) { const b = document.createElement('i'); if (i === 0 || (n === 6 && i === 3)) b.className = 'acc'; el.appendChild(b); }
+  $('#mBpm').value = settings.metroBpm; $('#mBpmVal').textContent = settings.metroBpm;
+  // a real metronome: the weight slides down for faster tempi
+  $('#mWeight').setAttribute('y', 28 + (208 - settings.metroBpm) / 168 * 70);
+  if (metro.phase === 'ready') { $('#mNum').textContent = settings.metroSig; $('#mSub').textContent = settings.metroBpm + ' Schläge pro Minute'; }
+  $('#mGo').textContent = metro.phase === 'ready' ? (settings.metroCount === '0' ? 'Aufnehmen' : 'Einzählen und aufnehmen') : 'Fertig';
+}
+function metroOpenScreen() {
   synth.ensure();
-  if (!rec) { rec = { t0: performance.now(), ev: [] }; $('#recBtn').classList.add('on'); return; }
-  const r = rec; rec = null; $('#recBtn').classList.remove('on'); $('#recBtn').title = 'Aufnehmen, was du spielst (R)';
-  const notes = eventsToNotes(r.ev);
+  if (playing) togglePlay();
+  $('#metro').hidden = false; metroSetPhase('ready'); metroLayout();
+  if (!$('#mTicks').childElementCount) {
+    for (let i = 0; i < 9; i++) { const y = 34 + i * 11; const l = document.createElementNS('http://www.w3.org/2000/svg', 'line'); l.setAttribute('class', 'tick'); l.setAttribute('x1', 56); l.setAttribute('x2', 64); l.setAttribute('y1', y); l.setAttribute('y2', y); $('#mTicks').appendChild(l); }
+  }
+}
+function metroClick(at, accent) {
+  const c = synth.ctx; if (!c) return;
+  const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+  o.type = 'triangle'; o.frequency.value = accent === 2 ? 1760 : accent === 1 ? 1480 : 1175;
+  f.type = 'highpass'; f.frequency.value = 600;
+  const peak = (accent ? 0.5 : 0.32) * settings.vol / 100;
+  g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(peak, at + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
+  o.connect(f); f.connect(g); g.connect(c.destination); o.start(at); o.stop(at + 0.08);
+}
+function metroStart() {
+  const c = synth.ctx; const { n, d } = metroSig();
+  metro.n = n; metro.d = d; metro.spb = 60 / settings.metroBpm;
+  metro.countBeats = +settings.metroCount * n;
+  metro.a0 = c.currentTime + 0.25; metro.nextBeat = 0;
+  // the downbeat after the count-in is time 0 of the recording; notes played during the count-in are kept as a pickup
+  const downAudio = metro.a0 + metro.countBeats * metro.spb;
+  rec = { t0: performance.now() + (downAudio - c.currentTime) * 1000, ev: [], metro: { bpm: settings.metroBpm, sig: [n, d] } };
+  metroSetPhase(metro.countBeats ? 'count' : 'rec');
+  clearInterval(metro.timer);
+  metro.timer = setInterval(() => {
+    const until = c.currentTime + 0.12;
+    while (metro.a0 + metro.nextBeat * metro.spb < until) {
+      const i = metro.nextBeat, inCount = i < metro.countBeats, pos = i % metro.n;
+      const play = settings.metroClick === 'on' || (settings.metroClick === 'count' && inCount);
+      if (play) metroClick(metro.a0 + i * metro.spb, pos === 0 ? 2 : (metro.n === 6 && pos === 3) ? 1 : 0);
+      metro.nextBeat++;
+    }
+  }, 25);
+}
+function metroStop(keep) {
+  clearInterval(metro.timer); metro.timer = 0;
+  const r = rec; rec = null; $('#metro').hidden = true; metroSetPhase('ready');
+  $('#recBtn').title = 'Aufnehmen, was du spielst (R)';
+  if (keep && r) saveRecording(r);
+}
+function metroGoStop() { if (metro.phase === 'ready') metroStart(); else metroStop(true); }
+function metroCancel() { metroStop(false); }
+function metroDraw() {
+  if (!metroOpen()) return;
+  const c = synth.ctx; let beat = 0;
+  if (metro.phase !== 'ready' && c) beat = (c.currentTime - metro.a0) / metro.spb;
+  // the arm reaches its outer point on every click
+  const ang = metro.phase === 'ready' ? 0 : (beat < 0 ? -26 : 26 * Math.cos(Math.PI * beat));
+  $('#mArm').setAttribute('transform', 'rotate(' + ang.toFixed(2) + ' 60 140)');
+  if (metro.phase === 'ready') { document.querySelectorAll('#mBeats i').forEach(b => b.classList.remove('on')); return; }
+  const bi = Math.floor(beat + 0.08);
+  if (bi >= metro.countBeats && metro.phase === 'count') metroSetPhase('rec');
+  const pos = ((bi % metro.n) + metro.n) % metro.n, lit = beat >= -0.08 && (beat + 0.08) - bi < 0.35;
+  document.querySelectorAll('#mBeats i').forEach((b, i) => b.classList.toggle('on', lit && i === pos));
+  if (bi < 0) { $('#mNum').textContent = '·'; $('#mSub').textContent = 'gleich geht es los'; }
+  else if (bi < metro.countBeats) { $('#mNum').textContent = pos + 1; $('#mSub').textContent = 'Einzählen'; }
+  else {
+    const bar = Math.floor((bi - metro.countBeats) / metro.n) + 1;
+    $('#mNum').textContent = pos + 1; $('#mSub').textContent = 'Takt ' + bar + ' · ' + fmt(Math.max(0, (performance.now() - rec.t0) / 1000));
+  }
+}
+function toggleRec() { if (metroOpen()) metroGoStop(); else metroOpenScreen(); }
+function saveRecording(r) {
+  const m = r.metro;
+  let notes = eventsToNotes(r.ev, !!m);
   if (!notes.length) return;
+  let pickup = 0;
+  if (m) {
+    // keep the bar grid: shift by whole bars so a pickup before the first downbeat fits
+    const bar = 60 / m.bpm * m.sig[0], first = Math.min(...notes.map(n => n.start));
+    pickup = first < 0 ? Math.ceil(-first / bar - 1e-6) * bar : 0;
+    notes.forEach(n => { n.start += pickup; n.end += pickup; });
+  }
   const d = new Date();
   const name = 'Aufnahme ' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const item = { id: Date.now(), name, notes: notes.map(n => [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel]) };
+  if (m) Object.assign(item, { bpm: m.bpm, sig: m.sig });
   const list = store.get('recordings', []); list.unshift(item); store.set('recordings', list.slice(0, 30));
   renderRecs(); loadRecording(item); openPanel('songs');
 }
-function eventsToNotes(ev) {
+$('#mGo').onclick = metroGoStop;
+$('#mCancel').onclick = metroCancel;
+const setMetroBpm = v => { settings.metroBpm = Math.max(40, Math.min(208, Math.round(v))); saveSettings(); metroLayout(); };
+$('#mBpm').oninput = e => setMetroBpm(+e.target.value);
+$('#mSlower').onclick = () => setMetroBpm(settings.metroBpm - 2);
+$('#mFaster').onclick = () => setMetroBpm(settings.metroBpm + 2);
+$('#mTap').onclick = () => {
+  const now = performance.now(); metro.taps = metro.taps.filter(x => now - x < 2500); metro.taps.push(now);
+  if (metro.taps.length >= 3) { const iv = (metro.taps[metro.taps.length - 1] - metro.taps[0]) / (metro.taps.length - 1); setMetroBpm(60000 / iv); }
+  synth.ensure(); metroClick(synth.ctx.currentTime + 0.01, 0);
+};
+segInit('#mSigSeg', 'metroSig', metroLayout);
+segInit('#mCountSeg', 'metroCount', metroLayout);
+segInit('#mClickSeg', 'metroClick', () => {});
+function eventsToNotes(ev, keepTime) {
   // pair key presses with releases; while the pedal is down a released note keeps sounding until the pedal comes up
   const open = new Map(), sustained = new Map(), out = []; let pedal = false;
   const close = (o, end) => out.push({ midi: o.m, start: o.t, end: Math.max(end, o.t + 0.05), vel: o.v });
@@ -1679,23 +1855,29 @@ function eventsToNotes(ev) {
   }
   const last = ev.length ? ev[ev.length - 1][3] : 0;
   open.forEach(o => close(o, last + 0.3)); sustained.forEach(o => close(o, last + 0.3));
-  if (!out.length) return out;
+  if (!out.length || keepTime) return out.sort((a, b) => a.start - b.start);
   const first = Math.min(...out.map(n => n.start)) - 0.5;
   out.forEach(n => { n.start -= first; n.end -= first; });
   return out.sort((a, b) => a.start - b.start);
 }
 function loadRecording(item) {
   const notes = item.notes.map(([midi, start, end, vel]) => ({ midi, start, end, vel }));
-  const s = makeSong(item.name, [{ name: 'Gespielt', ch: 0, program: 0, drum: false, notes }], [], 0);
-  s.source = 'Eigene Aufnahme'; s.recId = item.id;
+  const beats = [];
+  if (item.bpm) {
+    const spb = 60 / item.bpm, [n, d] = item.sig, end = notes.reduce((m, x) => Math.max(m, x.end), 0) + spb * n;
+    for (let i = 0; i * spb <= end; i++) beats.push({ time: i * spb, bar: i % n === 0, n, d });
+  }
+  const s = makeSong(item.name, [{ name: 'Gespielt', ch: 0, program: 0, drum: false, notes }], beats, 0);
+  s.source = 'Eigene Aufnahme' + (item.bpm ? ' · ' + item.bpm + ' BPM, ' + item.sig.join('/') : ''); s.recId = item.id; s.metro = !!item.bpm;
   loadSong(s);
 }
-function midiFile(notes) {
-  // format 0, 480 ticks per quarter at 120 BPM: 960 ticks per second
+function midiFile(notes, bpm = 120, sig = [4, 4]) {
+  // format 0, 480 ticks per quarter; tempo and time signature from the metronome so bars line up in other programs
+  const qpm = bpm * 4 / sig[1], tps = 480 * qpm / 60, us = Math.round(60e6 / qpm);
   const ev = [];
-  notes.forEach(([m, st, en, v]) => { ev.push([Math.round(st * 960), 0x90, m, v]); ev.push([Math.round(en * 960), 0x80, m, 64]); });
+  notes.forEach(([m, st, en, v]) => { ev.push([Math.round(st * tps), 0x90, m, v]); ev.push([Math.round(en * tps), 0x80, m, 64]); });
   ev.sort((a, b) => a[0] - b[0] || (a[1] === 0x80 ? -1 : 1));
-  const bytes = [0x00, 0xff, 0x51, 0x03, 0x07, 0xa1, 0x20];
+  const bytes = [0x00, 0xff, 0x51, 0x03, (us >> 16) & 255, (us >> 8) & 255, us & 255, 0x00, 0xff, 0x58, 0x04, sig[0], Math.log2(sig[1]), 24, 8];
   const vlq = n => { const b = [n & 0x7f]; while ((n >>= 7)) b.unshift((n & 0x7f) | 0x80); return b; };
   let last = 0; ev.forEach(([tk, st, m, v]) => { bytes.push(...vlq(tk - last), st, m, v); last = tk; });
   bytes.push(0x00, 0xff, 0x2f, 0x00);
@@ -1705,7 +1887,7 @@ function midiFile(notes) {
 function renderRecs() {
   const el = $('#recList'); el.innerHTML = '';
   const list = store.get('recordings', []);
-  if (!list.length) { el.innerHTML = '<p class="note">Noch keine Aufnahmen. Drück unten auf „Aufnahme“ (oder R), spiel los und drück noch einmal zum Beenden.</p>'; return; }
+  if (!list.length) { el.innerHTML = '<p class="note">Noch keine Aufnahmen. Drück unten auf den roten Punkt (oder R): Metronom einstellen, einzählen lassen, spielen, „Fertig“.</p>'; return; }
   list.forEach(item => {
     const row = document.createElement('div'); row.className = 'rec-item';
     const nm = document.createElement('input'); nm.className = 'nm'; nm.value = item.name; nm.setAttribute('aria-label', 'Name der Aufnahme'); nm.maxLength = 40;
@@ -1716,7 +1898,7 @@ function renderRecs() {
     const mk = (txt, title, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = txt; b.title = title; b.onclick = fn; acts.appendChild(b); return b; };
     mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); updateHud(); restart(); });
     mk('MIDI', 'Als .mid-Datei herunterladen', async () => {
-      const data = midiFile(item.notes), filename = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
+      const data = midiFile(item.notes, item.bpm, item.sig), filename = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
       // inside the claude.ai preview downloads go through the viewer; everywhere else a normal download link
       const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
       if (dl) { try { await dl.save({ filename, data: new Blob([data], { type: 'audio/midi' }) }); } catch (e) {} return; }
@@ -1788,14 +1970,15 @@ function frame(now) {
   render(now);
   if (song && !seeking) { seekEl.value = Math.round(Math.max(0, t) / song.duration * 1000); $('#tNow').textContent = fmt(t); }
   updateWaitHint();
-  if (rec) $('#recBtn').title = 'Aufnahme läuft ' + fmt((now - rec.t0) / 1000) + ' (zum Beenden klicken)';
+  metroDraw();
+  if (rec) $('#recBtn').title = 'Aufnahme läuft (zum Beenden klicken)';
   requestAnimationFrame(frame);
 }
 // open with a song ready so the first view shows what the app does
 loadSong(builtin(BUILTIN[3]));
 updateRangeLabel();
 requestAnimationFrame(t0 => { lastNow = t0; requestAnimationFrame(frame); });
-window.mmm = { get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
+window.mmm = { get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
 <!--APP-END-->
