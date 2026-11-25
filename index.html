@@ -337,7 +337,11 @@ input[type=range] { accent-color: var(--gold); width: 100%; min-width: 0; }
 .drum-chips button { padding: 4px 9px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--muted); font-size: 11px; }
 .drum-chips button:hover { color: var(--fg); background: var(--glass-2); }
 .drum-chips button.own { border-style: dashed; }
-.drum-chips .dp-new { color: var(--gold); border-color: rgba(220,185,120,.4); }
+.drum-chips .dp-new { display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px 4px 8px; color: var(--gold); border-color: rgba(220,185,120,.5); background: linear-gradient(180deg, rgba(220,185,120,.14), rgba(220,185,120,.05)); font-weight: 600; }
+.drum-chips .dp-new svg { width: 26px; height: 20px; }
+.drum-chips .dp-new:hover { background: rgba(220,185,120,.2); color: #f3dcae; }
+.inst-panel h4.kit { display: flex; align-items: center; gap: 6px; }
+.inst-panel h4.kit svg { width: 20px; height: 15px; color: var(--gold); }
 .drum-chips button[aria-pressed=true] { color: var(--gold-ink); background: var(--gold); border-color: var(--gold); }
 @media (max-width: 680px) { .inst-panel { width: calc(100vw - 24px); } }
 .tempo-ctl { display: flex; align-items: center; gap: 8px; }
@@ -529,7 +533,7 @@ table.scores tr.me td { color: var(--gold); }
     <div class="pop-ctl inst-ctl" id="instCtl">
       <button class="pop-btn inst-btn" id="instBtn" title="Instrument und Schlagzeug" aria-label="Instrument und Schlagzeug" aria-expanded="false"></button>
       <span class="k-lbl" id="instLbl">Klang</span>
-      <div class="pop-panel down inst-panel"><div class="inst-groups" id="instGrid"></div><h4>Schlagzeug</h4><div class="drum-chips" id="drumChips"></div></div>
+      <div class="pop-panel down inst-panel"><div class="inst-groups" id="instGrid"></div><h4 class="kit"><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="16" cy="16" rx="6" ry="6"/><circle cx="16" cy="16" r="2"/><ellipse cx="7" cy="12" rx="4" ry="1.6"/><path d="M3 12v6c0 .9 1.8 1.6 4 1.6s4-.7 4-1.6v-6"/><ellipse cx="25" cy="13" rx="3.4" ry="1.4"/><path d="M21.6 13v4.5c0 .8 1.5 1.4 3.4 1.4s3.4-.6 3.4-1.4V13"/><path d="M2 5.5l7 1.4M5.5 6.2V11" opacity=".8"/><path d="M23 4.5l7 -1.2M26.5 3.9V11.5" opacity=".8"/><path d="M12 22l-1.5 1.5M20 22l1.5 1.5"/></svg>Schlagzeug</h4><div class="drum-chips" id="drumChips"></div></div>
     </div>
     <div class="tempo-ctl" title="Tempo des Liedes (↑ ↓)"><span class="k-lbl">Tempo</span><button class="t-step" id="speedDown" aria-label="Langsamer">−</button><span class="t-track"><input type="range" id="speed" min="25" max="110" step="5" value="100" aria-label="Tempo des Liedes in Prozent"><span class="t-thumb" id="speedPct" aria-hidden="true">100</span></span><button class="t-step" id="speedUp" aria-label="Schneller">+</button></div>
     <div class="knobs" aria-label="Lautstärke">
@@ -3434,7 +3438,7 @@ function renderDrumLists() {
   const own = drumPats();
   $('#drumChips').innerHTML = DRUMS.map(([v, n]) => `<button type="button" data-drum="${v}" aria-pressed="false">${n}</button>`).join('')
     + own.map(p => `<button type="button" data-drum="p:${p.id}" aria-pressed="false" class="own" title="Eigenes Pattern (nochmal klicken zum Bearbeiten)">${esc(p.name)}</button>`).join('')
-    + '<button type="button" class="dp-new" data-dpnew="1" title="Ein eigenes Schlagzeug-Pattern bauen">＋ Eigenes Pattern</button>';
+    + '<button type="button" class="dp-new" data-dpnew="1" title="Ein eigenes Schlagzeug-Pattern bauen"><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="16" cy="16" rx="6" ry="6"/><circle cx="16" cy="16" r="2"/><ellipse cx="7" cy="12" rx="4" ry="1.6"/><path d="M3 12v6c0 .9 1.8 1.6 4 1.6s4-.7 4-1.6v-6"/><ellipse cx="25" cy="13" rx="3.4" ry="1.4"/><path d="M21.6 13v4.5c0 .8 1.5 1.4 3.4 1.4s3.4-.6 3.4-1.4V13"/><path d="M2 5.5l7 1.4M5.5 6.2V11" opacity=".8"/><path d="M23 4.5l7 -1.2M26.5 3.9V11.5" opacity=".8"/><path d="M12 22l-1.5 1.5M20 22l1.5 1.5"/></svg><span>Eigenes Pattern</span></button>';
   const sel = $('#drumSel'); sel.querySelector('optgroup[data-own]')?.remove();
   if (own.length) { const g = document.createElement('optgroup'); g.label = 'Eigene Pattern'; g.dataset.own = 1; own.forEach(p => { const o = document.createElement('option'); o.value = 'p:' + p.id; o.textContent = p.name; g.appendChild(o); }); sel.appendChild(g); }
   sel.value = settings.drums; if (sel.value !== settings.drums) { settings.drums = 'file'; sel.value = 'file'; }
