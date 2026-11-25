@@ -12,7 +12,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Leuchtstreifen**: Ist die Note fällig, kommt die Farbe oben an und bleibt als kräftiger Streifen mit Leuchten nach oben stehen, solange die Taste gehalten werden soll; triffst du sie richtig, blitzt das Leuchten auf.
 - **Blatt**: derselbe Notensatz wie auf einem Notenblatt, Zeile für Zeile über die ganze Breite; die Zeilen wandern beim Spielen langsam nach oben, sodass die nächste Zeile schon zu sehen ist.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.
-- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Ziellinie und Vorlauf sitzen als kleiner Knopf in der unteren Leiste. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
+- **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. „Keyboard suchen“ hört auf allen Geräten und Kanälen und stellt das Keyboard ein, auf dem du die erste Taste drückst. Verweigert der Browser den Zugriff, steht direkt dort, wie man ihn erlaubt, mit einem Knopf, um die App als ZIP herunterzuladen. Ziellinie und Vorlauf sitzen als kleiner Knopf in der unteren Leiste. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
 - **Vier Modi**
   - *Zuhören*: die App spielt alles vor.
   - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.

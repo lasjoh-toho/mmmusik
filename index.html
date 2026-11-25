@@ -367,6 +367,11 @@ input[type=text], input[type=url], input[type=search], input[type=number], selec
 .note { font-size: 12px; color: var(--muted); line-height: 1.5; }
 .note a { color: var(--gold); }
 .msg { font-size: 13px; padding: 9px 11px; border-radius: 9px; background: rgba(255,107,122,.1); border: 1px solid rgba(255,107,122,.3); line-height: 1.45; }
+.msg .acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+#midiHelp { display: grid; gap: 8px; }
+a.btn { text-decoration: none; color: inherit; }
+#midiHelp:empty { display: none; }
+.msg.info { background: rgba(220,185,120,.08); border-color: rgba(220,185,120,.35); }
 .msg.ok { background: rgba(111,224,166,.08); border-color: rgba(111,224,166,.3); }
 .track { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); }
 .track .sw { width: 14px; height: 14px; border-radius: 4px; }
@@ -615,6 +620,8 @@ table.scores tr.me td { color: var(--gold); }
       <select id="chanSel"></select>
       <label for="transp">Transponierung (Halbtöne)</label>
       <input type="number" id="transp" value="0" min="-24" max="24">
+      <div class="store-acts"><button class="btn" id="midiFind" title="Hört auf allen Geräten und Kanälen, bis du eine Taste drückst">Keyboard suchen</button><a class="btn" id="appDl" href="#" title="Die App mit allen Klängen als ZIP herunterladen">App herunterladen</a></div>
+      <div id="midiHelp"></div>
       <p class="note" id="midiNote">Funktioniert in Chrome, Edge und Opera. Ohne Keyboard kannst du die Bildschirmtasten antippen oder die Computertastatur nutzen: <span class="kbd">A W S E D F T G Z H U J K</span> = C bis C, <span class="kbd">Y</span>/<span class="kbd">X</span> Oktave.</p>
     </section>
     <section class="field">
@@ -1948,12 +1955,71 @@ function bindInputs() {
   midiTxt.textContent = n ? (n === 1 ? ins[0].name : n + ' Geräte') : 'Kein Keyboard gefunden'; midiBtn.title = 'MIDI-Keyboard: ' + midiTxt.textContent;
 }
 $('#midiSel').onchange = bindInputs;
-async function connectMidi(silent) {
-  if (!navigator.requestMIDIAccess) { if (!silent) midiFail('Dieser Browser kann nicht mit MIDI-Geräten sprechen. Nimm Chrome, Edge oder Opera.'); return; }
-  try { midiAccess = await navigator.requestMIDIAccess(); midiAccess.onstatechange = bindInputs; bindInputs(); }
-  catch (e) { if (!silent) midiFail('Der Zugriff auf MIDI wurde blockiert. In dieser Vorschau ist das gesperrt: öffne die App direkt im Browser (GitHub Pages oder die heruntergeladene index.html).'); }
+const inFrame = (() => { try { return window.top !== window; } catch (e) { return true; } })();
+// where to get the whole app as a ZIP (with the piano recordings), derived from where it runs
+function appZipUrl() {
+  const h = location.hostname, p = location.pathname.split('/');
+  if (h.endsWith('.github.io')) return `https://github.com/${h.split('.')[0]}/${p[1] || h}/archive/refs/heads/main.zip`;
+  if (h === 'raw.githack.com') return `https://github.com/${p[1]}/${p[2]}/archive/refs/heads/${p[3] || 'main'}.zip`;
+  return 'https://github.com/lasjoh-toho/mmmusik/archive/refs/heads/main.zip';
 }
-function midiFail(text) { midiDot.className = 'chip-dot err'; midiTxt.textContent = 'MIDI nicht verfügbar'; midiBtn.title = 'MIDI nicht verfügbar'; openPanel('settings'); const n = $('#midiNote'); n.innerHTML = ''; const d = document.createElement('div'); d.className = 'msg'; d.textContent = text; n.before(d); setTimeout(() => d.remove(), 12000); }
+async function saveApp(e) {
+  if (e) e.preventDefault();
+  // the ZIP holds index.html, songs/ and samples/; unpack it and open index.html in Chrome or Edge
+  if (!inFrame) { window.open(appZipUrl(), '_blank', 'noopener'); return; }
+  try { const r = await fetch(location.href.split('#')[0]); if (r.ok) { await saveFile('mmmusik.html', await r.blob()); return; } } catch (err) {}
+  window.open(appZipUrl(), '_blank', 'noopener');
+}
+$('#appDl').href = appZipUrl(); $('#appDl').onclick = saveApp;
+// a message in the MIDI section that stays until it is solved, with buttons that help right there
+function midiHelp(text, acts = [], cls = '') {
+  const box = $('#midiHelp'); box.innerHTML = ''; if (!text) return;
+  const d = document.createElement('div'); d.className = 'msg ' + cls; const p = document.createElement('div'); p.textContent = text; d.appendChild(p);
+  if (acts.length) { const a = document.createElement('div'); a.className = 'acts'; acts.forEach(([label, fn, primary]) => { const b = document.createElement('button'); b.className = 'btn' + (primary ? ' primary' : ''); b.textContent = label; b.onclick = fn; a.appendChild(b); }); d.appendChild(a); }
+  box.appendChild(d);
+}
+const ACT_RETRY = ['Noch einmal versuchen', () => connectMidi(false), true];
+const ACT_DL = ['App herunterladen', () => saveApp()];
+const ACT_FIND = ['Keyboard suchen', () => midiFind(), true];
+async function connectMidi(silent) {
+  if (!navigator.requestMIDIAccess) {
+    if (!silent) midiFail('Dieser Browser kann nicht mit MIDI-Geräten sprechen (Safari zum Beispiel nicht). Öffne die App in Chrome, Edge oder Opera.', [ACT_DL]);
+    return false;
+  }
+  try { midiAccess = await navigator.requestMIDIAccess(); midiAccess.onstatechange = bindInputs; bindInputs(); }
+  catch (e) {
+    if (silent) return false;
+    if (inFrame) midiFail('In dieser Vorschau ist MIDI gesperrt. Öffne die App direkt im Browser, auf deiner Webseite oder als heruntergeladene Datei.', [ACT_DL]);
+    else midiFail('Dein Browser hat den Zugriff auf MIDI-Geräte verweigert. Klick links neben der Adresse auf das Symbol (Schloss oder Regler) → Website-Einstellungen → „MIDI-Geräte“ auf „Zulassen“, dann hier „Noch einmal versuchen“. Klappt es trotzdem nicht, lade die App herunter und öffne die index.html.', [ACT_RETRY, ACT_DL]);
+    return false;
+  }
+  const n = midiAccess.inputs.size;
+  if (n) midiHelp('');
+  else if (!silent) { openPanel('settings'); midiHelp('Der Zugriff klappt, aber es ist kein Keyboard zu sehen. Prüf das USB-Kabel, schalte das Keyboard ein und schließ andere Musikprogramme, die es gerade benutzen. Dann „Keyboard suchen“.', [ACT_FIND], 'info'); }
+  return true;
+}
+function midiFail(text, acts = [ACT_RETRY]) {
+  midiDot.className = 'chip-dot err'; midiTxt.textContent = 'MIDI nicht verfügbar'; midiBtn.title = 'MIDI nicht verfügbar';
+  openPanel('settings'); midiHelp(text, acts);
+}
+// listen on every device and channel; the first key you press decides which one is used
+let finding = 0;
+async function midiFind() {
+  synth.ensure();
+  if (!midiAccess && !(await connectMidi(false))) return;
+  const ins = [...midiAccess.inputs.values()];
+  if (!ins.length) { midiHelp('Noch immer kein MIDI-Gerät sichtbar. Steck das Keyboard bitte einmal aus und wieder ein, warte ein paar Sekunden und such noch einmal.', [ACT_FIND], 'info'); return; }
+  clearTimeout(finding);
+  midiHelp(`Drück jetzt eine Taste auf deinem Keyboard … (${ins.length} ${ins.length === 1 ? 'Gerät' : 'Geräte'}, alle 16 Kanäle)`, [], 'info');
+  const done = (inp, ch) => {
+    clearTimeout(finding); finding = 0;
+    $('#midiSel').value = inp.id; settings.chan = String(ch); chanSel.value = settings.chan; saveSettings(); bindInputs();
+    midiHelp(`Gefunden: ${inp.name || 'MIDI-Eingang'}, Kanal ${ch}. Es kann losgehen.`, [], 'ok');
+  };
+  ins.forEach(inp => { inp.onmidimessage = e => { const [st, a, b] = e.data; if ((st & 0xf0) === 0x90 && b > 0) done(inp, (st & 0x0f) + 1); }; });
+  finding = setTimeout(() => { finding = 0; bindInputs(); midiHelp('In 20 Sekunden kam kein Ton an. Ist am Keyboard ein lokaler MIDI-Ausgang ausgeschaltet oder steckt das Kabel in „MIDI In“ statt „MIDI Out“? Dann noch einmal suchen.', [ACT_FIND], 'info'); }, 20000);
+}
+$('#midiFind').onclick = () => midiFind();
 midiBtn.onclick = () => { synth.ensure(); connectMidi(false); };
 try { navigator.permissions && navigator.permissions.query({ name: 'midi' }).then(p => { if (p.state === 'granted') connectMidi(true); }).catch(() => {}); } catch (e) {}
 
