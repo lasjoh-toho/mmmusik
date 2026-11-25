@@ -169,6 +169,12 @@ header.bar {
 .eb-keys { display: flex; flex-wrap: wrap; gap: 3px 12px; justify-content: center; font-size: 10.5px; max-width: 900px; color: var(--muted); }
 .eb-keys kbd { font-family: var(--f-mono); font-size: 10.5px; padding: 1px 5px; margin-right: 2px; border-radius: 4px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); }
 @media (max-width: 700px) { .eb-keys { display: none; } }
+.recent-row { display: grid; grid-template-columns: 1fr auto auto; gap: 4px; align-items: center; }
+.btn.mini { padding: 6px 10px; font-size: 12px; }
+.store-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.store-acts .btn { padding: 6px 12px; font-size: 12px; }
+.btn.danger { color: #ff8a96; border-color: rgba(255,93,108,.35); }
+.btn.danger.armed { background: rgba(255,93,108,.18); color: #fff; }
 .zoom-box {
   margin-left: auto;
   display: flex; gap: 2px; align-items: center; flex-wrap: wrap;
@@ -463,9 +469,9 @@ table.scores tr.me td { color: var(--gold); }
   </div>
   <div class="panel-body" id="tab-songs">
     <section>
-      <h3>Meine Aufnahmen</h3>
+      <h3>Meine Songs</h3>
       <div class="list" id="recList"></div>
-      <p class="note">Aufnahmen speichern Zeitpunkt, Anschlagstärke und Haltepedal so, wie du gespielt hast. Sie bleiben in diesem Browser; mit „MIDI“ lädst du eine .mid-Datei herunter.</p>
+      <p class="note">Aufnahmen und bearbeitete Versionen bleiben in diesem Browser. „MIDI“ lädt eine .mid-Datei herunter, ✕ löscht. Eine Sicherung von allem findest du unter Einstellungen.</p>
     </section>
     <section>
       <h3>Im Internet suchen</h3>
@@ -542,6 +548,13 @@ table.scores tr.me td { color: var(--gold); }
       <input type="range" id="vol" min="0" max="100" value="70">
       <p class="note">Oben in der Leiste regelst du getrennt: „Du“ ist dein eigenes Spiel, „Vorlage“ die Stimmen, die du übst, so wie sie klingen sollen, und „Begleitung“ alles Übrige.</p>
     </section>
+    <section class="field">
+      <h3>Gespeichert in diesem Browser</h3>
+      <p class="note" id="storeInfo"></p>
+      <div class="store-acts"><button class="btn" id="backupBtn">Alles exportieren</button><button class="btn" id="restoreBtn">Sicherung laden</button><button class="btn danger" id="wipeBtn">Alles löschen</button></div>
+      <input type="file" id="restoreFile" accept=".json,application/json" hidden>
+      <p class="note">Die Sicherung ist eine .json-Datei mit deinen Songs, Aufnahmen, Bestenlisten und Einstellungen. Mit „Sicherung laden“ holst du sie in einen anderen Browser oder auf ein anderes Gerät.</p>
+    </section>
     <section>
       <h3>Tastenkürzel</h3>
       <p class="note"><span class="kbd">Leertaste</span> Start/Pause · <span class="kbd">Pos1</span> von vorn · <span class="kbd">←</span>/<span class="kbd">→</span> 5 s springen · <span class="kbd">↑</span>/<span class="kbd">↓</span> Tempo · <span class="kbd">R</span> Aufnahme starten/stoppen · Mausrad auf der Bühne zoomt die Tastatur, mit <span class="kbd">Shift</span> verschiebt es sie.</p>
@@ -581,8 +594,25 @@ table.scores tr.me td { color: var(--gold); }
 const $ = s => document.querySelector(s);
 const store = {
   get(k, d) { try { const v = localStorage.getItem('mmm.' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
-  set(k, v) { try { localStorage.setItem('mmm.' + k, JSON.stringify(v)); } catch (e) {} }
+  set(k, v) { try { localStorage.setItem('mmm.' + k, JSON.stringify(v)); store.full = false; } catch (e) { store.full = true; } if (window.renderStoreInfo) window.renderStoreInfo(); },
+  keys() { const out = []; try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('mmm.')) out.push(k); } } catch (e) {} return out; },
+  full: false
 };
+// downloads: inside the claude.ai preview they go through the viewer, everywhere else a normal download link
+async function saveFile(filename, blob) {
+  const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
+  if (dl) { try { await dl.save({ filename, data: blob }); } catch (e) {} return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = filename;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+// a delete button that asks once more before it deletes
+function armedButton(btn, label, ask, fn) {
+  let armed = false;
+  btn.onclick = () => {
+    if (!armed) { armed = true; btn.textContent = ask; btn.classList.add('armed'); setTimeout(() => { armed = false; btn.textContent = label; btn.classList.remove('armed'); }, 3000); return; }
+    armed = false; btn.textContent = label; btn.classList.remove('armed'); fn();
+  };
+}
 
 /* ---------- Music helpers ---------- */
 const isBlack = m => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
@@ -1837,7 +1867,15 @@ function remember(title, source, buf) {
 }
 function renderRecent() {
   const list = store.get('recent', []); $('#recentSec').hidden = !list.length; const el = $('#recentList'); el.innerHTML = '';
-  list.forEach(r => { const b = document.createElement('button'); b.className = 'item'; b.innerHTML = '<span class="t"></span><span class="s"></span>'; b.querySelector('.t').textContent = r.title; b.querySelector('.s').textContent = r.source || ''; b.onclick = () => loadBuffer(unb64(r.data), r.title, r.source); el.appendChild(b); });
+  list.forEach(r => {
+    const row = document.createElement('div'); row.className = 'recent-row';
+    const b = document.createElement('button'); b.className = 'item'; b.innerHTML = '<span class="t"></span><span class="s"></span>'; b.querySelector('.t').textContent = r.title; b.querySelector('.s').textContent = r.source || ''; b.onclick = () => loadBuffer(unb64(r.data), r.title, r.source);
+    const ex = document.createElement('button'); ex.className = 'btn mini'; ex.textContent = 'MIDI'; ex.title = 'Als .mid-Datei herunterladen';
+    ex.onclick = () => saveFile(r.title.replace(/[^\wäöüÄÖÜß .-]/g, '').slice(0, 60) + '.mid', new Blob([unb64(r.data)], { type: 'audio/midi' }));
+    const del = document.createElement('button'); del.className = 'btn mini'; del.textContent = '✕'; del.title = 'Aus der Liste löschen';
+    armedButton(del, '✕', 'Löschen?', () => { store.set('recent', store.get('recent', []).filter(x => x.title !== r.title)); renderRecent(); });
+    row.append(b, ex, del); el.appendChild(row);
+  });
 }
 renderRecent();
 
@@ -1945,7 +1983,7 @@ function saveRecording(r) {
   const name = 'Aufnahme ' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
   const item = { id: Date.now(), name, notes: notes.map(n => [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel]) };
   if (m) Object.assign(item, { bpm: m.bpm, sig: m.sig });
-  const list = store.get('recordings', []); list.unshift(item); store.set('recordings', list.slice(0, 30));
+  const list = store.get('recordings', []); list.unshift(item); store.set('recordings', list.slice(0, 60));
   renderRecs(); loadRecording(item); openPanel('songs');
 }
 $('#mGo').onclick = metroGoStop;
@@ -2025,13 +2063,9 @@ function renderRecs() {
     const acts = document.createElement('div'); acts.className = 'acts';
     const mk = (txt, title, fn) => { const b = document.createElement('button'); b.className = 'btn'; b.textContent = txt; b.title = title; b.onclick = fn; acts.appendChild(b); return b; };
     mk('Abspielen', 'Laden und abspielen', () => { const l = store.get('recordings', []); loadRecording(l.find(x => x.id === item.id) || item); closePanel(); settings.mode = 'watch'; document.querySelectorAll('#modeSeg button').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); updateHud(); restart(); });
-    mk('MIDI', 'Als .mid-Datei herunterladen', async () => {
+    mk('MIDI', 'Als .mid-Datei herunterladen', () => {
       const data = midiFile(item.notes, item.bpm, item.sig), filename = (nm.value || 'aufnahme').replace(/[^\wäöüÄÖÜß .-]/g, '') + '.mid';
-      // inside the claude.ai preview downloads go through the viewer; everywhere else a normal download link
-      const dl = window.claude && window.claude.use ? await window.claude.use('downloads').catch(() => null) : null;
-      if (dl) { try { await dl.save({ filename, data: new Blob([data], { type: 'audio/midi' }) }); } catch (e) {} return; }
-      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([data], { type: 'audio/midi' })); a.download = filename;
-      document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+      saveFile(filename, new Blob([data], { type: 'audio/midi' }));
     });
     let armed = false;
     const del = mk('✕', 'Löschen', () => {
@@ -2149,7 +2183,7 @@ function editSave() {
     item.parts = parts.map(p => ({ name: p.name, role: p.role, program: p.program, drum: p.drum }));
     item.meta = { spell: song.spell, swing: song.swing, keySf: song.keySf };
     if (!item.bpm) item.beats = song.beats.map(b => [+b.time.toFixed(3), b.bar ? 1 : 0, b.n, b.d]);
-    store.set('recordings', list.slice(0, 30)); renderRecs();
+    store.set('recordings', list.slice(0, 60)); renderRecs();
   }, 400);
 }
 function setView(v) { settings.view = v; document.querySelectorAll('#viewSeg button[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v)); syncGuide(); saveSettings(); }
@@ -2284,6 +2318,41 @@ function editMove(x, y) {
 $('#editBtn').onclick = () => editToggle();
 $('#ebDone').onclick = () => editToggle(false);
 stage.addEventListener('contextmenu', e => { if (edit.on) e.preventDefault(); });
+
+/* ---------- Everything stored in this browser: backup, restore, wipe ---------- */
+window.renderStoreInfo = () => {
+  const el = $('#storeInfo'); if (!el) return;
+  const recs = store.get('recordings', []), recent = store.get('recent', []), scores = store.get('scores', {});
+  const mine = recs.filter(r => !r.parts).length, edited = recs.length - mine;
+  let bytes = 0; store.keys().forEach(k => { try { bytes += (localStorage.getItem(k) || '').length * 2; } catch (e) {} });
+  el.textContent = `${mine} ${mine === 1 ? 'Aufnahme' : 'Aufnahmen'}, ${edited} bearbeitete ${edited === 1 ? 'Version' : 'Versionen'}, ${recent.length} zuletzt geöffnete ${recent.length === 1 ? 'Datei' : 'Dateien'}, Bestenlisten für ${Object.keys(scores).length} ${Object.keys(scores).length === 1 ? 'Song' : 'Songs'} · ${Math.max(1, Math.round(bytes / 1024))} KB` + (store.full ? ' · Speicher voll, bitte etwas löschen oder exportieren.' : '');
+};
+$('#backupBtn').onclick = () => {
+  const data = { app: 'mmmusik', version: 1, saved: new Date().toISOString(), items: {} };
+  store.keys().forEach(k => { try { data.items[k] = JSON.parse(localStorage.getItem(k)); } catch (e) {} });
+  saveFile('mmmusik-sicherung-' + new Date().toISOString().slice(0, 10) + '.json', new Blob([JSON.stringify(data)], { type: 'application/json' }));
+};
+$('#restoreBtn').onclick = () => $('#restoreFile').click();
+$('#restoreFile').onchange = async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const data = JSON.parse(await f.text()); if (!data || data.app !== 'mmmusik' || typeof data.items !== 'object') throw new Error('keine mmmusik-Sicherung');
+    // songs from the backup are added to the ones already here; settings and scores are taken over
+    const have = store.get('recordings', []), ids = new Set(have.map(r => r.id));
+    const incoming = (data.items['mmm.recordings'] || []).filter(r => r && Array.isArray(r.notes) && !ids.has(r.id));
+    store.set('recordings', [...incoming, ...have].slice(0, 60));
+    const rec = store.get('recent', []), titles = new Set(rec.map(r => r.title));
+    store.set('recent', [...rec, ...(data.items['mmm.recent'] || []).filter(r => r && r.data && !titles.has(r.title))].slice(0, 12));
+    if (data.items['mmm.scores']) store.set('scores', Object.assign({}, data.items['mmm.scores'], store.get('scores', {})));
+    renderRecs(); renderRecent(); renderScores && renderScores(); window.renderStoreInfo();
+    $('#storeInfo').textContent = incoming.length + (incoming.length === 1 ? ' Song' : ' Songs') + ' aus der Sicherung übernommen. ' + $('#storeInfo').textContent;
+  } catch (err) { $('#storeInfo').textContent = 'Die Datei konnte nicht gelesen werden (' + err.message + ').'; }
+};
+armedButton($('#wipeBtn'), 'Alles löschen', 'Wirklich alles löschen? (Einstellungen bleiben)', () => {
+  store.keys().forEach(k => { if (k !== 'mmm.settings') try { localStorage.removeItem(k); } catch (e) {} });
+  renderRecs(); renderRecent(); if (typeof renderScores === 'function') renderScores(); window.renderStoreInfo();
+});
+window.renderStoreInfo();
 
 /* ---------- Main loop ---------- */
 function frame(now) {
