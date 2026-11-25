@@ -522,6 +522,14 @@ table.scores tr.me td { color: var(--gold); }
       <div class="list" id="recList"></div>
       <p class="note">Aufnahmen und bearbeitete Versionen bleiben in diesem Browser. „MIDI“ lädt eine .mid-Datei herunter, ✕ löscht. Eine Sicherung von allem findest du unter Einstellungen.</p>
     </section>
+    <section id="folderSec">
+      <h3>Mein Ordner</h3>
+      <div class="store-acts"><button class="btn" id="folderBtn">Ordner öffnen</button><button class="btn primary" id="folderAgain" hidden></button></div>
+      <input type="file" id="folderIn" webkitdirectory multiple hidden>
+      <input type="search" id="folderFilter" placeholder="Im Ordner suchen" aria-label="Im Ordner suchen" hidden style="margin-top:8px">
+      <div class="list" id="folderList" style="margin-top:8px"></div>
+      <p class="note" id="folderNote">Wähle den Ordner, in dem die App und deine MIDI-Dateien liegen. Die App zeigt alle .mid-Dateien darin (auch in Unterordnern). In Chrome und Edge merkt sie sich den Ordner, dann reicht beim nächsten Mal ein Klick.</p>
+    </section>
     <section>
       <h3>Im Internet suchen</h3>
       <form class="row" id="searchForm">
@@ -2491,6 +2499,85 @@ const ovUp = e => {
 };
 ovCv.addEventListener('pointerup', ovUp); ovCv.addEventListener('pointercancel', ovUp);
 ovCv.addEventListener('keydown', e => { if (!song) return; if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') { e.preventDefault(); e.stopPropagation(); seek(t + (e.key === 'ArrowRight' ? 5 : -5), true); } });
+
+/* ---------- MIDI files in a folder: picked once (remembered in Chrome/Edge) or found next to the app on a web server ---------- */
+const folder = { files: [], name: '' };
+const idb = {
+  open() { return new Promise((res, rej) => { const r = indexedDB.open('mmmusik', 1); r.onupgradeneeded = () => r.result.createObjectStore('kv'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); },
+  async get(k) { try { const db = await idb.open(); return await new Promise(res => { const q = db.transaction('kv').objectStore('kv').get(k); q.onsuccess = () => res(q.result); q.onerror = () => res(undefined); }); } catch (e) { return undefined; } },
+  async set(k, v) { try { const db = await idb.open(); await new Promise(res => { const tx = db.transaction('kv', 'readwrite'); tx.objectStore('kv').put(v, k); tx.oncomplete = res; tx.onerror = res; }); } catch (e) {} }
+};
+const isMidiName = n => /\.(mid|midi|kar)$/i.test(n);
+const songName = n => n.replace(/\.(mid|midi|kar)$/i, '').replace(/[_]+/g, ' ');
+async function scanHandle(dir, path = '', depth = 0, out = []) {
+  for await (const [name, h] of dir.entries()) {
+    if (h.kind === 'file' && isMidiName(name)) out.push({ name: songName(name), path: path, get: async () => (await h.getFile()).arrayBuffer() });
+    else if (h.kind === 'directory' && depth < 3 && !name.startsWith('.')) await scanHandle(h, path + name + '/', depth + 1, out);
+    if (out.length >= 2000) break;
+  }
+  return out;
+}
+function showFolder(name, files, note) {
+  folder.name = name; folder.files = files.sort((a, b) => (a.path + a.name).localeCompare(b.path + b.name, 'de'));
+  $('#folderFilter').hidden = files.length < 12;
+  $('#folderNote').textContent = note || (files.length ? `${files.length} MIDI-${files.length === 1 ? 'Datei' : 'Dateien'} in „${name}“.` : `In „${name}“ liegen keine .mid-Dateien.`);
+  renderFolder();
+}
+function renderFolder() {
+  const el = $('#folderList'); el.innerHTML = '';
+  const q = ($('#folderFilter').value || '').toLowerCase();
+  folder.files.filter(f => !q || (f.path + f.name).toLowerCase().includes(q)).slice(0, 300).forEach(f => {
+    const b = document.createElement('button'); b.className = 'item'; b.innerHTML = '<span class="t"></span><span class="s"></span>';
+    b.querySelector('.t').textContent = f.name; b.querySelector('.s').textContent = f.path ? f.path.replace(/\/$/, '') : folder.name;
+    b.onclick = async () => { try { loadBuffer(await f.get(), f.name, 'Mein Ordner'); } catch (e) { showMsg('#folderList', 'Die Datei ließ sich nicht öffnen. Öffne den Ordner bitte noch einmal.'); } };
+    el.appendChild(b);
+  });
+}
+$('#folderFilter').oninput = renderFolder;
+async function useHandle(h, ask) {
+  let perm = await h.queryPermission({ mode: 'read' });
+  if (perm !== 'granted' && ask) perm = await h.requestPermission({ mode: 'read' });
+  if (perm !== 'granted') return false;
+  $('#folderAgain').hidden = true;
+  showFolder(h.name, await scanHandle(h));
+  return true;
+}
+$('#folderBtn').onclick = async () => {
+  if (window.showDirectoryPicker) {
+    try { const h = await window.showDirectoryPicker({ id: 'mmmusik', mode: 'read' }); await idb.set('folder', h); await useHandle(h, true); return; }
+    catch (e) { if (e && e.name === 'AbortError') return; }
+  }
+  $('#folderIn').value = ''; $('#folderIn').click();
+};
+$('#folderIn').onchange = e => {
+  const all = [...e.target.files]; if (!all.length) return;
+  const root = (all[0].webkitRelativePath || '').split('/')[0] || 'Ordner';
+  const files = all.filter(f => isMidiName(f.name)).map(f => ({ name: songName(f.name), path: (f.webkitRelativePath || '').split('/').slice(1, -1).map(x => x + '/').join(''), get: () => f.arrayBuffer() }));
+  showFolder(root, files);
+};
+async function folderStartup() {
+  // a folder picked earlier (Chrome, Edge): open it right away if allowed, else offer one click
+  const h = window.showDirectoryPicker ? await idb.get('folder') : null;
+  if (h && h.queryPermission) {
+    if (!(await useHandle(h, false))) { const b = $('#folderAgain'); b.textContent = `„${h.name}“ öffnen`; b.hidden = false; b.onclick = () => useHandle(h, true).catch(() => {}); }
+    return;
+  }
+  // on a web server: MIDI files in a folder "songs" next to the app
+  if (!/^https?:$/.test(location.protocol)) return;
+  try {
+    let list = null;
+    const gh = location.hostname.endsWith('.github.io') ? { owner: location.hostname.split('.')[0], repo: location.pathname.split('/')[1] || location.hostname, ref: '' }
+      : location.hostname === 'raw.githack.com' ? (() => { const p = location.pathname.split('/'); return { owner: p[1], repo: p[2], ref: p[3] }; })() : null;
+    if (gh) {
+      const r = await fetch(`https://api.github.com/repos/${gh.owner}/${gh.repo}/contents/songs${gh.ref ? '?ref=' + encodeURIComponent(gh.ref) : ''}`);
+      if (r.ok) list = (await r.json()).filter(x => x.type === 'file' && isMidiName(x.name)).map(x => x.name);
+    }
+    if (!list) { const r = await fetch('songs/index.json'); if (r.ok) list = (await r.json()).filter(isMidiName); }
+    if (!list) { const r = await fetch('songs/'); if (r.ok) { const html = await r.text(); list = [...new Set([...html.matchAll(/href="([^"?#]+\.(?:mid|midi|kar))"/gi)].map(m => decodeURIComponent(m[1].split('/').pop())))]; } }
+    if (list && list.length) showFolder('songs', list.map(n => ({ name: songName(n), path: 'songs/', get: async () => { const r = await fetch('songs/' + encodeURIComponent(n)); if (!r.ok) throw new Error(r.status); return r.arrayBuffer(); } })));
+  } catch (e) {}
+}
+folderStartup();
 
 /* ---------- Main loop ---------- */
 function frame(now) {

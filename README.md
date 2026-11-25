@@ -23,6 +23,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Songs**
   - Suche nach frei lizenzierten MIDI-Dateien auf Wikimedia Commons direkt in der App.
   - Eigene `.mid`-Dateien per Drag & Drop, Dateiauswahl oder URL.
+  - **Mein Ordner**: Mit „Ordner öffnen“ zeigt die App alle MIDI-Dateien eines Ordners (auch Unterordner). Chrome und Edge merken sich den Ordner, beim nächsten Start reicht ein Klick. Läuft die App auf GitHub Pages oder einem anderen Webserver, findet sie MIDI-Dateien im Ordner `songs/` neben `index.html` von selbst.
   - Eingebaute Lieder: sechs gemeinfreie Klassiker und Kinderlieder plus Jazz & Ragtime (Swing-Blues mit Walking Bass, When the Saints Go Marching In, The Entertainer).
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - **Alles bleibt im Browser**: Aufnahmen, bearbeitete Versionen, zuletzt geöffnete Dateien, Bestenlisten und Einstellungen. Jeder Song lässt sich einzeln löschen oder als .mid herunterladen; unter Einstellungen → „Gespeichert in diesem Browser“ gibt es „Alles exportieren“ (Sicherung als .json), „Sicherung laden“ und „Alles löschen“.
