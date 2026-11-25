@@ -25,7 +25,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - Klangfarben Flügel, E-Piano und Jazz-Orgel.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
-- **Aufnahme**: Spiel auf, was du willst (Taste R oder Button). Zeitpunkt, Anschlagstärke und Haltepedal bleiben so erhalten, wie du gespielt hast. Aufnahmen werden im Browser gespeichert, lassen sich umbenennen, als Notenregen abspielen und als .mid-Datei herunterladen.
+- **Lehrer-Modus (Aufnahme)**: Der rote Punkt (oder R) blendet die Noten aus und zeigt ein Metronom. Tempo (auch per Tippen), Takt (2/4, 3/4, 4/4, 6/8), Einzählen (aus, 1 oder 2 Takte) und Klick (immer, nur beim Einzählen, stumm) sind einstellbar. Nach dem Einzählen läuft die Aufnahme taktgenau; Auftakte bleiben erhalten. So spielt die Lehrerin ein Stück ein, und der Schüler übt es danach mit Notenregen, Farbnoten oder Notensatz, auf Wunsch mit demselben Metronom-Klick. Zeitpunkt, Anschlagstärke und Haltepedal bleiben so erhalten, wie gespielt wurde. Aufnahmen werden im Browser gespeichert, lassen sich umbenennen, als Notenregen abspielen und als .mid-Datei mit Tempo und Taktart herunterladen.
 - Tempo 25–150 %, Springen, Notennamen (deutsch mit H oder englisch).
 
 ## Veröffentlichen mit GitHub Pages
