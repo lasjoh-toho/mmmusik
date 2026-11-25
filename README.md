@@ -10,11 +10,13 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
 - **Regen / Straße**: ein Knopf für beides. Fährst du darüber, öffnet sich ein Schieberegler: ganz oben fallen die Noten als Regen von oben, je weiter du ihn nach unten ziehst, desto flacher kommen sie wie auf einer Straße aus der Tiefe auf dich zu. Der Knopf heißt dann „Straße“, ganz oben „Regen“. Der Knopf „Tasten“ darunter wählt, ob die Klaviatur die Perspektive fortsetzt oder senkrecht bleibt.
 - **Farbnoten**: Klaviersystem mit kräftig-dunklen farbigen Notenköpfen und Längen-Schweifen. Eine kommende Note kündigt sich wie eine brennende Lunte an: ab Höhe der schwarzen Tasten wandert ihre Farbe die Taste hinauf und wird dabei kräftiger; den Vorlauf stellt in den Notenansichten derselbe Mini-Knopf ein, der im Notenregen die Ziellinie regelt.
 - **Leuchtstreifen**: Ist die Note fällig, kommt die Farbe oben an und bleibt als kräftiger Streifen mit Leuchten nach oben stehen, solange die Taste gehalten werden soll; triffst du sie richtig, blitzt das Leuchten auf.
+- **Blatt**: derselbe Notensatz wie auf einem Notenblatt, Zeile für Zeile über die ganze Breite; die Zeilen wandern beim Spielen langsam nach oben, sodass die nächste Zeile schon zu sehen ist.
 - **Noten**: echter Notensatz (VexFlow) mit Notenwerten, Balken, Pausen, Vorzeichen und farbigen Notenköpfen; Swing-Achtel werden wie in Jazz-Noten gerade notiert.
 - **MIDI-Keyboard** per Web MIDI, mit Geräte- und Kanalwahl, Transponierung und Haltepedal. Ziellinie und Vorlauf sitzen als kleiner Knopf in der unteren Leiste. Ohne Keyboard gehen die Bildschirmtasten und die Computertastatur (`A W S E D F T G Z H U J K`, `Y`/`X` für die Oktave).
-- **Drei Modi**
+- **Vier Modi**
   - *Zuhören*: die App spielt alles vor.
   - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.
+  - *Warten*: wie Üben, aber bei Akkorden geht es erst weiter, wenn alle Töne gleichzeitig gedrückt sind.
   - *Highscore*: Echtzeit mit Punkten (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
 - **Hände**: zwei Hand-Symbole (von oben gesehen). Voll heißt: du spielst diese Hand, Umriss heißt: die App spielt sie. Klick schaltet um.
 - **Vollbild**: Knopf oben rechts.
@@ -36,6 +38,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Der Konzertflügel lädt beim ersten Auswählen die Klavieraufnahmen aus dem Netz (*Salamander Grand Piano* von Alexander Holm, Lizenz CC BY 3.0). Ohne Internet klingt der synthetische Flügel.
 - **Schlagzeug zur Begleitung**: Pop, Rock, Swing (Besen-Ride), Shuffle/Blues, Bossa Nova, Walzer oder Percussion (Conga, Shaker, Cowbell). Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien klingen jetzt als Schlagzeug mit; „Aus“ schaltet alles ab.
 - Ziellinie: dünne Linie unter jeder Note, die zur Taste zeigt (an der Note kräftig, zur Taste hin auslaufend); Länge über den Mini-Regler neben der Ansicht.
+- Auf der Straße sind die Noten kleine erhabene Blöcke mit Schatten. Das Leuchten über einer fälligen Taste ist rund und in der Mitte am hellsten; ist die Note vorbei, blendet es langsam aus.
 - **Noten-Editor** (Stift-Knopf unten): korrigiert Noten in der Farbnoten-Ansicht. Korrekturen werden als eigene Version in der Bibliothek gespeichert, das Original bleibt unverändert.
   - Pfeiltasten bewegen die Auswahl (links/rechts zur nächsten Note, hoch/runter durch den Akkord).
   - Shift + Pfeile verschieben die Note: hoch/runter in der Tonhöhe, links/rechts um ein Sechzehntel in der Zeit.

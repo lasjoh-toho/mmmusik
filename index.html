@@ -502,7 +502,8 @@ table.scores tr.me td { color: var(--gold); }
     <button class="btn rec-btn edit-btn" id="editBtn" title="Noten bearbeiten" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg></button>
     <div class="seg" id="modeSeg" role="group" aria-label="Modus">
       <button data-mode="watch" aria-pressed="true">Zuhören</button>
-      <button data-mode="wait" aria-pressed="false">Üben</button>
+      <button data-mode="wait" aria-pressed="false" title="Das Lied wartet auf jeden richtigen Ton">Üben</button>
+      <button data-mode="chord" aria-pressed="false" title="Das Lied wartet, bis alle Töne gleichzeitig gedrückt sind">Warten</button>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
     <div class="hands" id="handSeg" role="group" aria-label="Welche Hand übst du? Volle Hand: du spielst, Umriss: die App spielt">
@@ -519,7 +520,8 @@ table.scores tr.me td { color: var(--gold); }
         <span class="pop-panel road-panel"><span class="rl">Regen</span><input type="range" id="road" min="0" max="100" step="1" aria-label="Neigung: oben Regen, unten Straße"><span class="rl">Straße</span>
           <button class="keys3d" id="keys3dBtn" aria-pressed="false" title="Tasten perspektivisch oder senkrecht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 5h10l4 14H3z"/><path d="M10 5l-1 9M14 5l1 9M8.5 14v5M15.5 14v5"/></svg>Tasten</button></span></span>
       <button data-view="sheet" aria-pressed="false">Farbnoten</button>
-      <button data-view="score" aria-pressed="false">Noten</button>
+      <button data-view="score" aria-pressed="false" title="Noten als eine lange Zeile, die nach links läuft">Noten</button>
+      <button data-view="page" aria-pressed="false" title="Noten wie auf einem Notenblatt: die Zeilen wandern nach oben">Blatt</button>
     </div>
     </div>
     <div class="zoom-box" aria-label="Oktavraum">
@@ -1227,8 +1229,9 @@ function render(now) {
   if (view === 'rain' || (view === 'road' && settings.road <= 0)) drawRain(top, bottom, now);
   else if (view === 'road') drawRoad(top, bottom, now);
   else if (view === 'sheet') drawSheet(top, bottom, now);
+  else if (view === 'page') drawPage(top, bottom);
   else drawScore(top, bottom);
-  $('#score').hidden = view !== 'score';
+  $('#score').hidden = view !== 'score' && view !== 'page';
   KEY3D = null;
   if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
 }
@@ -1333,6 +1336,7 @@ function drawRain(y0, y1, now, ppsFix) {
   // notes
   const s0 = lb(song.all, t - song.maxDur - 0.1, 'start');
   const offL = [], offR = [];
+  const lift = ppsFix ? Math.min(1, settings.road / 40) : 0; // raised blocks only on the road
   cx.font = `600 ${Math.max(9, Math.min(13, KB.ww * 0.42))}px Inter, system-ui, sans-serif`;
   cx.textAlign = 'center'; cx.textBaseline = 'bottom';
   for (let i = s0; i < song.all.length; i++) {
@@ -1346,7 +1350,15 @@ function drawRain(y0, y1, now, ppsFix) {
     cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
     const c1 = settings.color === 'hand' ? colorOf(n, k.black) : colorOf(n);
     const gr = cx.createLinearGradient(0, yt, 0, yb); gr.addColorStop(0, c1); gr.addColorStop(1, colorOf(n, true));
+    if (lift > 0) {
+      // on the road the notes are little blocks: a soft shadow on the road and a darker front face towards you
+      const d = lift * Math.max(3, Math.min(8, w * 0.28));
+      cx.fillStyle = 'rgba(0,0,0,.45)'; rr(x + d * 0.35, yt + d * 0.9, w, hh, Math.min(6, w * 0.3)); cx.fill();
+      cx.fillStyle = colorOf(n, true); rr(x, yt + d, w, hh, Math.min(6, w * 0.3)); cx.fill();
+      cx.fillStyle = 'rgba(0,0,0,.38)'; rr(x, yt + d, w, hh, Math.min(6, w * 0.3)); cx.fill();
+    }
     cx.fillStyle = gr; rr(x, yt, w, hh, Math.min(6, w * 0.3)); cx.fill();
+    if (lift > 0) { const hg = cx.createLinearGradient(x, 0, x + w, 0); hg.addColorStop(0, 'rgba(255,255,255,.28)'); hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(1, 'rgba(0,0,0,.18)'); cx.fillStyle = hg; cx.fill(); }
     cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1; cx.stroke();
     if (n.state === 1) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fill(); }
     if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
@@ -1465,6 +1477,7 @@ function drawClef(ch, x, yTop, yBot, ink) {
   cx.save(); cx.translate(x, yTop + m.actualBoundingBoxAscent * s); cx.scale(s, s); cx.fillText(ch, 0, 0); cx.restore();
 }
 
+const FADE = () => 0.45 * (settings.speed / 100); // how long (in song time) a finished note keeps fading
 function drawKeyboard(now) {
   const { keys, top, h } = KB;
   cx.fillStyle = '#05060a'; cx.fillRect(0, top - 3, W, h + 3);
@@ -1488,14 +1501,17 @@ function drawKeyboard(now) {
   // due: an intense stripe at the top of the key with a glow upwards, for as long as the note should be held
   const due = new Map();
   if (song) {
-    for (let i = lb(song.all, t - song.maxDur - 0.05, 'start'); i < song.all.length; i++) {
-      const n = song.all[i]; if (n.start > t + 0.001) break; if (n.end <= t) continue;
-      if (guided(n.part.role)) due.set(n.midi, colOfRole(n.part.role, n.midi));
+    for (let i = lb(song.all, t - song.maxDur - FADE() - 0.05, 'start'); i < song.all.length; i++) {
+      const n = song.all[i]; if (n.start > t + 0.001) break;
+      if (!guided(n.part.role)) continue;
+      // after its end a note fades out over a moment instead of stopping abruptly
+      const a = n.end > t ? 1 : 1 - (t - n.end) / FADE(); if (a <= 0) continue;
+      const o = due.get(n.midi); if (!o || o.a < a) due.set(n.midi, { c: colOfRole(n.part.role, n.midi), a });
     }
   }
   const BH = h * 0.62;
   const fuse = (m, x, w, yStart, yEnd, r) => {
-    const f = soon.get(m); if (!f || due.has(m)) return;
+    const f = soon.get(m); if (!f || (due.has(m) && due.get(m).a >= 1)) return;
     const front = yStart - f.p * (yStart - yEnd);
     const g = cx.createLinearGradient(0, yStart, 0, front);
     g.addColorStop(0, f.c.replace(/[\d.]+\)$/, '0.05)')); g.addColorStop(1, f.c.replace(/[\d.]+\)$/, (0.35 + 0.55 * f.p) + ')'));
@@ -1505,19 +1521,23 @@ function drawKeyboard(now) {
     rr(x + w * 0.12, front - 2, w * 0.76, 4, 2); cx.fill(); cx.restore();
   };
   const stripe = (m, x, y, w, hh, r) => {
-    const c = due.get(m); if (!c) return;
+    const d = due.get(m); if (!d) return; const c = d.c, fade = d.a * d.a;
     const p = pressed.get(m), held = p && p.good !== false;
     const since = performance.now() - (lastPress.get(m) || -1e9);
     const flash = held ? Math.exp(-since / 260) : 0;
-    // glow upwards from the key
-    const gx = x + w / 2, gh = 26 + 34 * (held ? 0.6 + flash : 0.35), gw = Math.max(w * (held ? 1.4 + flash : 1), 12);
-    const ug = cx.createLinearGradient(0, top, 0, top - gh);
-    ug.addColorStop(0, c.replace(/[\d.]+\)$/, (held ? 0.55 + 0.4 * flash : 0.32) + ')')); ug.addColorStop(1, c.replace(/[\d.]+\)$/, '0)'));
-    cx.fillStyle = ug; cx.fillRect(gx - gw / 2, top - gh, gw, gh);
-    cx.save(); cx.shadowColor = c; cx.shadowBlur = held ? 18 + 24 * flash : 10; cx.fillStyle = c; cx.globalAlpha = 1;
+    // rounded glow above the key, strongest over its middle
+    const gx = x + w / 2, gh = 26 + 34 * (held ? 0.6 + flash : 0.35), gw = Math.max(w * (held ? 1.5 + flash : 1.15), 14);
+    cx.save(); cx.globalAlpha = fade;
+    cx.translate(gx, top); cx.scale(gw / 2 / gh, 1);
+    const ug = cx.createRadialGradient(0, 0, 0, 0, 0, gh);
+    const a0 = held ? 0.7 + 0.3 * flash : 0.42;
+    ug.addColorStop(0, c.replace(/[\d.]+\)$/, a0 + ')')); ug.addColorStop(0.45, c.replace(/[\d.]+\)$/, (a0 * 0.45) + ')')); ug.addColorStop(1, c.replace(/[\d.]+\)$/, '0)'));
+    cx.fillStyle = ug; cx.beginPath(); cx.arc(0, 0, gh, Math.PI, 2 * Math.PI); cx.closePath(); cx.fill();
+    cx.restore();
+    cx.save(); cx.globalAlpha = fade; cx.shadowColor = c; cx.shadowBlur = held ? 18 + 24 * flash : 10; cx.fillStyle = c;
     rr(x, y, w, hh, r); cx.fill(); if (flash > 0.3) cx.fill();
     cx.restore();
-    if (flash > 0.02) { cx.fillStyle = `rgba(255,255,255,${0.55 * flash})`; rr(x, y, w, hh, r); cx.fill(); }
+    if (flash > 0.02) { cx.fillStyle = `rgba(255,255,255,${0.55 * flash * fade})`; rr(x, y, w, hh, r); cx.fill(); }
   };
   const stateOf = m => {
     const p = pressed.get(m); if (p) return { c: p.c, glow: p.good !== false };
@@ -1565,7 +1585,7 @@ function beatIndex(time) {
 }
 function beatTime(bi) { const b = song.beats; const i = Math.min(b.length - 1, Math.floor(bi)); const nx = b[i + 1] ? b[i + 1].time : b[i].time + 0.5; return b[i].time + (bi - i) * (nx - b[i].time); }
 function staffIsTreble(n) { const r = n.part.role; return r === 'L' ? n.midi >= 65 : r === 'R' ? n.midi >= 55 : n.midi >= 60; }
-function buildScore(h) {
+function buildScore(h, pageW) {
   const VF = window.Vex && window.Vex.Flow; const msg = $('#scoreMsg'), inner = $('#scoreInner');
   inner.innerHTML = '';
   if (!VF) { msg.textContent = 'Notensatz wird geladen …'; return null; }
@@ -1632,50 +1652,123 @@ function buildScore(h) {
     });
     M.w = 50 + 34 * Math.max(M.tick[0].length, M.tick[1].length, 2);
   });
-  // layout and draw
-  const scale = Math.max(0.6, Math.min(1.7, (h - 16) / 250));
-  const head = 110 + Math.abs(sf) * 11;
-  const totalW = head + meas.reduce((a, M) => a + M.w, 0) + 40;
+  // layout and draw: one long line (Noten) or lines that wrap like a printed page (Blatt)
+  const SYS = 250, head = 110 + Math.abs(sf) * 11;
+  const scale = pageW ? Math.max(0.5, Math.min(1.15, pageW / 1000, (h - 20) / (2 * SYS))) : Math.max(0.6, Math.min(1.7, (h - 16) / 250));
+  const lines = [];
+  if (pageW) {
+    const avail = pageW / scale - 20; let cur = [], w = 0, lastSig = '';
+    meas.forEach((M, k) => {
+      const sig = M.n + '/' + M.d; const extra = (sig !== lastSig ? 30 : 0); lastSig = sig;
+      const need = M.w + extra + (cur.length ? 0 : head);
+      if (cur.length && w + need > avail) { lines.push({ ms: cur, w }); cur = []; w = 0; }
+      cur.push(k); w += M.w + extra + (cur.length === 1 ? head : 0);
+    });
+    if (cur.length) lines.push({ ms: cur, w, last: true });
+  } else lines.push({ ms: meas.map((_, k) => k), w: 0, last: true });
+  const totalW = pageW ? pageW / scale : head + meas.reduce((a, M) => a + M.w, 0) + 70;
   const renderer = new VF.Renderer(inner, VF.Renderer.Backends.SVG);
-  renderer.resize(totalW * scale, 250 * scale);
+  renderer.resize(totalW * scale, SYS * scale * lines.length);
   const ctx = renderer.getContext(); ctx.scale(scale, scale);
-  let x = 10; const anchors = []; let lastSig = '';
-  meas.forEach((M, k) => {
-    const first = k === 0; const sig = M.n + '/' + M.d; const w = M.w + (first ? head : 0) + (sig !== lastSig && !first ? 30 : 0);
-    const tS = new VF.Stave(x, 0, w), bS = new VF.Stave(x, 110, w);
-    if (first) { tS.addClef('treble').addKeySignature(KEYNAME); bS.addClef('bass').addKeySignature(KEYNAME); }
-    if (sig !== lastSig) { tS.addTimeSignature(sig); bS.addTimeSignature(sig); lastSig = sig; }
-    tS.setMeasure(k + 1);
-    tS.setContext(ctx).draw(); bS.setContext(ctx).draw();
-    if (first) { new VF.StaveConnector(tS, bS).setType('brace').setContext(ctx).draw(); new VF.StaveConnector(tS, bS).setType('singleLeft').setContext(ctx).draw(); }
-    new VF.StaveConnector(tS, bS).setType('singleRight').setContext(ctx).draw();
-    const voices = M.tick.map((tk, si) => { const v = new VF.Voice({ num_beats: M.n, beat_value: M.d }).setMode(VF.Voice.Mode.SOFT); v.addTickables(tk); return v; });
-    const beams = M.tick.map(tk => VF.Beam.generateBeams(tk.filter(t => !t.isRest()), { maintain_stem_directions: false }));
-    new VF.Formatter().joinVoices([voices[0]]).joinVoices([voices[1]]).format(voices, Math.max(40, tS.getNoteEndX() - tS.getNoteStartX() - 14));
-    voices[0].draw(ctx, tS); voices[1].draw(ctx, bS);
-    beams.flat().forEach(b => b.setContext(ctx).draw());
-    anchors.push({ t: beatTime(M.bi), x: tS.getNoteStartX() - 6 });
-    M.anch.forEach(a => { if (a) anchors.push({ t: beatTime(M.bi + a.pos / M.qpb), x: a.note.getAbsoluteX() }); });
-    x += w;
+  const anchors = []; const sys = []; let lastSig = '';
+  lines.forEach((L, li) => {
+    const y = li * SYS; let x = 10;
+    // stretch full lines to the page width
+    const stretch = pageW && !L.last ? Math.max(0, (totalW - 20 - L.w) / L.ms.length) : 0;
+    const t0 = beatTime(meas[L.ms[0]].bi);
+    L.ms.forEach((k, j) => {
+      const M = meas[k]; const lineStart = j === 0; const sig = M.n + '/' + M.d;
+      const w = M.w + stretch + (lineStart ? head : 0) + (sig !== lastSig && !(k === 0) ? 30 : 0);
+      const tS = new VF.Stave(x, y, w), bS = new VF.Stave(x, y + 110, w);
+      if (lineStart) { tS.addClef('treble').addKeySignature(KEYNAME); bS.addClef('bass').addKeySignature(KEYNAME); }
+      if (sig !== lastSig) { tS.addTimeSignature(sig); bS.addTimeSignature(sig); lastSig = sig; }
+      tS.setMeasure(k + 1);
+      tS.setContext(ctx).draw(); bS.setContext(ctx).draw();
+      if (lineStart) { new VF.StaveConnector(tS, bS).setType('brace').setContext(ctx).draw(); new VF.StaveConnector(tS, bS).setType('singleLeft').setContext(ctx).draw(); }
+      new VF.StaveConnector(tS, bS).setType('singleRight').setContext(ctx).draw();
+      const voices = M.tick.map((tk, si) => { const v = new VF.Voice({ num_beats: M.n, beat_value: M.d }).setMode(VF.Voice.Mode.SOFT); v.addTickables(tk); return v; });
+      const beams = M.tick.map(tk => VF.Beam.generateBeams(tk.filter(t => !t.isRest()), { maintain_stem_directions: false }));
+      new VF.Formatter().joinVoices([voices[0]]).joinVoices([voices[1]]).format(voices, Math.max(40, tS.getNoteEndX() - tS.getNoteStartX() - 14));
+      voices[0].draw(ctx, tS); voices[1].draw(ctx, bS);
+      beams.flat().forEach(b => b.setContext(ctx).draw());
+      anchors.push({ t: beatTime(M.bi), x: tS.getNoteStartX() - 6, s: li });
+      M.anch.forEach(a => { if (a) anchors.push({ t: beatTime(M.bi + a.pos / M.qpb), x: a.note.getAbsoluteX(), s: li }); });
+      x += w;
+    });
+    sys.push({ y, t0, xEnd: x });
   });
   ties.forEach(t => t.setContext(ctx).draw());
-  anchors.push({ t: song.duration + 1, x: x });
-  anchors.sort((a, b) => a.t - b.t || a.x - b.x);
-  return { scale, anchors, h, key: songKey + '|' + song.parts.map(p => p.role).join('') };
+  anchors.push({ t: song.duration + 1, x: sys[sys.length - 1].xEnd, s: sys.length - 1 });
+  return { scale, anchors: smoothAnchors(anchors), sys, h, SYS, W: pageW || 0, key: songKey + '|' + song.parts.map(p => p.role).join('') };
 }
-function drawScore(y0, y1) {
+// one anchor per moment, x never going back inside a line; tangents for a smooth (monotone cubic) cursor,
+// so the music glides instead of changing speed abruptly at every note
+function smoothAnchors(a) {
+  a.sort((p, q) => p.t - q.t || p.x - q.x);
+  const out = [];
+  for (const p of a) {
+    const l = out[out.length - 1];
+    if (l && Math.abs(l.t - p.t) < 1e-4) { if (p.s === l.s) l.x = Math.min(l.x, p.x); continue; }
+    if (l && l.s === p.s && p.x < l.x) p.x = l.x;
+    out.push(p);
+  }
+  const n = out.length, d = [];
+  for (let i = 0; i < n - 1; i++) d.push(out[i + 1].s === out[i].s ? (out[i + 1].x - out[i].x) / Math.max(1e-6, out[i + 1].t - out[i].t) : null);
+  for (let i = 0; i < n; i++) {
+    const L = i > 0 ? d[i - 1] : null, R = i < n - 1 ? d[i] : null;
+    let m = L == null ? (R ?? 0) : R == null ? L : (L * R <= 0 ? 0 : 2 * L * R / (L + R)); // harmonic mean keeps it monotone
+    out[i].m = m;
+  }
+  return out;
+}
+function scoreX(sc, tt) {
+  const a = sc.anchors; let lo = 0, hi = a.length - 1;
+  while (lo < hi - 1) { const mid = (lo + hi) >> 1; if (a[mid].t <= tt) lo = mid; else hi = mid; }
+  const A = a[lo], B = a[hi];
+  if (tt <= A.t || hi === lo) return { x: A.x, s: A.s };
+  if (B.s !== A.s) { // last stretch of a line: glide on to the end of the line
+    const end = sc.sys[A.s].xEnd, f = Math.min(1, (tt - A.t) / (B.t - A.t)); return { x: A.x + (end - A.x) * f, s: A.s };
+  }
+  const h = B.t - A.t, f = Math.min(1, (tt - A.t) / h), f2 = f * f, f3 = f2 * f;
+  const x = (2 * f3 - 3 * f2 + 1) * A.x + (f3 - 2 * f2 + f) * h * A.m + (-2 * f3 + 3 * f2) * B.x + (f3 - f2) * h * B.m;
+  return { x: Math.max(A.x, Math.min(B.x, x)), s: A.s };
+}
+
+let page = null;
+function drawPage(y0, y1) {
   const h = y1 - y0;
   cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
   const box = $('#score'); box.style.height = h + 'px';
   if (!song) return;
   const key = songKey + '|' + song.parts.map(p => p.role).join('');
-  if (!score || score.key !== key || Math.abs(score.h - h) > 24) { score = buildScore(h); if (score) score.h = h; }
+  if (!page || page.key !== key || Math.abs(page.h - h) > 24 || page.W !== W) { score = null; page = buildScore(h, W); if (page) { page.h = h; page.W = W; } }
+  if (!page) return;
+  const { x, s } = scoreX(page, t), S = page.SYS * page.scale, sys = page.sys;
+  // the page moves up steadily while you play a line, so the next line is already in view when you get there
+  const nx = sys[s + 1] ? sys[s + 1].t0 : song.duration + 1;
+  const f = sys[s + 1] ? Math.max(0, Math.min(1, (t - sys[s].t0) / Math.max(0.01, nx - sys[s].t0))) : 0;
+  // when a line is done its top staff still sits just below the overview strip
+  const top = Math.max(8, Math.min(S - 40 * page.scale + 24, h - 205 * page.scale));
+  const scroll = (s + f) * S;
+  $('#scoreInner').style.transform = `translate3d(0, ${(top - scroll).toFixed(2)}px, 0)`;
+  const sy = y0 + top - scroll + s * S;
+  const px = x * page.scale;
+  cx.fillStyle = 'rgba(200,150,60,.18)'; cx.fillRect(px - 12 * page.scale, sy + 20 * page.scale, 24 * page.scale, 190 * page.scale);
+  cx.fillStyle = 'rgba(200,150,60,.85)'; cx.fillRect(px - 1, sy + 26 * page.scale, 2, 178 * page.scale);
+}
+function drawScore(y0, y1) {
+  if (page) { page = null; score = null; }
+  const h = y1 - y0;
+  cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
+  const box = $('#score'); box.style.height = h + 'px';
+  if (!song) return;
+  const key = songKey + '|' + song.parts.map(p => p.role).join('');
+  if (!score || score.key !== key || Math.abs(score.h - h) > 24) { page = null; score = buildScore(h); if (score) score.h = h; }
   if (!score) return;
-  const a = score.anchors; let i = 0; while (i < a.length - 2 && a[i + 1].t <= t) i++;
-  const A = a[i], B = a[i + 1] || A; const f = B.t > A.t ? Math.max(0, Math.min(1, (t - A.t) / (B.t - A.t))) : 0;
-  const xs = (A.x + (B.x - A.x) * f) * score.scale;
+  const xs = scoreX(score, t).x * score.scale;
   const playX = Math.max(120, W * 0.28);
-  const inner = $('#scoreInner'); inner.style.transform = `translate(${Math.round(playX - xs)}px, ${Math.round((h - 250 * score.scale) / 2)}px)`;
+  // sub-pixel steps on the GPU, no rounding to whole pixels (that made slow passages stutter)
+  const inner = $('#scoreInner'); inner.style.transform = `translate3d(${(playX - xs).toFixed(2)}px, ${((h - 250 * score.scale) / 2).toFixed(2)}px, 0)`;
   cx.fillStyle = 'rgba(200,150,60,.18)'; cx.fillRect(playX - 14, y0, 28, h);
   cx.fillStyle = 'rgba(200,150,60,.85)'; cx.fillRect(playX - 1, y0 + 8, 2, h - 16);
 }
@@ -1716,12 +1809,14 @@ let wheelPan = 0, wheelZoom = 0;
 /* ---------- Playback & judging ---------- */
 const youRole = r => (r === 'R' && settings.hands !== 'L') || (r === 'L' && settings.hands !== 'R');
 const handRole = r => r === 'R' || r === 'L';
+// 'wait' waits for each note, 'chord' waits until all notes of the moment are held together
+const waitish = () => settings.mode === 'wait' || settings.mode === 'chord';
 // the hand you are not practising plays along like accompaniment
 const dimRole = r => r === 'A' || (settings.mode !== 'watch' && handRole(r) && !youRole(r));
 const isYou = n => settings.mode !== 'watch' && youRole(n.part.role);
 const tol = () => 0.16 * (settings.speed / 100);
 function waitGroup() {
-  if (!song || settings.mode !== 'wait') return [];
+  if (!song || !waitish()) return [];
   let i = youIdx; while (i < youNotes.length && youNotes[i].state !== 0) i++;
   if (i >= youNotes.length) return [];
   const g0 = youNotes[i].start; if (g0 > t + 0.02) return [];
@@ -1743,20 +1838,20 @@ function seek(nt, keepScore) {
 function advance(dt) {
   if (!song) return;
   let nt = t + dt;
-  if (settings.mode === 'wait') {
+  if (waitish()) {
     const g = nextGroupStart();
     if (g !== null && nt >= g) { nt = Math.max(t, g); waiting = true; } else waiting = false;
   }
   // teacher recordings keep their metronome, so the student hears the same beat while practising
   if (song.metro && settings.metroClick === 'on' && synth.ctx && nt > t) for (const b of song.beats) if (b.time >= t && b.time < nt) metroClick(synth.ctx.currentTime + 0.005, b.bar ? 2 : 0);
   // drum groove: when a beat starts, schedule its hits
-  if (GROOVES[settings.drums] && settings.mode !== 'wait' && synth.ctx && nt > t) { const B = song.beats; for (let i = lb(B, t, 'time'); i < B.length && B[i].time < nt; i++) if (B[i].time >= t) grooveHits(B[i], B[i + 1], settings.speed); }
+  if (GROOVES[settings.drums] && !waitish() && synth.ctx && nt > t) { const B = song.beats; for (let i = lb(B, t, 'time'); i < B.length && B[i].time < nt; i++) if (B[i].time >= t) grooveHits(B[i], B[i + 1], settings.speed); }
   // auto-played notes
   while (autoIdx < song.all.length && song.all[autoIdx].start < nt) {
     const n = song.all[autoIdx++];
     if (n.start < t - 0.05) continue;
     const role = n.part.role;
-    if (role === 'M') { if (settings.drums !== 'off' && settings.mode !== 'wait' && n.part.drum) synth.drum(n.midi, n.vel); continue; }
+    if (role === 'M') { if (settings.drums !== 'off' && !waitish() && n.part.drum) synth.drum(n.midi, n.vel); continue; }
     const you = isYou(n);
     const dur = (n.end - n.start) / (settings.speed / 100);
     const bus = (handRole(role) && (settings.mode === 'watch' || youRole(role))) ? 'guide' : 'acc';
@@ -1770,24 +1865,41 @@ function advance(dt) {
     while (youIdx < youNotes.length && youNotes[youIdx].start < lim) {
       const n = youNotes[youIdx++]; if (n.state === 0) { n.state = 2; sc.miss++; sc.total++; sc.combo = 0; popups.push({ midi: n.midi, txt: 'Verpasst', c: '#ff8a96', t0: performance.now() }); updateHud(); }
     }
-  } else if (settings.mode === 'wait') { while (youIdx < youNotes.length && youNotes[youIdx].state !== 0) youIdx++; }
+  } else if (waitish()) { while (youIdx < youNotes.length && youNotes[youIdx].state !== 0) youIdx++; }
   t = nt;
   if (t >= song.duration + 0.6) finish();
 }
+function chordGroup() {
+  // the next notes you have to play, all starting together
+  let i = youIdx; while (i < youNotes.length && youNotes[i].state !== 0) i++;
+  if (i >= youNotes.length) return [];
+  const g0 = youNotes[i].start; if (g0 > t + tol()) return [];
+  const out = []; for (let j = i; j < youNotes.length && youNotes[j].start < g0 + 0.06; j++) if (youNotes[j].state === 0) out.push(youNotes[j]);
+  return out;
+}
 function judge(m, now) {
   if (!song || settings.mode === 'watch' || !playing) return true;
+  if (settings.mode === 'chord') {
+    const g = chordGroup();
+    if (!g.some(n => n.midi === m)) { sc.wrong++; sc.combo = 0; popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
+    if (g.every(n => n.midi === m || pressed.has(n.midi))) {
+      g.forEach(n => { n.state = 1; sc.hits++; sc.total++; sc.combo++; flashes.push({ midi: n.midi, t0: now, c: glowOf(n) }); });
+      sc.best = Math.max(sc.best, sc.combo); updateHud();
+    }
+    return true;
+  }
   const w = tol(); let best = null, bd = 1e9;
   for (let i = Math.max(0, youIdx - 4); i < youNotes.length; i++) {
     const n = youNotes[i]; if (n.start > t + w) break;
     if (n.state !== 0 || n.midi !== m) continue;
-    const d = Math.abs(n.start - t); if (d <= w + (settings.mode === 'wait' ? 0.02 : 0) && d < bd) { best = n; bd = d; }
+    const d = Math.abs(n.start - t); if (d <= w + (waitish() ? 0.02 : 0) && d < bd) { best = n; bd = d; }
   }
   if (!best) { sc.wrong++; sc.combo = 0; popups.push({ midi: m, txt: 'Daneben', c: '#ff8a96', t0: now }); updateHud(); return false; }
   best.state = 1; sc.hits++; sc.total++; sc.combo++; sc.best = Math.max(sc.best, sc.combo);
   const real = bd / (settings.speed / 100);
   let pts, txt;
   if (real < 0.05) { pts = 100; txt = 'Perfekt'; sc.perfect++; } else if (real < 0.1) { pts = 70; txt = 'Gut'; sc.good++; } else { pts = 40; txt = 'Okay'; sc.ok++; }
-  if (settings.mode === 'wait') { pts = 0; txt = ''; }
+  if (waitish()) { pts = 0; txt = ''; }
   const mult = Math.min(4, 1 + Math.floor(sc.combo / 10));
   sc.score += Math.round(pts * mult * (settings.speed / 100));
   const c = glowOf(best); flashes.push({ midi: m, t0: now, c });
@@ -1961,7 +2073,7 @@ function updateHud() {
 }
 function updateWaitHint() {
   const el = $('#waitHint');
-  if (settings.mode !== 'wait' || !waiting || !playing) { el.hidden = true; return; }
+  if (!waitish() || !waiting || !playing) { el.hidden = true; return; }
   const g = waitGroup(); if (!g.length) { el.hidden = true; return; }
   el.hidden = false; el.innerHTML = 'Spiele jetzt: ' + g.map(n => '<b>' + noteName(n.midi, true) + '</b>').join(' ');
 }
@@ -1985,7 +2097,7 @@ function finish() {
     const rank = list.filter(s => s.score > sc.score).length + 1;
     $('#resRank').textContent = rank === 1 ? (list.length ? 'Neuer Rekord für diesen Song!' : 'Erster Eintrag für diesen Song.') : `Platz ${rank} in der Bestenliste.`;
     nameForm.hidden = rank > 10; $('#nameIn').value = settings.player || '';
-  } else { $('#resRank').textContent = settings.mode === 'wait' ? 'Wechsle zu Highscore, um Punkte zu sammeln.' : ''; nameForm.hidden = true; }
+  } else { $('#resRank').textContent = waitish() ? 'Wechsle zu Highscore, um Punkte zu sammeln.' : ''; nameForm.hidden = true; }
   $('#result').hidden = false;
 }
 $('#nameForm').onsubmit = e => {
@@ -2015,7 +2127,7 @@ function renderScores(hl) {
 /* ---------- Loading songs ---------- */
 function loadSong(s, meta = {}) {
   if (!s.beats.length) { for (let i = 0; i * 0.5 <= s.duration + 2; i++) s.beats.push({ time: i * 0.5, bar: i % 4 === 0, n: 4, d: 4 }); }
-  score = null;
+  score = null; page = null;
   song = s; songKey = (s.title + '|' + Math.round(s.duration)).toLowerCase();
   rebuildYou();
   if (s.sound) { settings.sound = s.sound; const ss = document.getElementById('soundSel'); if (ss) ss.value = s.sound; saveSettings(); if (typeof syncInst === 'function') syncInst(); }
@@ -2036,7 +2148,7 @@ function renderTracks() {
     const nm = document.createElement('div'); nm.className = 'tn'; nm.textContent = p.name; const sm = document.createElement('small'); sm.textContent = p.notes.length + ' Noten' + (p.drum ? ' · Schlagzeug' : ''); nm.appendChild(sm);
     const sel = document.createElement('select'); sel.setAttribute('aria-label', 'Rolle für ' + p.name);
     ['R', 'L', 'A', 'M'].forEach(r => { const o = document.createElement('option'); o.value = r; o.textContent = ROLE[r].label; sel.appendChild(o); });
-    sel.value = p.role; sel.onchange = () => { p.role = sel.value; score = null; sw.style.background = ROLE[p.role].c; rebuildYou(); seek(t); if (autoRange) fitRange(); };
+    sel.value = p.role; sel.onchange = () => { p.role = sel.value; score = null; page = null; sw.style.background = ROLE[p.role].c; rebuildYou(); seek(t); if (autoRange) fitRange(); };
     row.append(sw, nm, sel); el.appendChild(row);
   });
 }
@@ -2456,7 +2568,7 @@ function editDone() {
     for (let j = B.length - 1; j >= 0 && !B[j].bar; j--) since++;
     while (B[B.length - 1].time < song.duration + 2) { const l = B[B.length - 1]; since++; const bar = since % (l.n || 4) === 0; if (bar) since = 0; B.push({ time: l.time + sp, bar, n: l.n, d: l.d }); }
   }
-  rebuildYou(); score = null; $('#tEnd').textContent = fmt(song.duration);
+  rebuildYou(); score = null; page = null; $('#tEnd').textContent = fmt(song.duration);
   seek(t, true); editBar(); editSave();
 }
 function editSave() {
@@ -2646,11 +2758,11 @@ window.renderStoreInfo();
 const ovCv = $('#ovCv'), ovCx = ovCv.getContext('2d'), ovMap = document.createElement('canvas');
 const ov = { song: null, all: null, w: 0, h: 0, drag: null };
 let peekPrev = null;
-function peekStart() { if (peekPrev == null && settings.view !== 'score') peekPrev = settings.view; if (settings.view !== 'score') setView('score'); }
+function peekStart() { if (settings.view === 'score' || settings.view === 'page') return; if (peekPrev == null) peekPrev = settings.view; setView('score'); }
 function peekEnd() { if (peekPrev == null) return; const v = peekPrev; peekPrev = null; setView(v); }
 function visibleSpan() {
   if (settings.view === 'sheet' && sheetGeo) return [t - sheetGeo.playX / sheetGeo.pxs, t + (W - sheetGeo.playX) / sheetGeo.pxs];
-  if (settings.view === 'score') return [t - 0.5, t + settings.look * 1.6];
+  if (settings.view === 'score' || settings.view === 'page') return [t - 0.5, t + settings.look * 1.6];
   const road = settings.view === 'road' ? settings.road / 100 : 0;
   return [t, t + settings.look * (1 + road * 2.5)];
 }
