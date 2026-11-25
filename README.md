@@ -17,6 +17,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - *Üben*: der Song wartet, bis du die richtigen Tasten drückst; die nächsten Tasten leuchten.
   - *Highscore*: Echtzeit mit Punkten (Perfekt / Gut / Okay), Kombo-Faktor bis ×4, Note S bis D und Bestenliste pro Song (im Browser gespeichert).
 - **Hände**: zwei Hand-Symbole (von oben gesehen). Voll heißt: du spielst diese Hand, Umriss heißt: die App spielt sie. Klick schaltet um.
+- **Vollbild**: Knopf oben rechts.
 - **Kopfleiste**: Tempo als Schieberegler (25–110 %) mit − und + an den Enden und drei Drehregler für die Lautstärke: *Vorlage* (wie es klingen soll), *Du* (dein Spiel) und *Begleitung*. Sie zeigen den Wert in Prozent und werden beim Darüberfahren zum senkrechten Schieberegler.
 - **Übersichtsleiste** oben über den Noten, schmal und halb durchsichtig; beim Darüberfahren wird sie groß: das ganze Lied als kleine Notenrolle, der gerade sichtbare Ausschnitt ist hervorgehoben. Ausschnitt ziehen verschiebt die Stelle; ein Klick springt dorthin und zeigt die Noten, bis du weiterspielst.
 - **Zoom auf Tastaturbereiche**: Ausschnitt verschieben und vergrößern (Buttons, Mausrad, Shift+Mausrad, Zwei-Finger-Geste), „Auto“ passt den Ausschnitt an den Song an. War zu stark gezoomt, wächst der Bereich beim Start automatisch auf den Umfang des Liedes.
@@ -27,7 +28,7 @@ Eine Web-App zum Klavierlernen: Songs laden, die Noten fallen als farbige Balken
   - Eingebaute Lieder: sechs gemeinfreie Klassiker und Kinderlieder plus Jazz & Ragtime (Swing-Blues mit Walking Bass, When the Saints Go Marching In, The Entertainer).
   - Pro Stimme wählbar: rechte Hand, linke Hand, Begleitung oder stumm.
 - **Alles bleibt im Browser**: Aufnahmen, bearbeitete Versionen, zuletzt geöffnete Dateien, Bestenlisten und Einstellungen. Jeder Song lässt sich einzeln löschen oder als .mid herunterladen; unter Einstellungen → „Gespeichert in diesem Browser“ gibt es „Alles exportieren“ (Sicherung als .json), „Sicherung laden“ und „Alles löschen“.
-- **Instrumente** (Einstellungen → Klang)
+- **Instrumente**: Der Knopf vor dem Tempo zeigt das aktuelle Instrument als Icon und klappt eine Auswahl mit allen Instrumenten und Schlagzeug-Stilen auf (auch unter Einstellungen → Klang).
   - Klavier: Konzertflügel aus echten Aufnahmen, Flügel (synthetisch), Cembalo.
   - Elektrisch: E-Piano im Rhodes- und im Wurlitzer-Stil, Clavinet, Jazz-Orgel.
   - Synthesizer: Analog-Lead und Analog-Bass im Moog-Stil (verstimmte Sägezähne, Sub-Oszillator, resonantes Tiefpassfilter mit Hüllkurve), Synth-Brass, Flächenklang.
