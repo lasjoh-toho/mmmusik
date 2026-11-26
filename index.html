@@ -501,20 +501,26 @@ a.btn { text-decoration: none; color: inherit; }
 .feather-btn[aria-pressed=true] { background: var(--gold); color: var(--gold-ink); }
 .feather-btn[hidden] { display: none; }
 .tracks-drawer {
-  position: absolute; left: 0; top: 0; bottom: var(--kbh, 120px); width: min(300px, 86vw); z-index: 9; /* ends above the keys */
-  display: flex; flex-direction: column; gap: 10px; padding: 12px; overflow-y: auto;
+  position: absolute; left: 0; top: 0; bottom: var(--kbh, 120px); width: min(210px, 70vw); z-index: 9; /* ends above the keys */
+  display: flex; flex-direction: column; gap: 8px; padding: 10px; overflow-y: auto;
   background: rgba(12,15,24,.94); backdrop-filter: blur(10px); border-right: 1px solid var(--line); box-shadow: 12px 0 30px rgba(0,0,0,.35);
   animation: tdIn .2s ease;
 }
 @keyframes tdIn { from { transform: translateX(-16px); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .tracks-drawer { animation: none; } }
+.tracks-drawer .btn { font-size: 12.5px; padding: 8px 10px; }
+.tracks-drawer > .note { font-size: 11.5px; }
 .td-head { display: flex; align-items: center; justify-content: space-between; font-family: var(--f-display); font-size: 15px; }
 .td-list { display: grid; gap: 6px; }
-.td-list .track { grid-template-columns: 40px 1fr; padding: 7px 10px 7px 8px; gap: 8px; height: 58px; box-sizing: border-box; border-left: 3px solid var(--rc, var(--line)); cursor: default; user-select: none; }
+.td-list .track { grid-template-columns: 34px 1fr 24px; padding: 6px 6px 6px 6px; gap: 6px; height: 58px; box-sizing: border-box; border-left: 3px solid var(--rc, var(--line)); cursor: default; user-select: none; }
 .td-list .track.rec { grid-template-columns: 14px 1fr; }
-.td-list .tr-ic { width: 40px; height: 40px; padding: 4px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); display: grid; place-items: center; cursor: pointer; }
+.td-list .tr-ic { width: 34px; height: 34px; padding: 3px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); display: grid; place-items: center; cursor: pointer; }
 .td-list .tr-ic:hover { border-color: rgba(220,185,120,.6); color: var(--gold); }
-.td-list .tr-ic svg { width: 28px; height: 28px; }
+.td-list .tr-ic svg { width: 26px; height: 26px; }
+.td-list .tr-mute { width: 24px; height: 24px; padding: 2px; border: 0; background: transparent; color: var(--muted); cursor: pointer; border-radius: 6px; }
+.td-list .tr-mute:hover { color: var(--fg); }
+.td-list .tr-mute svg { width: 18px; height: 18px; }
+.td-list .tr-mute .off, .td-list .tr-mute[aria-pressed=true] .on { display: none; } .td-list .tr-mute[aria-pressed=true] .off { display: inline; } .td-list .tr-mute[aria-pressed=true] { color: #ff8a96; }
 .td-list .track .tn b { display: block; font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .td-list .tr-vol { width: 100%; margin: 6px 0 0; accent-color: var(--gold); }
 .td-list .track.mute .tn b, .td-list .track.mute .tr-ic { opacity: .45; }
@@ -811,13 +817,14 @@ header.bar.hide2 { display: none !important; }
     <button class="btn rec-btn" id="trBtn" title="Spuren: mehrere Spuren übereinander aufnehmen" aria-label="Spuren" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4.5-9 4.5-9-4.5z"/><path d="M3 12l9 4.5 9-4.5"/><path d="M3 16.5L12 21l9-4.5"/></svg></button>
     <button class="btn rec-btn edit-btn" id="editBtn" title="Noten bearbeiten" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5c-6 0-11.5 3.5-13.5 10.5l-1 3 3-1c7-2 10.5-7.5 11.5-12.5z"/><path d="M4 20l6.5-6.5"/></svg></button>
     <div class="seg" id="modeSeg" role="group" aria-label="Modus">
+      <button data-mode="free" aria-pressed="false" title="Einfach spielen: keine Noten, nur deine Tasten leuchten"><svg class="vi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M18 6l-2.5 2.5M8.5 15.5L6 18"/></svg><span class="t">Frei</span></button>
       <button data-mode="watch" aria-pressed="true" title="Zuhören"><svg class="vi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9a5 5 0 0 1 10 0c0 3-2.5 4-3.2 6.2-.5 1.6-1.6 3.3-3.6 3.3A2.7 2.7 0 0 1 7.5 16"/><path d="M10 9.5a2 2 0 0 1 4 0c0 1.3-1.2 1.6-1.6 2.6"/></svg><span class="t">Zuhören</span></button>
       <span class="seg-sel" id="practiceWrap" title="Üben: das Lied wartet auf dich, oder läuft im gewählten Tempo"><svg class="vi ps-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 12h8"/><rect x="4" y="8" width="3" height="8" rx="1"/><rect x="17" y="8" width="3" height="8" rx="1"/><path d="M2.5 10.5v3M21.5 10.5v3"/></svg><span class="ps-l" id="practiceLbl" aria-hidden="true">Üben</span><select id="practiceSel" aria-label="Üben">
         <option value="" hidden>Üben</option>
+        <option value="chord">Warten, bis du triffst</option>
         <option value="stats">Treffer beim Üben anzeigen</option>
         <option value="drill">Schwierige Stellen üben</option>
         <option value="100">100 %</option><option value="90">90 %</option><option value="75">75 %</option><option value="50">50 %</option>
-        <option value="chord">Üben: das Lied wartet auf dich</option>
       </select><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <button data-mode="score" aria-pressed="false" title="Highscore"><svg class="vi" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.4M17 6h2.5a2.5 2.5 0 0 1-2.6 3.4"/><path d="M12 14v3M8.5 20h7M9.5 17h5v3h-5z"/></svg><span class="t">Highscore</span></button>
     </div>
@@ -1099,6 +1106,8 @@ const ROLE = {
 ROLE.P = { c: 'linear-gradient(135deg,' + ROLE.R.c + ' 50%,' + ROLE.L.c + ' 50%)', d: ROLE.R.d, g: ROLE.R.g, label: 'Beide Hände' };
 const splitOf = () => song && song.split != null ? song.split : 60;
 function rn(n) {
+  // a track turned all the way down is left out: not shown, not played, not counted
+  if (n.part.vol === 0) return 'M';
   const r = n.part.role; if (r !== 'R' && r !== 'L' && r !== 'P') return r;
   if (n.h) return n.h;
   return r === 'P' || (song && song.split != null) ? (n.midi >= splitOf() ? 'R' : 'L') : r;
@@ -1110,7 +1119,7 @@ const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm:
 // every view has its own zoom and its own switch for the coloured lights on the keys
 const viewKey = () => settings.view === 'rain' ? 'road' : settings.view;
 const zoomOf = v => Math.max(0.4, Math.min(3, (settings.vz || {})[v || viewKey()] || 1));
-const keyLights = () => (settings.kl || {})[viewKey()] !== false;
+const keyLights = () => settings.mode !== 'free' && (settings.kl || {})[viewKey()] !== false;
 const lookOf = () => settings.look / zoomOf('road');
 if (settings.view === 'both') settings.view = 'score';
 // Regen and Straße share one button now: Regen is the road with no tilt
@@ -1706,11 +1715,11 @@ function drawKitBand(now) {
   const lit = m => pressed.has(m) || autoOn.has(m) || (loopLit.get(m) || 0) > performance.now();
   if (!KEY3D) {
     // flat keyboard (every view but the road): each instrument sits on its own key, small on the black ones
-    const kh = KB.h, uw = Math.max(4, Math.min(16, ww * 0.3, kh * 0.13)), ub = Math.max(3, Math.min(11, ww * 0.24, kh * 0.1));
+    const kh = KB.h, uw = Math.max(5, Math.min(21, ww * 0.4, kh * 0.17)), ub = Math.max(4, Math.min(15, ww * 0.34, kh * 0.13));
     for (const black of [false, true]) for (const m in KIT) {
       const k = KB.keys[m]; if (!k || k.black !== black) continue;
       const [, type, sz, muted] = KIT[m], on = lit(+m), x = k.x + k.w / 2;
-      const y = black ? top + kh * 0.62 - ub * 0.5 : top + kh - Math.max(15, kh * 0.13);
+      const y = black ? top + kh * 0.62 - ub * 0.9 : top + kh - Math.max(20, kh * 0.2);
       cx.globalAlpha = on ? 1 : black ? 0.8 : 0.9;
       kitIcon(type, x, y, (black ? ub : uw) * Math.min(1.15, sz) * (on ? 1.08 : 1), on, muted, !black);
     }
@@ -2036,14 +2045,15 @@ function render(now) {
   cx.clearRect(0, 0, W, H);
   const view = settings.view;
   const top = 0, bottom = KB.top;
-  if (view === 'rain' || (view === 'road' && settings.road <= 0)) drawRain(top, bottom, now);
+  if (settings.mode === 'free') drawFree(top, bottom, now);
+  else if (view === 'rain' || (view === 'road' && settings.road <= 0)) drawRain(top, bottom, now);
   else if (view === 'road') drawRoad(top, bottom, now);
   else if (view === 'sheet') drawSheet(top, bottom, now);
   else if (view === 'page') drawPage(top, bottom);
   else if (view === 'wave') drawWave(top, bottom, now);
   else if (view === 'tracks') { cx.fillStyle = 'rgba(9,11,18,.9)'; cx.fillRect(0, top, W, bottom - top); }
   else drawScore(top, bottom);
-  $('#score').hidden = view !== 'score' && view !== 'page';
+  $('#score').hidden = settings.mode === 'free' || (view !== 'score' && view !== 'page');
   KEY3D = null;
   if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
   if (settings.sound === 'drumkit') drawKitBand(now);
@@ -2091,7 +2101,7 @@ function drawSeq() {
       sx.fillStyle = col || PITCH[n.midi % 12]; rr2(x, yy, x2 - x, nh, Math.min(2, nh / 2)); sx.fill();
     }
   };
-  song.parts.forEach((p, i) => rows[i] && lane(rows[i], p.notes, null));
+  song.parts.forEach((p, i) => { if (!rows[i]) return; sx.globalAlpha = p.vol === 0 ? 0.25 : 1; lane(rows[i], p.notes, null); sx.globalAlpha = 1; });
   if (rec && rec.overdub && rows[song.parts.length]) {
     // what you are playing right now, held keys growing to the playhead
     const ns = eventsToNotes(rec.ev.map(e => [...e]), true).map(n => ({ ...n, end: n.end }));
@@ -2233,6 +2243,31 @@ function drawWave(y0, y1, now) {
     cx.fillStyle = `rgba(${rgb},.9)`; cx.font = '600 11px Inter, system-ui, sans-serif'; cx.textBaseline = 'top'; cx.textAlign = 'left'; cx.fillText(name, 12, top + 8);
   });
   cx.fillStyle = 'rgba(220,185,120,.9)'; cx.fillRect(px - 1, y0, 2, h);
+}
+
+/* ---------- free play: no notes, no song; what you play rises from the keys in its own colour ---------- */
+var freeTrails = [];
+function syncFree() {
+  const on = settings.mode === 'free'; document.body.classList.toggle('free', on);
+  if (on) { flashes.length = 0; }
+}
+function drawFree(y0, y1, now) {
+  const h = y1 - y0; const bg = cx.createLinearGradient(0, y0, 0, y1); bg.addColorStop(0, '#05060b'); bg.addColorStop(1, '#0b0e18');
+  cx.fillStyle = bg; cx.fillRect(0, y0, W, h);
+  const sp = 0.16 * Math.max(0.6, zoomOf('road'));   // pixels per millisecond the light rises
+  for (let i = freeTrails.length - 1; i >= 0; i--) {
+    const f = freeTrails[i], k = KB.keys[f.m]; if (!k) continue;
+    const top = y1 - (now - f.t0) * sp, bot = f.t1 ? y1 - (now - f.t1) * sp : y1;
+    if (bot < y0 - 10) { freeTrails.splice(i, 1); continue; }
+    const c = PITCH[f.m % 12], w = Math.max(3, (k.black ? k.w : k.w * 0.72)), x = k.x + k.w / 2 - w / 2, a = 0.35 + 0.65 * Math.min(1, f.v / 110);
+    const g = cx.createLinearGradient(0, Math.max(y0, top), 0, bot);
+    g.addColorStop(0, c.replace(/[\d.]+\)$/, '0)')); g.addColorStop(Math.min(1, 40 / Math.max(1, bot - top)), c.replace(/[\d.]+\)$/, (a * 0.8) + ')')); g.addColorStop(1, c.replace(/[\d.]+\)$/, a + ')'));
+    cx.save(); cx.shadowColor = c; cx.shadowBlur = f.t1 ? 6 : 16; cx.fillStyle = g; rr(x, Math.max(y0, top), w, bot - Math.max(y0, top), Math.min(6, w / 2)); cx.fill(); cx.restore();
+  }
+  // a soft glow above every key held right now
+  pressed.forEach((p, m) => { const k = KB.keys[m]; if (!k) return; const c = PITCH[m % 12], gx = k.x + k.w / 2, r = Math.max(30, k.w * 2.2);
+    const rg = cx.createRadialGradient(gx, y1, 0, gx, y1, r); rg.addColorStop(0, c.replace(/[\d.]+\)$/, '.55)')); rg.addColorStop(1, c.replace(/[\d.]+\)$/, '0)'));
+    cx.fillStyle = rg; cx.fillRect(gx - r, y1 - r, r * 2, r); });
 }
 
 const ROAD_MAX = 56 * Math.PI / 180;
@@ -2598,6 +2633,8 @@ function drawKeyboard(now) {
     const o = glead.get(m); if (!o) return; const yTop = yBot - len * o.f;
     const g = cx.createLinearGradient(0, yBot, 0, yTop);
     g.addColorStop(0, o.c.replace(/[\d.]+\)$/, o.a + ')')); g.addColorStop(1, o.c.replace(/[\d.]+\)$/, '0)'));
+    // on the rain and the road only a narrow line in the middle of the key, like the guide line in front of the note
+    if (rainLike()) { const lw = Math.max(2, Math.min(4, w * 0.12)); cx.fillStyle = g; rr(x + w / 2 - lw / 2, yTop, lw, yBot - yTop, lw / 2); cx.fill(); return; }
     cx.fillStyle = g; rr(x, yTop, w, yBot - yTop, r); cx.fill();
   };
   // on the road the blocks end at the edge of the keys, so a sounding key only gets a thin line instead of a coloured cap
@@ -3080,9 +3117,10 @@ function noteOn(m, vel = 96) {
   if (settings.mode !== 'watch' && playing && song) c = good ? (settings.color === 'hand' ? ROLE.R.c : PITCH[m % 12]) : loud() ? 'rgba(255,107,122,.95)' : 'rgba(200,205,220,.55)';
   else c = PITCH[m % 12];
   pressed.set(m, { c, good });
+  if (settings.mode === 'free') { freeTrails.push({ m, t0: now, t1: 0, v: vel }); if (freeTrails.length > 300) freeTrails.splice(0, 100); }
   if (settings.mode === 'watch' || !playing) flashes.push({ midi: m, t0: now, c: PITCH_GLOW[m % 12] });
 }
-function noteOff(m) { m += settings.transp | 0; synth.noteOff(m); pressed.delete(m); recEvent(0, m, 0); }
+function noteOff(m) { m += settings.transp | 0; for (let i = freeTrails.length - 1; i >= 0; i--) if (freeTrails[i].m === m && !freeTrails[i].t1) { freeTrails[i].t1 = performance.now(); break; } synth.noteOff(m); pressed.delete(m); recEvent(0, m, 0); }
 
 // Web MIDI
 let midiAccess = null;
@@ -3251,6 +3289,7 @@ function setPlaying(p) {
   lastNow = performance.now();
 }
 function togglePlay() {
+  if (settings.mode === 'free') { settings.mode = 'watch'; saveSettings(); document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); syncFree(); }
   if (!song) { openPanel('songs'); return; }
   synth.ensure();
   if (!playing && t >= song.duration) restart();
@@ -3277,7 +3316,7 @@ function segInit(id, key, onChange) {
   el.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.dataset[key] === undefined) return; settings[key] = b.dataset[key]; saveSettings(); sync(); onChange && onChange(); });
   sync();
 }
-segInit('#modeSeg', 'mode', () => { drill.on = false; syncPractice(); if (song) { seek(t); updateHud(); } });
+segInit('#modeSeg', 'mode', () => { drill.on = false; if (settings.mode === 'free' && playing) setPlaying(false); syncFree(); syncPractice(); if (song) { seek(t); updateHud(); } });
 // Üben is a choice: Warten, or the song runs at 50, 75, 90 or 100 % tempo
 function syncPractice() {
   const on = settings.mode === 'chord' || settings.mode === 'play', sel = $('#practiceSel'), lbl = $('#practiceLbl');
@@ -3288,12 +3327,12 @@ function syncPractice() {
   if (on && settings.mode === 'play' && ![50, 75, 90, 100].includes(settings.speed)) {
     if (!o) { o = document.createElement('option'); o.dataset.custom = '1'; }
     o.value = String(settings.speed); o.textContent = settings.speed + ' %';
-    const next = [...sel.querySelectorAll('option')].find(x => /^\d+$/.test(x.value) && !x.dataset.custom && +x.value < settings.speed) || sel.querySelector('option[value=chord]');
+    const next = [...sel.querySelectorAll('option')].find(x => /^\d+$/.test(x.value) && !x.dataset.custom && +x.value < settings.speed) || null;
     sel.insertBefore(o, next);
   } else if (o) o.remove();
   if (!on) { sel.value = ''; lbl.textContent = 'Üben'; return; }
   if (drill.on) { sel.value = 'drill'; const sp = drill.spots[drill.i]; lbl.textContent = 'Stelle ' + (drill.i + 1) + '/' + drill.spots.length + (sp ? ' · ' + sp.label : ''); return; }
-  if (settings.mode === 'chord') { sel.value = 'chord'; lbl.textContent = 'Üben'; return; }
+  if (settings.mode === 'chord') { sel.value = 'chord'; lbl.textContent = 'Warten'; return; }
   sel.value = String(settings.speed); lbl.textContent = settings.speed + ' %';
 }
 $('#practiceSel').onchange = e => {
@@ -3340,7 +3379,7 @@ syncViewChip();
 /* ---------- HUD ---------- */
 function bestFor(key) { const l = (store.get('scores', {})[key] || []); return l.length ? l[0].score : null; }
 function updateHud() {
-  const show = settings.mode !== 'watch' && !!song && (settings.mode === 'score' || settings.practStats);
+  const show = settings.mode !== 'watch' && settings.mode !== 'free' && !!song && (settings.mode === 'score' || settings.practStats);
   $('#hud').hidden = !show;
   if (!show) return;
   const judged = sc.hits + sc.miss;
@@ -3537,11 +3576,15 @@ function renderDrawer() {
     const nm = document.createElement('div'); nm.className = 'tn';
     const b = document.createElement('b'); b.textContent = p.name;
     const vol = document.createElement('input'); vol.type = 'range'; vol.min = 0; vol.max = 100; vol.value = p.vol ?? 100; vol.className = 'tr-vol'; vol.setAttribute('aria-label', 'Lautstärke ' + p.name);
-    vol.oninput = () => { p.vol = +vol.value; row.classList.toggle('mute', !p.vol); }; vol.onchange = () => tracksSave();
-    vol.ondblclick = e => { e.stopPropagation(); p.vol = 100; vol.value = 100; row.classList.remove('mute'); tracksSave(); };
+    const setVol = v => { const was = p.vol === 0; p.vol = v; vol.value = v; row.classList.toggle('mute', !v); mu.setAttribute('aria-pressed', !v); if (was !== (v === 0)) { score = null; page = null; rebuildYou(); seek(t, true); renderTracks(); } };
+    const mu = document.createElement('button'); mu.type = 'button'; mu.className = 'tr-mute'; mu.setAttribute('aria-pressed', p.vol === 0); mu.title = 'Spur aus- oder einschalten'; mu.setAttribute('aria-label', 'Spur ' + p.name + ' aus- oder einschalten');
+    mu.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9h4l5-4v14l-5-4H4z"/><path class="on" d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/><path class="off" d="M16 9l6 6M22 9l-6 6"/></svg>';
+    mu.onclick = () => { if (p.vol === 0) setVol(p.volWas || 100); else { p.volWas = p.vol ?? 100; setVol(0); } tracksSave(); };
+    vol.oninput = () => setVol(+vol.value); vol.onchange = () => tracksSave();
+    vol.ondblclick = e => { e.stopPropagation(); setVol(100); tracksSave(); };
     row.classList.toggle('mute', p.vol === 0);
-    nm.append(b, vol); row.append(ic, nm);
-    row.ondblclick = e => { if (e.target === vol) return; tdOpen(i); };
+    nm.append(b, vol); row.append(ic, nm, mu);
+    row.ondblclick = e => { if (e.target === vol || e.target.closest('.tr-mute')) return; tdOpen(i); };
     el.appendChild(row);
   });
   if (rec && rec.overdub) { const row = document.createElement('div'); row.className = 'track rec'; row.innerHTML = '<span class="sw" style="background:#ff5d6c"></span><div class="tn"><b>Aufnahme läuft</b><small>' + (rec.loop ? 'Loop, Runde ' + (rec.loop.pass + 1) : 'neue Spur') + '</small></div>'; el.appendChild(row); }
@@ -4435,7 +4478,10 @@ $('#instGrid').onclick = e => { const b = e.target.closest('button'); if (!b) re
 $('#kitChips').innerHTML = Object.entries(DRUMKITS).map(([id, k]) => `<button type="button" data-kit="${id}" aria-pressed="false">${k.name}<small>${k.sub}</small></button>`).join('');
 $('#kitChips').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
-  settings.drumKit = b.dataset.kit; saveSettings(); syncInst();
+  settings.drumKit = b.dataset.kit; saveSettings();
+  // choosing a kit means you want to play drums: the keys become the drum kit
+  if (settings.sound !== 'drumkit') { const s = $('#soundSel'); s.value = 'drumkit'; s.dispatchEvent(new Event('change')); }
+  syncInst();
   if (!synth.ensure()) return;
   const set = synth.loadKit(settings.drumKit), demo = () => [[36, 0], [42, 0], [42, 0.15], [38, 0.3], [42, 0.3], [42, 0.45], [36, 0.6], [36, 0.75], [42, 0.75], [38, 0.9], [46, 0.9]].forEach(([m, d]) => synth.drum(m, 100, synth.ctx.currentTime + 0.03 + d));
   if (!set || set.state === 'ready') demo(); else { const w = setInterval(() => { if (set.state !== 'loading') { clearInterval(w); demo(); } }, 60); }
@@ -4967,7 +5013,7 @@ function frame() {
 loadSong(builtin(BUILTIN.find(b => b.title === 'Flohwalzer') || BUILTIN[0]));
 updateRangeLabel();
 lastNow = performance.now(); requestAnimationFrame(frame);
-syncTracksView();
+syncTracksView(); syncFree();
 window.mmm = { edit, hits: () => sheetHits, get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
