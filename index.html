@@ -470,6 +470,14 @@ a.btn { text-decoration: none; color: inherit; }
 .msg.ok { background: rgba(111,224,166,.08); border-color: rgba(111,224,166,.3); }
 #seqCv { position: absolute; top: 0; right: 0; z-index: 8; cursor: pointer; }
 #seqCv[hidden] { display: none; }
+.view-chip { position: absolute; right: 14px; top: 22px; z-index: 10; display: flex; align-items: center; gap: 4px; height: 34px; padding: 0 6px; border-radius: 999px; border: 1px solid var(--line); background: rgba(16,20,31,.82); color: var(--muted); font: 500 12px Inter, system-ui, sans-serif; box-shadow: 0 8px 22px rgba(0,0,0,.3); backdrop-filter: blur(8px); opacity: .55; transition: opacity .15s; }
+.view-chip:hover, .view-chip:focus-within { opacity: 1; }
+.view-chip b { color: var(--fg); min-width: 44px; text-align: center; font-weight: 600; font-family: var(--f-mono); font-size: 11px; }
+.view-chip button { width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border-radius: 50%; border: 1px solid transparent; background: transparent; color: var(--fg); font-size: 15px; line-height: 1; cursor: pointer; }
+.view-chip button:hover { border-color: rgba(220,185,120,.6); }
+.view-chip svg { width: 17px; height: 17px; }
+#klBtn[aria-pressed=true] { color: var(--gold); } #klBtn[aria-pressed=true] .kl-off { display: none; }
+.vc-sep { width: 1px; height: 18px; background: var(--line); margin: 0 2px; }
 .split-chip { position: absolute; left: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 10; display: flex; align-items: center; gap: 6px; height: 40px; padding: 0 8px 0 14px; border-radius: 999px; border: 1px solid var(--line); background: rgba(16,20,31,.88); color: var(--muted); font: 500 12.5px Inter, system-ui, sans-serif; box-shadow: 0 10px 28px rgba(0,0,0,.35); backdrop-filter: blur(8px); }
 .split-chip b { color: var(--gold); min-width: 30px; text-align: center; font-weight: 600; }
 .split-chip button { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-size: 15px; line-height: 1; cursor: pointer; }
@@ -615,6 +623,11 @@ header.bar.hide2 { display: none !important; }
     </aside>
     <canvas id="cv"></canvas>
     <canvas id="seqCv" hidden aria-label="Spuren als Sequenzer: klicken springt an diese Stelle"></canvas>
+    <div class="view-chip" id="viewChip" role="group" aria-label="Ansicht einstellen">
+      <button type="button" id="klBtn" aria-pressed="true" title="Tastenlichter in dieser Ansicht an oder aus"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.6 10.8c.6.5 1 1.2 1 2V16h5.2v-.2c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/><path class="kl-off" d="M4 4l16 16"/></svg></button>
+      <span class="vc-sep"></span>
+      <button type="button" id="vzOut" aria-label="Ansicht verkleinern" title="Verkleinern">−</button><b id="vzVal">100 %</b><button type="button" id="vzIn" aria-label="Ansicht vergrößern" title="Vergrößern">+</button>
+    </div>
     <div class="split-chip" id="splitChip" hidden title="Ab welcher Taste spielt die rechte Hand? Darunter spielt die linke."><span>Hände trennen bei</span><button type="button" id="splitDown" aria-label="Trennlinie tiefer">−</button><b id="splitName">C4</b><button type="button" id="splitUp" aria-label="Trennlinie höher">+</button></div>
     <button class="feather-btn" id="featherBtn" title="Noten bearbeiten (Feder)" aria-label="Noten bearbeiten" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 3.5c-6 0-11.5 3.5-13.5 10.5l-1 3 3-1c7-2 10.5-7.5 11.5-12.5z"/><path d="M4 20l6.5-6.5"/><path d="M10 11.5h4.5M8.5 14.5h3.5" opacity=".6"/></svg><span>Bearbeiten</span></button>
     <div class="overview" id="overview" title="Ziehen: Ausschnitt verschieben · Klicken: Noten an dieser Stelle zeigen">
@@ -1000,7 +1013,12 @@ function rn(n) {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', vz: {}, kl: {}, recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+// every view has its own zoom and its own switch for the coloured lights on the keys
+const viewKey = () => settings.view === 'rain' ? 'road' : settings.view;
+const zoomOf = v => Math.max(0.4, Math.min(3, (settings.vz || {})[v || viewKey()] || 1));
+const keyLights = () => (settings.kl || {})[viewKey()] !== false;
+const lookOf = () => settings.look / zoomOf('road');
 if (settings.view === 'both') settings.view = 'score';
 // Regen and Straße share one button now: Regen is the road with no tilt
 if (settings.view === 'rain') { settings.view = 'road'; settings.road = 0; }
@@ -1968,7 +1986,7 @@ function drawRoad(y0, y1, now) {
   const keep = cx; cx = roadCx;
   cx.setTransform(DPR, 0, 0, DPR * vs, 0, 0); cx.fillStyle = '#07090f'; cx.fillRect(0, 0, W, D); // opaque, so overlapping strips leave no seams
   ROADN = [];
-  drawRain(0, D, now, h / settings.look);
+  drawRain(0, D, now, h / lookOf());
   cx = keep;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
   // lay the flat picture down strip by strip, each one scaled around the centre
@@ -1990,7 +2008,7 @@ function drawRoad(y0, y1, now) {
   const skyH = h - yTop;
   if (skyH >= 90 && song) {
     const hy = y1 - yTop, pad = Math.min(14, skyH * 0.08);
-    drawSheet(y0 + pad, hy - pad, now);
+    drawSheet(y0 + pad, hy - pad, now, 'road');
     // soft edges, so the staff floats in the sky and fades into the horizon
     const fe = cx.createLinearGradient(0, y0 + pad, 0, y0 + pad + 14); fe.addColorStop(0, 'rgba(7,9,15,.85)'); fe.addColorStop(1, 'rgba(7,9,15,0)'); cx.fillStyle = fe; cx.fillRect(0, y0 + pad, W, 14);
     const fb = cx.createLinearGradient(0, hy - pad - 18, 0, hy); fb.addColorStop(0, 'rgba(20,24,38,0)'); fb.addColorStop(1, 'rgba(20,24,38,1)'); cx.fillStyle = fb; cx.fillRect(0, hy - pad - 18, W, pad + 18);
@@ -2057,7 +2075,7 @@ function drawRain(y0, y1, now, ppsFix) {
     if (m % 12 === 0 || m % 12 === 5) { cx.fillStyle = 'rgba(0,0,0,.55)'; cx.fillRect(l.x - 1, y0, 1.5, h); cx.fillStyle = 'rgba(255,255,255,.09)'; cx.fillRect(l.x + 0.5, y0, 1, h); }
   }
   if (!song) { cx.restore(); return; }
-  const pps = ppsFix || h / settings.look, look = h / pps;
+  const pps = ppsFix || h / lookOf(), look = h / pps;
   // beat lines
   const bi = lb(song.beats, t, 'time');
   // bar lines with bar numbers, finer lines for the beats
@@ -2139,16 +2157,17 @@ function drawRain(y0, y1, now, ppsFix) {
 }
 
 /* Colored sheet: grand staff, noteheads in the note colours, a soft tail shows the length */
-function drawSheet(y0, y1, now) {
-  const h = y1 - y0; if (h < 60) return;
+function drawSheet(y0, y1, now, zk) {
+  const h = y1 - y0; if (h < 60) return; const z = zoomOf(zk || 'sheet');
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
   cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
-  const gap = Math.max(5, Math.min(13, h / 17));
+  // the staff grows with the room it has (alone it fills the stage), and the zoom makes it larger or smaller
+  const gap = Math.max(5, Math.min(h / 12, Math.min(h / 17, 24) * z));
   const staffH = gap * 4, between = gap * 3.2;
   const total = staffH * 2 + between;
   const tTop = y0 + (h - total) / 2, tBot = tTop + staffH, bTop = tBot + between, bBot = bTop + staffH;
   const clefW = gap * 5.5, playX = clefW + Math.max(40, (W - clefW) * 0.18);
-  const pxs = (W - playX) / (settings.look * 1.4);
+  const pxs = (W - playX) / (settings.look * 1.4) * Math.max(1, gap / 13);
   const xOf = time => playX + (time - t) * pxs;
   const ink = '#1b2130';
   sheetHits = []; sheetGeo = { gap, pxs, playX };
@@ -2271,6 +2290,7 @@ function drawKeyboard(now) {
   }
   const fingerOnKey = (m, x, w, y) => { const n = fing.get(m); if (!n) return; const soonA = n.start <= t ? 1 : 1 - (n.start - t) / 1.6; cx.save(); cx.globalAlpha = 0.35 + 0.65 * soonA; fingerBadge(x + w / 2, y, Math.min(10, w * 0.36), n.f); cx.restore(); };
   const BH = h * 0.62;
+  const lightsOn = keyLights();
   // with guide lines on, the coming keys light up from below as a gradient: the next one about half way, the ones after it faintly a quarter
   const glead = new Map();
   if (song && settings.guide > 0) {
@@ -2320,7 +2340,7 @@ function drawKeyboard(now) {
   };
   const stateOf = m => {
     const p = pressed.get(m); if (p) return { c: p.c, glow: p.good !== false };
-    const a = autoOn.get(m); if (a) return { c: a.c, glow: true, auto: true };
+    const a = autoOn.get(m); if (a && lightsOn) return { c: a.c, glow: true, auto: true };
     return null;
   };
   // white keys
@@ -2332,11 +2352,11 @@ function drawKeyboard(now) {
     if (st) { g.addColorStop(0, st.c); g.addColorStop(1, '#ffffff'); }
     else { g.addColorStop(0, '#d9dce4'); g.addColorStop(0.15, '#f4f5f8'); g.addColorStop(1, '#ffffff'); }
     cx.fillStyle = g; rr(x, top, w, h - 1, Math.min(5, w * .2)); cx.fill();
-    if (!st) fuse(m, x + 1, w - 2, top + BH, top + Math.max(5, h * 0.085) + 1, 3);
-    if (!st) lead(m, x + 1, w - 2, top + h - 2, h - 2, 4);
-    stripe(m, x + 1.5, top + 1, w - 3, onRoad ? 3 : Math.max(5, h * 0.085), onRoad ? 1.5 : 3);
+    if (!st && lightsOn) fuse(m, x + 1, w - 2, top + BH, top + Math.max(5, h * 0.085) + 1, 3);
+    if (!st && lightsOn) lead(m, x + 1, w - 2, top + h - 2, h - 2, 4);
+    if (lightsOn) stripe(m, x + 1.5, top + 1, w - 3, onRoad ? 3 : Math.max(5, h * 0.085), onRoad ? 1.5 : 3);
     fingerOnKey(m, x, w, top + h * 0.8);
-    if (expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
+    if (lightsOn && expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
     if (m % 12 === 0 && k.w > 14) { cx.fillStyle = 'rgba(30,34,50,.55)'; cx.font = `500 ${Math.min(11, k.w * .42)}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'bottom'; cx.fillText('C' + (Math.floor(m / 12) - 1), x + w / 2, top + h - 5); }
   }
   for (let m = KB.lo; m <= KB.hi; m++) {
@@ -2347,11 +2367,11 @@ function drawKeyboard(now) {
     if (st) { g.addColorStop(0, st.c); g.addColorStop(1, '#2a2f3d'); }
     else { g.addColorStop(0, '#101219'); g.addColorStop(0.85, '#272b38'); g.addColorStop(1, '#3a3f4f'); }
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
-    if (!st) fuse(m, k.x + 1.5, k.w - 3, top + bh - 2, top + Math.max(4, bh * 0.1), 2);
-    if (!st) lead(m, k.x + 1.5, k.w - 3, top + bh - 2, bh - 2, 2);
-    stripe(m, k.x + 1.5, top, k.w - 3, onRoad ? 3 : Math.max(4, bh * 0.1), onRoad ? 1.5 : 2);
+    if (!st && lightsOn) fuse(m, k.x + 1.5, k.w - 3, top + bh - 2, top + Math.max(4, bh * 0.1), 2);
+    if (!st && lightsOn) lead(m, k.x + 1.5, k.w - 3, top + bh - 2, bh - 2, 2);
+    if (lightsOn) stripe(m, k.x + 1.5, top, k.w - 3, onRoad ? 3 : Math.max(4, bh * 0.1), onRoad ? 1.5 : 2);
     fingerOnKey(m, k.x, k.w, top + bh * 0.72);
-    if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
+    if (lightsOn && expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
   }
   // the split line between the hands shows for a moment after it moved, and while you point at its control
   if (song && (performance.now() - splitShow < 2500 || $('#splitChip').matches(':hover'))) {
@@ -2449,7 +2469,7 @@ function buildScore(h, pageW, target) {
   meas.forEach(M => { M.tw = pxq * M.cap; M.w = M.tw + 22; });
   // layout and draw: one long line (Noten) or lines that wrap like a printed page (Blatt)
   const SYS = 250, head = 110 + Math.abs(sf) * 11;
-  const scale = pageW ? Math.max(0.5, Math.min(1.15, pageW / 1000, (h - 20) / (2 * SYS))) : Math.max(0.6, Math.min(1.7, (h - 16) / 250));
+  const scale = (pageW ? Math.max(0.5, Math.min(1.15, pageW / 1000, (h - 20) / (2 * SYS))) : Math.max(0.6, Math.min(1.7, (h - 16) / 250))) * zoomOf(pageW ? 'page' : 'score');
   const lines = [];
   if (pageW) {
     const avail = pageW / scale - 20; let cur = [], w = 0, lastSig = '';
@@ -2555,7 +2575,7 @@ function drawPage(y0, y1) {
   cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
   const box = $('#score'); box.style.height = h + 'px';
   if (!song) return;
-  const key = songKey + '|' + song.parts.map(p => p.role).join('') + '|' + song.scorePart + '|' + (song.split ?? '') + '|' + (song.hv || 0);
+  const key = songKey + '|' + song.parts.map(p => p.role).join('') + '|' + song.scorePart + '|' + (song.split ?? '') + '|' + (song.hv || 0) + '|' + zoomOf('page');
   if (!page || page.key !== key || Math.abs(page.h - h) > 24 || page.W !== W) { score = null; page = buildScore(h, W); if (page) { page.h = h; page.W = W; } }
   if (!page) return;
   const { x, s } = scoreX(page, t), S = page.SYS * page.scale, sys = page.sys;
@@ -2599,7 +2619,7 @@ function drawScore(y0, y1) {
   cx.fillStyle = '#eef1f6'; cx.fillRect(0, y0, W, h);
   const box = $('#score'); box.style.height = h + 'px';
   if (!song) return;
-  const key = songKey + '|' + song.parts.map(p => p.role).join('') + '|' + song.scorePart + '|' + (song.split ?? '') + '|' + (song.hv || 0);
+  const key = songKey + '|' + song.parts.map(p => p.role).join('') + '|' + song.scorePart + '|' + (song.split ?? '') + '|' + (song.hv || 0) + '|' + zoomOf('score');
   if (!score || score.key !== key || Math.abs(score.h - h) > 24) { page = null; score = buildScore(h); if (score) score.h = h; }
   if (!score) return;
   const xs = scoreX(score, t).x * score.scale;
@@ -2997,7 +3017,17 @@ function syncHands() { $('#handL').setAttribute('aria-pressed', settings.hands !
   saveSettings(); syncHands(); if (song) { rebuildYou(); seek(t); updateHud(); }
 }; });
 syncHands();
-segInit('#viewSeg', 'view', () => { peekPrev = null; syncGuide(); });
+segInit('#viewSeg', 'view', () => { peekPrev = null; syncGuide(); syncViewChip(); });
+// the chip at the top right of the stage: key lights and zoom for the view you are in
+function syncViewChip() {
+  $('#vzVal').textContent = Math.round(zoomOf() * 100) + ' %';
+  const on = keyLights(); $('#klBtn').setAttribute('aria-pressed', on); $('#klBtn').title = on ? 'Tastenlichter in dieser Ansicht ausschalten' : 'Tastenlichter in dieser Ansicht einschalten';
+}
+function setViewZoom(f) { const v = viewKey(); settings.vz = settings.vz || {}; settings.vz[v] = Math.round(Math.max(0.4, Math.min(3, zoomOf(v) * f)) * 100) / 100; if (Math.abs(settings.vz[v] - 1) < 0.04) settings.vz[v] = 1; saveSettings(); syncViewChip(); }
+$('#vzIn').onclick = () => setViewZoom(1.15); $('#vzOut').onclick = () => setViewZoom(1 / 1.15);
+$('#vzVal').ondblclick = () => { settings.vz[viewKey()] = 1; saveSettings(); syncViewChip(); };
+$('#klBtn').onclick = () => { settings.kl = settings.kl || {}; settings.kl[viewKey()] = !keyLights(); saveSettings(); syncViewChip(); };
+syncViewChip();
 
 /* ---------- HUD ---------- */
 function bestFor(key) { const l = (store.get('scores', {})[key] || []); return l.length ? l[0].score : null; }
@@ -4017,7 +4047,7 @@ function editSave() {
     store.set('recordings', list.slice(0, 60)); renderRecs();
   }, 400);
 }
-function setView(v) { settings.view = v; document.querySelectorAll('#viewSeg button[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v)); syncGuide(); saveSettings(); }
+function setView(v) { settings.view = v; document.querySelectorAll('#viewSeg button[data-view]').forEach(b => b.setAttribute('aria-pressed', b.dataset.view === v)); syncGuide(); syncViewChip(); saveSettings(); }
 function editable() { return song.all.filter(n => rn(n) !== 'M'); }
 function editToggle(on = !edit.on) {
   if (on && !song) return;
@@ -4248,7 +4278,7 @@ function visibleSpan() {
   if (settings.view === 'sheet' && sheetGeo) return [t - sheetGeo.playX / sheetGeo.pxs, t + (W - sheetGeo.playX) / sheetGeo.pxs];
   if (settings.view === 'score' || settings.view === 'page') return [t - 0.5, t + settings.look * 1.6];
   const road = settings.view === 'road' ? settings.road / 100 : 0;
-  return [t, t + settings.look * (1 + road * 2.5)];
+  return [t, t + lookOf() * (1 + road * 2.5)];
 }
 function drawOverview() {
   const w = ovCv.clientWidth, h = ovCv.clientHeight; if (!w || !h) return;
