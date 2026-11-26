@@ -81,6 +81,6 @@ Settings → Pages → *Deploy from a branch* → `main` / `(root)`. Danach läu
 mmmusik steht unter einer Bildungslizenz (siehe [LICENSE.md](LICENSE.md)):
 - Schulen und Bildungseinrichtungen dürfen die App kostenlos auf ihrer eigenen Hardware installieren und im Unterricht nutzen.
 - Privatpersonen dürfen sie zum eigenen Üben nutzen.
-- Kommerzielle Anbieter brauchen eine ausdrückliche schriftliche Genehmigung, auch Dienstleister, die im Auftrag von Schulen oder Schulträgern arbeiten.
+- Kommerzielle Anbieter brauchen eine ausdrückliche schriftliche Genehmigung. Das gilt auch für Dienstleister im Auftrag von Schulen oder Schulträgern, sobald sie die App auf Hardware außerhalb der Schule installieren (eigene Server, Rechenzentrum, Cloud).
 
 Die Klavier- und Orchester-Aufnahmen stehen unter CC BY 3.0, VexFlow unter der MIT-Lizenz.
