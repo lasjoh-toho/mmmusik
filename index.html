@@ -556,6 +556,19 @@ body.tv .td-list .track { height: 76px; }
 #rbStop { background: #ff5d6c; border-color: #ff5d6c; color: #fff; }
 .rec-bar .rb-x { color: var(--muted); padding: 0 12px; font-weight: 500; }
 @media (max-width: 640px) { .rec-bar { top: auto; bottom: 150px; } .rb-txt { min-width: 0; } .rec-bar .rb-x { display: none; } }
+.band { --bw: 74px; --bf: 12px; display: none; position: absolute; left: 0; right: 0; top: 0; bottom: var(--kbh, 120px); z-index: 7; pointer-events: none; }
+body.free .band { display: block; }
+body.free #viewChip { display: none; }
+@media (max-width: 900px) { .band { --bw: 52px; --bf: 10px; } }
+@media (max-width: 640px) { .band { --bw: 30px; --bf: 0px; } .band button span { display: none; } .band .row { flex-wrap: wrap; padding: 0 8px; } }
+.band .row { position: absolute; left: 0; right: 0; display: flex; justify-content: center; }
+.band button { pointer-events: auto; display: grid; justify-items: center; gap: 3px; padding: 4px 2px; border: 0; background: transparent; color: rgba(236,239,246,.78); font: 500 11px Inter, system-ui, sans-serif; cursor: pointer; border-radius: 10px; transition: color .15s, transform .15s; }
+.band button svg { width: 100%; height: auto; filter: drop-shadow(0 0 6px rgba(255,255,255,.08)); }
+.band button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 128%; letter-spacing: .01em; }
+.band button:hover { color: #fff; transform: translateY(-2px); }
+.band button[aria-pressed=true] { color: var(--gold); }
+.band button[aria-pressed=true] svg { filter: drop-shadow(0 0 10px rgba(220,185,120,.55)); }
+.band .floor { position: absolute; left: 0; right: 0; bottom: 0; top: 18%; background: radial-gradient(60% 90% at 50% 100%, rgba(220,185,120,.07), transparent 70%); clip-path: polygon(22% 0, 78% 0, 100% 100%, 0 100%); }
 .td-veil { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 16px; background: rgba(5,7,12,.5); backdrop-filter: blur(5px); }
 .td-veil[hidden] { display: none; }
 .td-card { width: min(380px, 100%); display: grid; gap: 12px; padding: 16px; border-radius: 16px; background: rgba(16,20,31,.98); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,.5); }
@@ -707,6 +720,7 @@ header.bar.hide2 { display: none !important; }
       <p class="note" id="trNote">Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Spur fertig“ oder am Ende des Lieds wird sie gespeichert.</p>
     </aside>
     <canvas id="cv"></canvas>
+    <div class="band" id="band" aria-label="Band: Instrument wählen"></div>
     <canvas id="seqCv" hidden aria-label="Spuren als Sequenzer: klicken springt an diese Stelle"></canvas>
     <div class="view-chip" id="viewChip" role="group" aria-label="Ansicht einstellen">
       <button type="button" id="vzOut" aria-label="Ansicht verkleinern" title="Verkleinern">−</button><b id="vzVal">100 %</b><button type="button" id="vzIn" aria-label="Ansicht vergrößern" title="Vergrößern">+</button>
@@ -1233,11 +1247,11 @@ const synth = {
   pluck(kind, m) {
     const key = kind + m; if (this.plucks.has(key)) return this.plucks.get(key);
     const sr = this.ctx.sampleRate, f = 440 * Math.pow(2, (m - 69) / 12), N = Math.max(2, Math.round(sr / f));
-    const secs = kind === 'upright' ? 2.4 : kind === 'harp' ? Math.max(1.2, 5 - (m - 40) * 0.05) : kind === 'sitar' ? 3.5 : Math.max(0.8, 3 - (m - 48) * 0.03);
+    const secs = kind === 'upright' ? 3.2 : kind === 'harp' ? Math.max(1.2, 5 - (m - 40) * 0.05) : kind === 'sitar' ? 3.5 : Math.max(0.8, 3 - (m - 48) * 0.03);
     const len = Math.round(sr * secs), buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0), ring = new Float32Array(N);
     // excitation: bright noise for koto and sitar, a soft plucked shape for the harp
-    for (let i = 0; i < N; i++) ring[i] = kind === 'upright' ? Math.sin(Math.PI * i / N) * 0.8 + Math.sin(2 * Math.PI * i / N) * 0.15 + (Math.random() * 2 - 1) * 0.05 : kind === 'harp' ? Math.sin(Math.PI * i / N) * (0.6 + 0.4 * (Math.random() * 2 - 1)) : Math.random() * 2 - 1;
-    const damp = kind === 'upright' ? 0.9965 : kind === 'harp' ? 0.996 : kind === 'koto' ? 0.994 : 0.998, mix = kind === 'harp' ? 0.5 : 0.5;
+    for (let i = 0; i < N; i++) ring[i] = kind === 'upright' ? (i < N * 0.22 ? i / (N * 0.22) : (N - i) / (N * 0.78)) * 0.9 + (Math.random() * 2 - 1) * 0.12 : kind === 'harp' ? Math.sin(Math.PI * i / N) * (0.6 + 0.4 * (Math.random() * 2 - 1)) : Math.random() * 2 - 1;
+    const damp = kind === 'upright' ? 0.998 : kind === 'harp' ? 0.996 : kind === 'koto' ? 0.994 : 0.998, mix = kind === 'harp' ? 0.5 : 0.5;
     let prev = 0;
     for (let i = 0; i < len; i++) {
       const j = i % N, x = ring[j];
@@ -1333,12 +1347,33 @@ const synth = {
     else if (note === 69 || note === 70 || note === 82) noise('highpass', 6000, 1, v * 0.16, 0.07);
     else if (note === 75 || note === 76 || note === 77) tone('sine', note === 75 ? 2500 : 1400, note === 75 ? 2500 : 1350, v * 0.25, 0.06, 0.01);
     else if (note === 100) {
-      // gong: inharmonic partials that bloom a little after the hit and ring for seconds, over a soft wash
-      [[1, 0.5], [1.48, 0.32], [1.97, 0.22], [2.53, 0.16], [3.22, 0.1], [4.1, 0.07]].forEach(([r, a], i) => {
-        const o = c.createOscillator(), g = c.createGain(), f0 = 98 * r * pr; o.type = 'sine'; o.frequency.setValueAtTime(f0 * 1.012, t0); o.frequency.exponentialRampToValueAtTime(f0, t0 + 0.6);
-        const d = (5.5 - i * 0.6) * dm; g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v * a * 0.6, t0 + 0.04 + i * 0.05); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d);
-        o.connect(g).connect(dest); o.start(t0); o.stop(t0 + d + 0.05); });
-      noise('lowpass', 700, 0.6, v * 0.18, 0.5); noise('bandpass', 3800, 1.2, v * 0.06, 2.4);
+      // gong (tam-tam): a deep strike, then the shimmer blooms up a moment later and rolls on for seconds;
+      // pairs of slightly detuned partials beat against each other like a real metal plate
+      const P = [[0.5, 0.5, 0.2, 7], [1, 0.42, 0.05, 6.5], [1.41, 0.3, 0.3, 6], [1.83, 0.26, 0.45, 5.5], [2.29, 0.22, 0.6, 5], [2.71, 0.18, 0.7, 4.6], [3.37, 0.15, 0.8, 4.2], [4.13, 0.12, 0.9, 3.6], [5.02, 0.09, 0.95, 3], [6.3, 0.07, 1, 2.6], [7.9, 0.05, 1, 2.2]];
+      P.forEach(([r, a, bloom, d]) => [0, 0.7].forEach(det => {
+        const o = c.createOscillator(), g = c.createGain(), f0 = 72 * r * pr + det; o.type = 'sine';
+        o.frequency.setValueAtTime(f0 * 1.025, t0); o.frequency.exponentialRampToValueAtTime(f0, t0 + 1.2);
+        const pk = v * a * 0.42, dd = d * dm;
+        g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(pk * (1 - bloom * 0.7) + 0.0002, t0 + 0.01);
+        g.gain.exponentialRampToValueAtTime(pk + 0.0002, t0 + 0.15 + bloom * 0.9); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dd);
+        o.connect(g).connect(dest); o.start(t0); o.stop(t0 + dd + 0.05);
+      }));
+      // the mallet thump and a bright wash that swells and sweeps down
+      tone('sine', 90, 45, v * 0.7, 0.5, 0.2);
+      const src = c.createBufferSource(); src.buffer = this.noise; src.loop = true; const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.Q.value = 2.5;
+      bp.frequency.setValueAtTime(5200 * pr, t0); bp.frequency.exponentialRampToValueAtTime(1400 * pr, t0 + 4 * dm);
+      const ng = c.createGain(); ng.gain.setValueAtTime(0.0001, t0); ng.gain.exponentialRampToValueAtTime(v * 0.09, t0 + 0.7); ng.gain.exponentialRampToValueAtTime(0.0001, t0 + 5 * dm);
+      src.connect(bp).connect(ng).connect(dest); src.start(t0); src.stop(t0 + 5 * dm + 0.1);
+    }
+    else if (note === 101 || note === 102) {
+      // timpani: a tuned kettle drum, partials near 1 : 1.5 : 2 : 2.5 that settle a little lower after the hit, a soft felt attack
+      const f = (note === 101 ? 73.4 : 98) * pr;
+      [[1, 1, 2.6], [1.504, 0.55, 1.9], [1.994, 0.32, 1.4], [2.44, 0.18, 1.1], [2.9, 0.1, 0.8]].forEach(([r, a, d]) => {
+        const o = c.createOscillator(), g = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(f * r * 1.03, t0); o.frequency.exponentialRampToValueAtTime(f * r, t0 + 0.12);
+        g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v * a * 0.8, t0 + 0.006); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d * dm);
+        o.connect(g).connect(dest); o.start(t0); o.stop(t0 + d * dm + 0.05);
+      });
+      noise('lowpass', 600, 0.8, v * 0.35, 0.09); noise('bandpass', 180, 1, v * 0.25, 0.35);
     }
     else noise('bandpass', 2000, 1, v * 0.2, 0.1);
   },
@@ -1419,13 +1454,23 @@ const synth = {
       out.gain.exponentialRampToValueAtTime(v * 0.45, now + 0.5); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
       release = 0.12;
     } else if (sound === 'upright') {
-      // upright bass, played with the fingers: a soft plucked string, its wooden body and a dull thump
+      // upright bass, played with the fingers: the string snaps off the fingertip (bright, a little sharp at first),
+      // the growl closes down quickly, the wooden body sings around 100 and 200 Hz, and a fingertip slap clicks on top
       const src = c.createBufferSource(); src.buffer = this.pluck('upright', m); oscs.push(src);
-      const body = c.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 110; body.Q.value = 1.2; body.gain.value = 6;
-      src.connect(lp(Math.min(2400, f * 9), 0.8)).connect(body).connect(out);
-      const th = osc('sine', f * 2); th.frequency.setValueAtTime(f * 2.2, now); th.frequency.exponentialRampToValueAtTime(f, now + 0.05); const tg = gain(0); tg.gain.setValueAtTime(v * 0.9, now); tg.gain.exponentialRampToValueAtTime(0.0001, now + 0.12); th.connect(tg).connect(out);
-      decay = src.buffer.duration; release = 0.09;
-      out.gain.setValueAtTime(v * 2.4, now);
+      src.playbackRate.setValueAtTime(1.012, now); src.playbackRate.exponentialRampToValueAtTime(1, now + 0.09);
+      const vv = vel / 127, tone = lp(100, 0.9);
+      tone.frequency.setValueAtTime(Math.min(9000, f * (10 + 22 * vv)), now); tone.frequency.exponentialRampToValueAtTime(Math.min(3000, f * 4.5), now + 0.35);
+      const b1 = c.createBiquadFilter(); b1.type = 'peaking'; b1.frequency.value = 98; b1.Q.value = 2; b1.gain.value = 7;
+      const b2 = c.createBiquadFilter(); b2.type = 'peaking'; b2.frequency.value = 205; b2.Q.value = 1.6; b2.gain.value = 4;
+      const b3 = c.createBiquadFilter(); b3.type = 'peaking'; b3.frequency.value = 700; b3.Q.value = 1; b3.gain.value = 2.5 * vv;
+      src.connect(tone).connect(b1).connect(b2).connect(b3).connect(out);
+      // the weight of the low string under the fingers
+      const sub = osc('sine', f); const sg = gain(0); sg.gain.setValueAtTime(v * 0.55, now); sg.gain.exponentialRampToValueAtTime(0.0001, now + 1.4); sub.connect(sg).connect(out);
+      // fingertip slap
+      const nz = c.createBufferSource(); nz.buffer = this.noiseBuf(); oscs.push(nz); const nb = c.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = 1500; nb.Q.value = 1.3;
+      const ng = gain(0); ng.gain.setValueAtTime(v * (0.4 + 0.8 * vv), now); ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.035); nz.connect(nb).connect(ng).connect(out);
+      decay = src.buffer.duration; release = 0.12;
+      out.gain.setValueAtTime(v * 2.6, now);
     } else if (sound === 'koto' || sound === 'sitar' || sound === 'harp') {
       // plucked strings: Karplus-Strong, computed once per key and kept
       const src = c.createBufferSource(); src.buffer = this.pluck(sound, m); oscs.push(src);
@@ -1619,7 +1664,7 @@ const GROOVES = {
 /* own drum patterns: a grid of sixteenths per beat, made in the pattern editor */
 const DP_ROWS = [[49, 'Crash'], [51, 'Ride'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [48, 'Tom hoch'], [45, 'Tom tief'], [38, 'Snare'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [70, 'Shaker'], [56, 'Kuhglocke']];
 // every sound the drum kit can make, for extra rows in the pattern editor
-const DRUM_SOUNDS = [[49, 'Crash'], [57, 'Crash 2'], [55, 'Splash'], [52, 'China'], [51, 'Ride'], [53, 'Ride-Glocke'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [44, 'Hi-Hat Pedal'], [50, 'Tom 1'], [48, 'Tom hoch'], [47, 'Tom mittel'], [45, 'Tom tief'], [43, 'Standtom'], [41, 'Standtom tief'], [38, 'Snare'], [40, 'Snare 2'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [35, 'Bass 2'], [54, 'Tamburin'], [56, 'Kuhglocke'], [60, 'Bongo hoch'], [61, 'Bongo tief'], [62, 'Conga gedämpft'], [63, 'Conga hoch'], [64, 'Conga tief'], [65, 'Timbale hoch'], [66, 'Timbale tief'], [67, 'Agogo hoch'], [68, 'Agogo tief'], [69, 'Cabasa'], [70, 'Shaker'], [82, 'Shaker 2'], [75, 'Claves'], [76, 'Holzblock hoch'], [77, 'Holzblock tief'], [100, 'Gong']];
+const DRUM_SOUNDS = [[49, 'Crash'], [57, 'Crash 2'], [55, 'Splash'], [52, 'China'], [51, 'Ride'], [53, 'Ride-Glocke'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [44, 'Hi-Hat Pedal'], [50, 'Tom 1'], [48, 'Tom hoch'], [47, 'Tom mittel'], [45, 'Tom tief'], [43, 'Standtom'], [41, 'Standtom tief'], [38, 'Snare'], [40, 'Snare 2'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [35, 'Bass 2'], [54, 'Tamburin'], [56, 'Kuhglocke'], [60, 'Bongo hoch'], [61, 'Bongo tief'], [62, 'Conga gedämpft'], [63, 'Conga hoch'], [64, 'Conga tief'], [65, 'Timbale hoch'], [66, 'Timbale tief'], [67, 'Agogo hoch'], [68, 'Agogo tief'], [69, 'Cabasa'], [70, 'Shaker'], [82, 'Shaker 2'], [75, 'Claves'], [76, 'Holzblock hoch'], [77, 'Holzblock tief'], [100, 'Gong'], [101, 'Pauke tief'], [102, 'Pauke hoch']];
 // the drum kit on the keys, organised like a real kit seen from the stool: bass drum and snare on the left,
 // hi-hats and cymbals on the black keys above them, the toms from the big floor tom to the small high tom left to right,
 // then hand percussion from C4 on: congas, bongos, timbales, agogo, wood, shakers, each from low to high.
@@ -1631,7 +1676,7 @@ const KIT = {
   54: [55, 'splash', 0.75], 55: [54, 'tamb', 1], 56: [56, 'cowbell', 1], 57: [57, 'crash', 1.22], 58: [52, 'china', 1.1],
   60: [64, 'conga', 1.12], 61: [62, 'conga', 1.04, 1], 62: [63, 'conga', 0.96], 63: [61, 'bongo', 1.05], 64: [60, 'bongo', 0.92],
   65: [66, 'timbale', 1.05], 66: [65, 'timbale', 0.92], 67: [68, 'agogo', 1.05], 68: [67, 'agogo', 0.9], 69: [77, 'block', 1.05],
-  70: [76, 'block', 0.9], 71: [75, 'claves', 1], 72: [70, 'shaker', 1], 73: [69, 'cabasa', 1], 74: [82, 'shaker', 0.85], 76: [100, 'gong', 1.2]
+  70: [76, 'block', 0.9], 71: [75, 'claves', 1], 72: [70, 'shaker', 1], 73: [69, 'cabasa', 1], 74: [82, 'shaker', 0.85], 76: [100, 'gong', 1.25], 77: [101, 'timpani', 1.12], 79: [102, 'timpani', 1.02]
 };
 // recorded drum machines (public domain, see samples/drums/LIZENZ.md); GM note -> sample name, "*r" plays it faster or slower
 const DRUMKITS = {
@@ -1645,7 +1690,7 @@ Object.values(DRUMKITS).forEach(k => { if (!k.map) return; const m = {}; k.map.s
 const kitName = () => (DRUMKITS[settings.drumKit] || DRUMKITS.synth).name;
 const KIT_COL = { kick: '#e08a5f', floor: '#e08a5f', tom: '#e89a63', snare: '#e7cf8f', rim: '#e7cf8f', clap: '#f0b3a3', hhc: '#e6c46a', hhp: '#e6c46a', hho: '#e6c46a',
   crash: '#e9c25e', ride: '#d8b25a', bell: '#d8b25a', splash: '#f0d27a', china: '#d9a64e', tamb: '#c9b2e8', cowbell: '#a9bcd6', conga: '#c98f5e', bongo: '#d39d68',
-  timbale: '#b9c6d8', gong: '#c9954a', agogo: '#a9bcd6', block: '#c4935e', claves: '#c4935e', shaker: '#8fcca6', cabasa: '#9fd0b8' };
+  timbale: '#b9c6d8', gong: '#c9954a', timpani: '#c98a4e', agogo: '#a9bcd6', block: '#c4935e', claves: '#c4935e', shaker: '#8fcca6', cabasa: '#9fd0b8' };
 // a small picture of each instrument, standing on y with its middle at x; u is the unit size
 function kitIcon(type, x, y, u, lit, muted, dark) {
   const col = KIT_COL[type] || '#ccc', ink = dark ? 'rgba(28,32,44,.88)' : lit ? '#fff' : 'rgba(235,238,246,.85)';
@@ -1678,6 +1723,11 @@ function kitIcon(type, x, y, u, lit, muted, dark) {
     case 'hhc': case 'hhp': case 'hho': { const h = u * 2.1, w = u * 1.6, gap = type === 'hho' ? u * 0.35 : u * 0.1;
       stand(h); [h + gap, h].forEach((hh, i) => { cx.beginPath(); cx.moveTo(-w / 2, -hh); cx.quadraticCurveTo(0, -hh - u * (i ? -0.28 : 0.32), w / 2, -hh); cx.quadraticCurveTo(0, -hh + u * (i ? -0.02 : 0.1), -w / 2, -hh); cx.closePath(); cx.fill(); cx.stroke(); });
       if (type === 'hhp') { cx.beginPath(); cx.moveTo(-u * 0.45, -u * 0.05); cx.lineTo(u * 0.35, -u * 0.32); cx.lineWidth *= 2; cx.stroke(); } break; }
+    case 'timpani': {                           // a copper kettle on three legs with its skin on top
+      const r = u * 1.15, yt = -u * 1.35;
+      cx.beginPath(); cx.moveTo(-r * 0.55, yt + r * 0.55); cx.lineTo(-r * 0.8, 0); cx.moveTo(r * 0.55, yt + r * 0.55); cx.lineTo(r * 0.8, 0); cx.moveTo(0, yt + r * 0.8); cx.lineTo(0, 0); cx.stroke();
+      cx.beginPath(); cx.moveTo(-r, yt); cx.bezierCurveTo(-r, yt + r * 1.05, r, yt + r * 1.05, r, yt); cx.closePath(); cx.fill(); cx.stroke();
+      ell(0, yt, r, r * 0.26); cx.fillStyle = lit ? '#fff' : 'rgba(240,236,226,.92)'; cx.fill(); cx.stroke(); break; }
     case 'gong': {                              // a big bronze disc hanging in its frame
       const r = u * 1.05, cyy = -u * 1.5;
       cx.beginPath(); cx.moveTo(-r * 1.3, 0); cx.lineTo(-r * 1.3, cyy - r * 1.35); cx.lineTo(r * 1.3, cyy - r * 1.35); cx.lineTo(r * 1.3, 0); cx.stroke();
@@ -1715,13 +1765,14 @@ function drawKitBand(now) {
   const lit = m => pressed.has(m) || autoOn.has(m) || (loopLit.get(m) || 0) > performance.now();
   if (!KEY3D) {
     // flat keyboard (every view but the road): each instrument sits on its own key, small on the black ones
-    const kh = KB.h, uw = Math.max(5, Math.min(21, ww * 0.4, kh * 0.17)), ub = Math.max(4, Math.min(15, ww * 0.34, kh * 0.13));
-    for (const black of [false, true]) for (const m in KIT) {
+    // big instruments (bass drum, floor toms, crash, gong, timpani) get bigger than small ones; the white keys stand in front
+    const kh = KB.h, uw = Math.max(6, Math.min(25, ww * 0.48, kh * 0.2)), ub = Math.max(5, Math.min(18, ww * 0.4, kh * 0.15));
+    for (const black of [true, false]) for (const m in KIT) {
       const k = KB.keys[m]; if (!k || k.black !== black) continue;
       const [, type, sz, muted] = KIT[m], on = lit(+m), x = k.x + k.w / 2;
       const y = black ? top + kh * 0.62 - ub * 0.9 : top + kh - Math.max(20, kh * 0.2);
       cx.globalAlpha = on ? 1 : black ? 0.8 : 0.9;
-      kitIcon(type, x, y, (black ? ub : uw) * Math.min(1.15, sz) * (on ? 1.08 : 1), on, muted, !black);
+      kitIcon(type, x, y, (black ? ub : uw) * Math.pow(sz, 1.7) * (on ? 1.08 : 1), on, muted, !black);
     }
     cx.globalAlpha = 1; return;
   }
@@ -2247,8 +2298,23 @@ function drawWave(y0, y1, now) {
 
 /* ---------- free play: no notes, no song; what you play rises from the keys in its own colour ---------- */
 var freeTrails = [];
+// the band behind the keys in free play: every instrument where it would stand on a stage, far ones smaller; a click picks it
+const BAND_ROWS = [['Streicher', 'Bläser'], ['Synthesizer', 'Weitere', 'Aus aller Welt'], ['Klavier', 'Elektrisch'], ['Gitarre', 'Bass', 'Schlagzeug']];
+function buildBand() {
+  const el = $('#band'); if (el.childElementCount) return;
+  const groups = {}; [...$('#soundSel').querySelectorAll('optgroup')].forEach(g => { groups[g.label.replace(/ \(.*\)$/, '')] = [...g.querySelectorAll('option')].map(o => o.value); });
+  el.innerHTML = '<div class="floor"></div>' + BAND_ROWS.map((names, r) => {
+    const sc = 0.55 + r * 0.17, ids = names.flatMap(n => groups[n] || []);
+    const items = ids.map(v => INSTS.find(x => x[0] === v)).filter(Boolean);
+    return `<div class="row" style="top:${6 + r * 21}%;gap:${Math.round(4 + r * 6)}px">` + items.map(([v, n, ic]) => `<button type="button" data-inst="${v}" aria-pressed="false" title="${esc($('#soundSel').querySelector(`option[value="${v}"]`).textContent)}" style="width:calc(var(--bw) * ${sc.toFixed(2)});font-size:calc(var(--bf) * ${(0.8 + r * 0.1).toFixed(2)})">${ic}<span>${n.replace('&shy;', '')}</span></button>`).join('') + '</div>';
+  }).join('');
+  el.onclick = e => { const b = e.target.closest('button[data-inst]'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); syncBand();
+    if (synth.ensure()) { if (settings.sound === 'drumkit') [[36, 0], [42, 0], [38, 280], [42, 280]].forEach(([m, d]) => setTimeout(() => synth.voice(m, 100), d)); else { synth.playAuto(60, 88, 0.6, 1, 'live'); synth.playAuto(64, 80, 0.6, 1, 'live'); synth.playAuto(67, 80, 0.6, 1, 'live'); } } };
+}
+function syncBand() { document.querySelectorAll('#band button').forEach(b => b.setAttribute('aria-pressed', b.dataset.inst === settings.sound)); }
 function syncFree() {
   const on = settings.mode === 'free'; document.body.classList.toggle('free', on);
+  if (on) { buildBand(); syncBand(); }
   if (on) { flashes.length = 0; }
 }
 function drawFree(y0, y1, now) {
@@ -4472,7 +4538,7 @@ function syncInst() {
   if ($('#mInst')) $('#mInst').textContent = instName(settings.sound);
   document.querySelectorAll('#instGrid button').forEach(b => b.setAttribute('aria-pressed', b.dataset.inst === settings.sound));
   document.querySelectorAll('#drumChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.drum === settings.drums));
-  document.querySelectorAll('#kitChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.kit === settings.drumKit)); kitNote();
+  document.querySelectorAll('#kitChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.kit === settings.drumKit)); kitNote(); if (typeof syncBand === 'function') syncBand();
 }
 $('#instGrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); if (synth.ensure()) { if (settings.sound === 'drumkit') { [[36, 0], [42, 0], [42, 140], [38, 280], [42, 280]].forEach(([m, d]) => setTimeout(() => synth.voice(m, 100), d)); return; } synth.noteOn(60, 88); synth.noteOn(64, 80); synth.noteOn(67, 80); setTimeout(() => [60, 64, 67].forEach(m => synth.noteOff(m)), 450); } };
 $('#kitChips').innerHTML = Object.entries(DRUMKITS).map(([id, k]) => `<button type="button" data-kit="${id}" aria-pressed="false">${k.name}<small>${k.sub}</small></button>`).join('');
