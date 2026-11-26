@@ -557,8 +557,8 @@ table.scores tr.me td { color: var(--gold); }
   .seg-sel.on .ps-i { color: var(--gold); }
   .seg-sel .ps-l { font-size: 0; padding: 6px 18px 6px 30px; min-height: 30px; box-sizing: border-box; display: inline-block; }
 }
-/* while playing, a header that wraps into two rows keeps only its first row */
-header.bar.hide2 .row2 { display: none !important; }
+/* while playing, a header that wraps into two rows (small screens) is hidden completely */
+header.bar.hide2 { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
 </style>
 
@@ -4415,14 +4415,13 @@ async function folderStartup() {
 folderStartup();
 
 /* ---------- Main loop ---------- */
-// the header can wrap into two rows on small screens; while a song plays only the first row stays
+// the header can wrap into two rows on small screens; while a song plays it is hidden
 function headRows() {
   const hb = document.querySelector('header.bar'); if (!hb) return;
-  hb.classList.remove('hide2'); const kids = [...hb.children]; kids.forEach(k => k.classList.remove('row2'));
-  if (!playing) return;
-  const top0 = Math.min(...kids.filter(k => k.offsetParent).map(k => k.offsetTop));
-  let any = false; kids.forEach(k => { if (k.offsetParent && k.offsetTop > top0 + 12) { k.classList.add('row2'); any = true; } });
-  if (any) hb.classList.add('hide2');
+  hb.classList.remove('hide2'); const kids = [...hb.children]; if (!playing) return;
+  const vis = kids.filter(k => k.offsetParent), bot0 = Math.min(...vis.map(k => k.offsetTop + k.offsetHeight));
+  // on a small screen (the header wraps) the whole header steps aside while playing, so more of the music ahead fits
+  if (vis.some(k => k.offsetTop >= bot0)) hb.classList.add('hide2');
 }
 window.addEventListener('resize', () => headRows());
 // sound first: the song clock and its notes run on a timer of their own as well, so an expensive picture never holds a note back
