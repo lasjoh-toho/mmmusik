@@ -692,10 +692,10 @@ table.scores tr.me td { color: var(--gold); }
       <button data-mode="watch" aria-pressed="true">Zuhören</button>
       <span class="seg-sel" id="practiceWrap" title="Üben: das Lied wartet auf dich, oder läuft im gewählten Tempo"><span class="ps-l" id="practiceLbl" aria-hidden="true">Üben</span><select id="practiceSel" aria-label="Üben">
         <option value="" hidden>Üben</option>
-        <option value="chord">Üben: das Lied wartet auf dich</option>
-        <option value="50">50 %</option><option value="75">75 %</option><option value="90">90 %</option><option value="100">100 %</option>
-        <option value="drill">Schwierige Stellen üben</option>
         <option value="stats">Treffer beim Üben anzeigen</option>
+        <option value="drill">Schwierige Stellen üben</option>
+        <option value="100">100 %</option><option value="90">90 %</option><option value="75">75 %</option><option value="50">50 %</option>
+        <option value="chord">Üben: das Lied wartet auf dich</option>
       </select><svg viewBox="0 0 12 12" aria-hidden="true"><path d="M3 4.5l3 3 3-3" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
       <button data-mode="score" aria-pressed="false">Highscore</button>
     </div>
@@ -1666,6 +1666,7 @@ let kbOct = 60;
 const cv = $('#cv'), stage = $('#stage'); let cx = cv.getContext('2d');
 // the road view draws the rain into this canvas first and then lays it down in perspective
 const roadCv = document.createElement('canvas'), roadCx = roadCv.getContext('2d');
+let ROADN = [];  // road blocks collected while drawing the flat road, built afterwards in perspective
 let W = 0, H = 0, DPR = 1;
 function resize() { DPR = Math.min(2, window.devicePixelRatio || 1); W = stage.clientWidth; H = stage.clientHeight; cv.width = Math.round(W * DPR); cv.height = Math.round(H * DPR); }
 new ResizeObserver(resize).observe(stage); resize();
@@ -1720,7 +1721,6 @@ function render(now) {
   $('#score').hidden = view !== 'score' && view !== 'page';
   KEY3D = null;
   if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
-  if (view === 'road' && settings.road > 0) drawNoteLips();
   drawSeq();
   syncFeather();
 }
@@ -1829,9 +1829,9 @@ function drawKeys3d(now) {
   cx.fillStyle = '#05060a'; cx.fillRect(0, y1 - 3, W, H - y1 + 3);
   const step = 1.5;
   for (let Y = 0; Y < kh; Y += step) {
-    const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2), sc = G.scale(-(da + db) / 2);
-    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR), dw = W * sc;
-    cx.drawImage(keyCv, 0, sy, rw, sh, (W - dw) / 2, y1 + Y, dw, Y2 - Y + 0.6);
+    const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2);
+    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR);
+    cx.drawImage(keyCv, 0, sy, rw, sh, 0, y1 + Y, W, Y2 - Y + 0.6);
   }
   cx.drawImage(keyCv, 0, (y1 - 3) * DPR, rw, 3 * DPR, 0, y1 - 3, W, 3);
   KEY3D = { G, L, y1, kh };
@@ -1845,17 +1845,19 @@ function drawRoad(y0, y1, now) {
   if (roadCv.width !== rw || roadCv.height !== rh) { roadCv.width = rw; roadCv.height = rh; }
   const keep = cx; cx = roadCx;
   cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.fillStyle = '#07090f'; cx.fillRect(0, 0, W, D); // opaque, so overlapping strips leave no seams
+  ROADN = [];
   drawRain(0, D, now, h / settings.look);
   cx = keep;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
-  // lay the flat picture down strip by strip, each one scaled around the centre
+  // lay the flat picture down strip by strip: only the depth is foreshortened, the paths keep running straight up to their keys
   const step = 1.5;
   cx.imageSmoothingEnabled = true;
   for (let Y = 0; Y < yTop; Y += step) {
-    const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2), sc = f / (f + (da + db) / 2 * sn);
-    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR), dw = W * sc;
-    cx.drawImage(roadCv, 0, sy, rw, sh, (W - dw) / 2, y1 - Y2, dw, Y2 - Y + 0.6);
+    const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2);
+    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR);
+    cx.drawImage(roadCv, 0, sy, rw, sh, 0, y1 - Y2, W, Y2 - Y + 0.6);
   }
+  drawRoadBlocks(y1, D, roadGeo(h));
   // haze towards the horizon
   const hz = cx.createLinearGradient(0, y1 - yTop, 0, y1 - yTop * 0.55);
   hz.addColorStop(0, 'rgba(20,24,38,1)'); hz.addColorStop(1, 'rgba(20,24,38,0)');
@@ -1872,24 +1874,48 @@ function drawRoad(y0, y1, now) {
     const fb = cx.createLinearGradient(0, hy - pad - 18, 0, hy); fb.addColorStop(0, 'rgba(20,24,38,0)'); fb.addColorStop(1, 'rgba(20,24,38,1)'); cx.fillStyle = fb; cx.fillRect(0, hy - pad - 18, W, pad + 18);
   }
 }
+// the note blocks on the road: depth is foreshortened, but nothing leans, so every block stays an upright box
+// with a rectangular front face and the letter on it undistorted
+function drawRoadBlocks(y1, D, G) {
+  const lift = Math.min(1, settings.road / 40), up = 0.45 + 0.55 * G.sn / Math.sin(ROAD_MAX);
+  const frontText = settings.road >= 45, fs = Math.max(9, Math.min(13, KB.ww * 0.42));
+  const P = d => ({ y: y1 - G.toY(d), s: G.scale(d) });
+  ROADN.sort((a, b) => b.dA - a.dA);                    // far blocks first, near ones stand in front of them
+  for (const b of ROADN) {
+    const n = b.n, dB = Math.min(b.dB, D); if (b.dA >= D) continue;
+    const A = P(b.dA), B = P(dB), Hb = lift * Math.max(9, Math.min(18, b.w * 0.95));
+    const ha = Hb * A.s * up, hb = Hb * B.s * up, x = b.xc - b.w / 2, w = b.w;
+    const acc = dimRole(rn(n)), k = KB.keys[n.midi];
+    cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
+    const top = settings.color === 'hand' ? colorOf(n, k && k.black) : colorOf(n), dark = colorOf(n, true);
+    const ft = A.y - ha, tt = Math.min(ft - 1, B.y - hb), topH = ft - tt, rad = Math.min(4, w * 0.25);
+    // shadow on the road
+    cx.fillStyle = 'rgba(0,0,0,.4)'; rr(x + 2, B.y + 1, w, A.y - B.y + 1, rad); cx.fill();
+    // top face
+    const gr = cx.createLinearGradient(0, tt, 0, ft); gr.addColorStop(0, top); gr.addColorStop(1, dark);
+    cx.fillStyle = gr; rr(x, tt, w, topH + rad, rad); cx.fill();
+    const hg = cx.createLinearGradient(x, 0, x + w, 0); hg.addColorStop(0, 'rgba(255,255,255,.26)'); hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(1, 'rgba(0,0,0,.16)'); cx.fillStyle = hg; cx.fill();
+    cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1; cx.stroke();
+    if (n.state === 1) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fill(); }
+    if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
+    // front face: an upright rectangle, lit a little from above
+    const fg = cx.createLinearGradient(0, ft, 0, A.y); fg.addColorStop(0, top); fg.addColorStop(1, dark);
+    cx.fillStyle = fg; rr(x, ft, w, ha, Math.min(3, rad)); cx.fill(); cx.fillStyle = 'rgba(0,0,0,.2)'; cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x + 1.5, ft, w - 3, 1);
+    if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
+    cx.globalAlpha = 1;
+    if (settings.names && w > 13 && !acc) {
+      const sz = Math.min(fs, w * 0.62);
+      cx.font = `600 ${sz}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
+      if (frontText && ha >= sz * 0.95) { cx.fillStyle = 'rgba(255,255,255,.94)'; cx.fillText(noteName(n.midi), b.xc, ft + ha / 2 + 0.5); }
+      else if (topH > sz + 4) { cx.fillStyle = 'rgba(10,12,20,.8)'; cx.fillText(noteName(n.midi), b.xc, ft - sz / 2 - 2); }
+    }
+    if (n.f && w > 9 && topH > 10) fingerBadge(b.xc, ft - Math.min(topH * 0.5, settings.names && !frontText ? fs + 14 : 12), Math.min(9, w * 0.42), n.f);
+  }
+  cx.textBaseline = 'bottom';
+}
 // a path as wide as a black key, centred on the key
 const lane = k => ({ x: k.lx, w: k.lw });
-// on the road the sounding notes stand a little over the front edge of the keys, like blocks reaching onto them
-function drawNoteLips() {
-  if (!song) return;
-  const lift = Math.min(1, settings.road / 40), y = KB.top - 2;
-  for (let i = lb(song.all, t - song.maxDur - 0.05, 'start'); i < song.all.length; i++) {
-    const n = song.all[i]; if (n.start > t) break; if (n.end <= t || rn(n) === 'M') continue;
-    const k = KB.keys[n.midi]; if (!k) continue;
-    const l = lane(k), w = l.w - 2, d = lift * Math.max(3, Math.min(8, w * 0.28)) + 3, x = l.x + 1 + (l.x + l.w / 2 - W / 2) / (W / 2) * (d - 3) * 0.9;
-    cx.globalAlpha = dimRole(rn(n)) ? 0.6 : 1;
-    cx.fillStyle = 'rgba(0,0,0,.35)'; rr(x + 1, y + 2, w, d + 2, 3); cx.fill();
-    cx.fillStyle = colorOf(n, true); rr(x, y, w, d, 3); cx.fill();
-    cx.fillStyle = 'rgba(0,0,0,.25)'; rr(x, y + d * 0.45, w, d * 0.55, 3); cx.fill();
-    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x + 2, y, w - 4, 1);
-    cx.globalAlpha = 1;
-  }
-}
 function drawRain(y0, y1, now, ppsFix) {
   const h = y1 - y0; if (h < 20) return;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
@@ -1940,53 +1966,26 @@ function drawRain(y0, y1, now, ppsFix) {
   const lift = ppsFix ? Math.min(1, settings.road / 40) : 0; // raised blocks only on the road
   cx.font = `600 ${Math.max(9, Math.min(13, KB.ww * 0.42))}px Inter, system-ui, sans-serif`;
   cx.textAlign = 'center'; cx.textBaseline = 'bottom';
-  // on the road the farthest notes are drawn first, so nearer blocks always stand in front of them
   const vis = [];
   for (let i = s0; i < song.all.length; i++) { const n = song.all[i]; if (n.start > t + look) break; if (n.end < t || rn(n) === 'M') continue; vis.push(n); }
-  if (lift > 0) vis.reverse();
-  const cTilt = Math.cos(ROAD_MAX * settings.road / 100), frontText = lift > 0 && settings.road >= 45;
   for (const n of vis) {
     const k = KB.keys[n.midi];
     let yb = y1 - (n.start - t) * pps; const yt = y1 - (n.end - t) * pps;
     if (!k) { (n.midi < KB.lo ? offL : offR).push([yt, yb, n]); continue; }
     const l = lane(k), x = l.x + 1, w = l.w - 2;
-    // a sounding block rests on the front edge of its key and gets shorter, instead of sliding under the keys
-    if (lift > 0) yb = Math.min(yb, y1);
+    // on the road the blocks are built later in screen space, so their front faces stay upright rectangles
+    if (lift > 0) { ROADN.push({ n, xc: x + w / 2, w, dA: Math.max(0, (n.start - t) * pps), dB: Math.max(0, (n.end - t) * pps) }); continue; }
     const hh = Math.max(4, yb - yt);
     const acc = dimRole(rn(n));
     cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
     const c1 = settings.color === 'hand' ? colorOf(n, k.black) : colorOf(n);
-    // on the road the notes are raised blocks: a top face, a front face towards you and the side that faces the middle
-    let tx = x, ty = yt, th = hh, d = 0;
-    if (lift > 0) {
-      d = lift * Math.max(9, Math.min(18, w * 0.95));
-      const ox = (x + w / 2 - W / 2) / (W / 2) * d * 0.5, rad = Math.min(5, w * 0.25);
-      ty = yt - d; th = Math.max(2, hh - 0); tx = x + ox;
-      cx.fillStyle = 'rgba(0,0,0,.45)'; rr(x - ox * 0.2 + 2, yt + 2, w, hh, rad); cx.fill();
-      const side = colorOf(n, true);
-      // side and front: the body of the block between its foot on the road and its top face
-      for (let j = 0; j <= 4; j++) { const f = j / 4; cx.fillStyle = side; rr(x + ox * f, yt - d * f, w, hh, rad); cx.fill(); cx.fillStyle = 'rgba(0,0,0,.30)'; cx.fill(); }
-      // the front face, lit a little from above
-      const fg = cx.createLinearGradient(0, yb - d, 0, yb); fg.addColorStop(0, colorOf(n)); fg.addColorStop(1, side);
-      cx.fillStyle = fg; rr(x + ox * 0.5, yb - d, w, d, Math.min(3, rad)); cx.fill(); cx.fillStyle = 'rgba(0,0,0,.18)'; cx.fill();
-    }
-    const gr = cx.createLinearGradient(0, ty, 0, ty + th); gr.addColorStop(0, c1); gr.addColorStop(1, colorOf(n, true));
-    const fcx = x + (tx - x) * 0.5 + w / 2;
-    { const x = tx;
-    cx.fillStyle = gr; rr(x, ty, w, th, Math.min(6, w * 0.3)); cx.fill();
-    if (lift > 0) { const hg = cx.createLinearGradient(x, 0, x + w, 0); hg.addColorStop(0, 'rgba(255,255,255,.28)'); hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(1, 'rgba(0,0,0,.18)'); cx.fillStyle = hg; cx.fill(); }
+    const gr = cx.createLinearGradient(0, yt, 0, yt + hh); gr.addColorStop(0, c1); gr.addColorStop(1, colorOf(n, true));
+    cx.fillStyle = gr; rr(x, yt, w, hh, Math.min(6, w * 0.3)); cx.fill();
     cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1; cx.stroke();
     if (n.state === 1) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fill(); }
     if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
-    if (settings.names && w > 13 && !acc) {
-      cx.globalAlpha = 1; cx.fillStyle = 'rgba(10,12,20,.8)';
-      if (frontText && d >= 7) {
-        // from a steeper angle the letter stands upright on the front face; stretched so the perspective does not flatten it
-        cx.save(); cx.translate(fcx, yb - d / 2); cx.scale(1, Math.min(2.4, 1 / cTilt)); cx.textBaseline = 'middle'; cx.fillStyle = 'rgba(255,255,255,.92)'; cx.fillText(noteName(n.midi), 0, 0.5); cx.restore();
-      } else if (th > 16) cx.fillText(noteName(n.midi), x + w / 2, ty + th - 3);
-    }
-    if (n.f && w > 9) { cx.globalAlpha = 1; fingerBadge(x + w / 2, ty + th - (settings.names && th > 30 && !frontText ? 26 : th > 18 ? 12 : -10), Math.min(9, w * 0.42), n.f); }
-    }
+    if (settings.names && w > 13 && !acc && hh > 16) { cx.globalAlpha = 1; cx.fillStyle = 'rgba(10,12,20,.8)'; cx.fillText(noteName(n.midi), x + w / 2, yt + hh - 3); }
+    if (n.f && w > 9) { cx.globalAlpha = 1; fingerBadge(x + w / 2, yt + hh - (settings.names && hh > 30 ? 26 : hh > 18 ? 12 : -10), Math.min(9, w * 0.42), n.f); }
     cx.globalAlpha = 1;
   }
   // indicators for notes outside the zoomed range
@@ -2144,6 +2143,8 @@ function drawKeyboard(now) {
   }
   const fingerOnKey = (m, x, w, y) => { const n = fing.get(m); if (!n) return; const soonA = n.start <= t ? 1 : 1 - (n.start - t) / 1.6; cx.save(); cx.globalAlpha = 0.35 + 0.65 * soonA; fingerBadge(x + w / 2, y, Math.min(10, w * 0.36), n.f); cx.restore(); };
   const BH = h * 0.62;
+  // on the road the blocks end at the edge of the keys, so a sounding key only gets a thin line instead of a coloured cap
+  const onRoad = settings.view === 'road' && settings.road > 0;
   const fuse = (m, x, w, yStart, yEnd, r) => {
     const f = soon.get(m); if (!f || (due.has(m) && due.get(m).a >= 1)) return;
     const front = yStart - f.p * (yStart - yEnd);
@@ -2188,7 +2189,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#d9dce4'); g.addColorStop(0.15, '#f4f5f8'); g.addColorStop(1, '#ffffff'); }
     cx.fillStyle = g; rr(x, top, w, h - 1, Math.min(5, w * .2)); cx.fill();
     if (!st) fuse(m, x + 1, w - 2, top + BH, top + Math.max(5, h * 0.085) + 1, 3);
-    stripe(m, x + 1.5, top + 1, w - 3, Math.max(5, h * 0.085), 3);
+    stripe(m, x + 1.5, top + 1, w - 3, onRoad ? 3 : Math.max(5, h * 0.085), onRoad ? 1.5 : 3);
     fingerOnKey(m, x, w, top + h * 0.8);
     if (expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
     if (m % 12 === 0 && k.w > 14) { cx.fillStyle = 'rgba(30,34,50,.55)'; cx.font = `500 ${Math.min(11, k.w * .42)}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'bottom'; cx.fillText('C' + (Math.floor(m / 12) - 1), x + w / 2, top + h - 5); }
@@ -2202,7 +2203,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#101219'); g.addColorStop(0.85, '#272b38'); g.addColorStop(1, '#3a3f4f'); }
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
     if (!st) fuse(m, k.x + 1.5, k.w - 3, top + bh - 2, top + Math.max(4, bh * 0.1), 2);
-    stripe(m, k.x + 1.5, top, k.w - 3, Math.max(4, bh * 0.1), 2);
+    stripe(m, k.x + 1.5, top, k.w - 3, onRoad ? 3 : Math.max(4, bh * 0.1), onRoad ? 1.5 : 2);
     fingerOnKey(m, k.x, k.w, top + bh * 0.72);
     if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
   }
@@ -2752,7 +2753,7 @@ window.addEventListener('keyup', e => { const m = downKeys.get(e.code); if (m !=
 const ptrs = new Map(); let pinch = null;
 function keyAt(x, y) {
   if (y < KB.top) return null;
-  if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y), sc = G.scale(d); x = W / 2 + (x - W / 2) / sc; y = y1 + (-d) / L * kh; }
+  if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y); y = y1 + (-d) / L * kh; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && k.black && x >= k.x && x <= k.x + k.w && y <= KB.top + KB.h * 0.62) return m; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && !k.black && x >= k.x && x < k.x + k.w) return m; }
   return null;
@@ -2823,7 +2824,7 @@ function syncPractice() {
   if (on && settings.mode === 'play' && ![50, 75, 90, 100].includes(settings.speed)) {
     if (!o) { o = document.createElement('option'); o.dataset.custom = '1'; }
     o.value = String(settings.speed); o.textContent = settings.speed + ' %';
-    const next = [...sel.querySelectorAll('option')].find(x => /^\d+$/.test(x.value) && !x.dataset.custom && +x.value > settings.speed) || sel.querySelector('option[value=drill]');
+    const next = [...sel.querySelectorAll('option')].find(x => /^\d+$/.test(x.value) && !x.dataset.custom && +x.value < settings.speed) || sel.querySelector('option[value=chord]');
     sel.insertBefore(o, next);
   } else if (o) o.remove();
   if (!on) { sel.value = ''; lbl.textContent = 'Üben'; return; }
@@ -2993,7 +2994,9 @@ function loadSong(s, meta = {}) {
   song = s; songKey = (s.title + '|' + Math.round(s.duration)).toLowerCase();
   if (typeof drill !== 'undefined' && drill.on) { drill.on = false; setTimeout(syncPractice); }
   rebuildYou();
-  if (s.sound) { settings.sound = s.sound; const ss = document.getElementById('soundSel'); if (ss) ss.value = s.sound; saveSettings(); if (typeof syncInst === 'function') syncInst(); }
+  // every song starts with its own instrument (or the grand piano); a choice made for a song is remembered for that song only
+  { const snd = (!s.blank && store.get('songSound', {})[songKey]) || s.sound || (s.parts.find(p => p.sound) || {}).sound || 'grand';
+    if (snd !== settings.sound) { settings.sound = snd; const ss = document.getElementById('soundSel'); if (ss) ss.value = snd; saveSettings(); if (snd === 'concert') synth.loadPiano(); if (typeof ORCH !== 'undefined' && ORCH[snd]) ORCH[snd].layers.forEach(L => synth.loadOrch(L.dir)); if (typeof syncInst === 'function') syncInst(); } }
   $('#songTitle').textContent = s.title;
   const you = s.parts.filter(p => youRole(p.role)).length;
   $('#songSub').textContent = [meta.source || s.source, fmt(s.duration), s.parts.length + (s.parts.length === 1 ? ' Stimme' : ' Stimmen')].filter(Boolean).join(' · ');
@@ -3475,7 +3478,7 @@ function printScore() {
   setTimeout(() => window.print(), 50);
 }
 $('#pdfBtn').onclick = printScore;
-$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (settings.sound === 'concert') synth.loadPiano(); if (ORCH[settings.sound]) ORCH[settings.sound].layers.forEach(L => synth.loadOrch(L.dir)); soundNote(); syncInst(); };
+$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (song && !song.blank) { const m = store.get('songSound', {}); m[songKey] = settings.sound; store.set('songSound', m); } if (settings.sound === 'concert') synth.loadPiano(); if (ORCH[settings.sound]) ORCH[settings.sound].layers.forEach(L => synth.loadOrch(L.dir)); soundNote(); syncInst(); };
 $('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); };
 soundNote();
 $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings.color = e.target.value; saveSettings(); };
