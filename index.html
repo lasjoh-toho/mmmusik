@@ -501,6 +501,10 @@ a.btn { text-decoration: none; color: inherit; }
 .td-list .track .tr-inst { display: block; max-width: 100%; margin-top: 4px; font-size: 11.5px; padding: 3px 6px; }
 .td-list .del { width: 26px; height: 26px; padding: 0; border-radius: 50%; border: 1px solid var(--line); background: transparent; color: var(--muted); }
 .td-list .del:hover { color: #ff8a96; border-color: rgba(255,138,150,.5); }
+.tr-loop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.tr-loop select { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-size: 12px; }
+.tr-loop .tr-fill { display: inline-flex; align-items: center; gap: 5px; }
+.tr-loop[hidden], .tr-loop .tr-fill[hidden] { display: none; }
 #trRec { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 #trRec .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5a6e; display: inline-block; }
 #trRec.on { background: #ff5a6e; border-color: #ff5a6e; color: #fff; }
@@ -588,7 +592,12 @@ table.scores tr.me td { color: var(--gold); }
     <aside class="tracks-drawer" id="trDrawer" hidden aria-label="Spuren">
       <div class="td-head"><b>Spuren</b><button class="btn icon" id="trClose" title="Schließen" aria-label="Spuren schließen">✕</button></div>
       <div class="td-list" id="trList"></div>
+      <div class="tr-loop" id="trLoopRow" title="Loop: die gewählten Takte wiederholen sich beim Aufnehmen, jede Runde kommt dazu. Gut für Schlagzeug und Begleitmuster.">
+        <label for="trLoop">Loop</label><select id="trLoop"><option value="0">aus</option><option value="1">1 Takt</option><option value="2">2 Takte</option><option value="4">4 Takte</option><option value="8">8 Takte</option></select>
+        <label class="tr-fill" id="trFillL"><input type="checkbox" id="trFill"> danach übers ganze Stück</label>
+      </div>
       <button class="btn primary" id="trRec"><span class="rec-dot"></span><span id="trRecTxt">Neue Spur aufnehmen</span></button>
+      <button class="btn" id="trUndo" hidden title="Die zuletzt eingespielte Runde wieder entfernen">↶ Letzte Runde verwerfen</button>
       <button class="btn" id="trNew" title="Ein leeres Stück im Tempo des Metronoms anfangen und die erste Spur aufnehmen">＋ Neues Stück aufnehmen</button>
       <p class="note" id="trNote">Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Spur fertig“ oder am Ende des Lieds wird sie gespeichert.</p>
     </aside>
@@ -837,6 +846,7 @@ table.scores tr.me td { color: var(--gold); }
         <optgroup label="Gitarre (echte Aufnahmen)"><option value="guitar">Konzertgitarre</option></optgroup>
         <optgroup label="Weitere"><option value="vibes">Vibraphon</option><option value="marimba">Marimba</option><option value="harp">Harfe</option><option value="musicbox">Spieluhr</option></optgroup>
         <optgroup label="Aus aller Welt"><option value="kalimba">Kalimba (Daumenklavier)</option><option value="koto">Koto (Japan)</option><option value="sitar">Sitar (Indien)</option><option value="steelpan">Steeldrum (Karibik)</option><option value="gamelan">Gamelan-Glocken (Indonesien)</option><option value="panflute">Panflöte (Anden)</option></optgroup>
+        <optgroup label="Schlagzeug"><option value="drumkit">Schlagzeug (und Percussion auf den Tasten)</option></optgroup>
       </select>
       <p class="note" id="soundNote" hidden></p>
       <button class="btn" id="pianoSave" hidden title="Die aus dem Internet geladenen Flügel-Aufnahmen in den Programmordner legen, damit sie ohne Internet klingen">Flügel-Aufnahmen im Programmordner speichern</button>
@@ -978,7 +988,7 @@ function rn(n) {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 // Regen and Straße share one button now: Regen is the road with no tilt
 if (settings.view === 'rain') { settings.view = 'road'; settings.road = 0; }
@@ -1113,7 +1123,7 @@ const synth = {
     const pr = fx && fx.pit ? Math.pow(2, fx.pit / 12) : 1, dm = fx && fx.dec ? fx.dec : 1;
     const c = this.ctx, t0 = Math.max(at || c.currentTime, c.currentTime), v = Math.pow(vel / 127, 1.3) * 0.9;
     if (!this.noise) { const n = c.createBuffer(1, c.sampleRate, c.sampleRate), d = n.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this.noise = n; }
-    let dest = this.bus.acc;
+    let dest = (fx && fx.bus && this.bus[fx.bus]) || this.bus.acc;
     // per-hit equalizer (bass, mids, treble) and echo in note values of the current tempo
     if (fx && (fx.lo || fx.mid || fx.hi || fx.echo)) {
       const inG = c.createGain(); let node = inG;
@@ -1154,6 +1164,8 @@ const synth = {
     const c = this.ctx, now = c.currentTime, f = 440 * Math.pow(2, (m - 69) / 12);
     const v = Math.pow(vel / 127, 1.4) * 0.32 * gainMul;
     let sound = snd || settings.sound;
+    // the drum kit on the keys: every key has its own drum or percussion sound (see KIT)
+    if (sound === 'drumkit') { const g = KIT[m]; if (g) this.drum(g[0], vel, 0, { bus }); return null; }
     if (sound === 'concert') { if (this.piano.state === 'ready') return this.sampleVoice(m, vel, gainMul, bus); this.loadPiano(); sound = 'grand'; }
     if (ORCH[sound]) { if (snd) ORCH[sound].layers.forEach(L => this.loadOrch(L.dir)); const v = this.orchVoice(sound, m, vel, gainMul, bus); if (v) return v; sound = ORCH[sound].stand; }
     const out = c.createGain(); out.gain.value = 0; out.connect(this.bus[bus] || this.master);
@@ -1412,6 +1424,98 @@ const GROOVES = {
 const DP_ROWS = [[49, 'Crash'], [51, 'Ride'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [48, 'Tom hoch'], [45, 'Tom tief'], [38, 'Snare'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [70, 'Shaker'], [56, 'Kuhglocke']];
 // every sound the drum kit can make, for extra rows in the pattern editor
 const DRUM_SOUNDS = [[49, 'Crash'], [57, 'Crash 2'], [55, 'Splash'], [52, 'China'], [51, 'Ride'], [53, 'Ride-Glocke'], [46, 'Hi-Hat offen'], [42, 'Hi-Hat'], [44, 'Hi-Hat Pedal'], [50, 'Tom 1'], [48, 'Tom hoch'], [47, 'Tom mittel'], [45, 'Tom tief'], [43, 'Standtom'], [41, 'Standtom tief'], [38, 'Snare'], [40, 'Snare 2'], [37, 'Rimshot'], [39, 'Klatschen'], [36, 'Bass'], [35, 'Bass 2'], [54, 'Tamburin'], [56, 'Kuhglocke'], [60, 'Bongo hoch'], [61, 'Bongo tief'], [62, 'Conga gedämpft'], [63, 'Conga hoch'], [64, 'Conga tief'], [65, 'Timbale hoch'], [66, 'Timbale tief'], [67, 'Agogo hoch'], [68, 'Agogo tief'], [69, 'Cabasa'], [70, 'Shaker'], [82, 'Shaker 2'], [75, 'Claves'], [76, 'Holzblock hoch'], [77, 'Holzblock tief']];
+// the drum kit on the keys, organised like a real kit seen from the stool: bass drum and snare on the left,
+// hi-hats and cymbals on the black keys above them, the toms from the big floor tom to the small high tom left to right,
+// then hand percussion from C4 on: congas, bongos, timbales, agogo, wood, shakers, each from low to high.
+// key -> [General MIDI drum note, icon, size]
+const KIT = {
+  36: [36, 'kick', 1.15], 37: [35, 'kick', 1], 38: [38, 'snare', 1], 39: [37, 'rim', 1], 40: [40, 'snare', 0.92], 41: [39, 'clap', 1],
+  42: [42, 'hhc', 1], 43: [41, 'floor', 1.2], 44: [44, 'hhp', 1], 45: [43, 'floor', 1.08], 46: [46, 'hho', 1], 47: [45, 'tom', 1.05],
+  48: [47, 'tom', 0.95], 49: [49, 'crash', 1.1], 50: [48, 'tom', 0.86], 51: [51, 'ride', 1.3], 52: [50, 'tom', 0.76], 53: [53, 'bell', 1.15],
+  54: [55, 'splash', 0.75], 55: [54, 'tamb', 1], 56: [56, 'cowbell', 1], 57: [57, 'crash', 1.22], 58: [52, 'china', 1.1],
+  60: [64, 'conga', 1.12], 61: [62, 'conga', 1.04, 1], 62: [63, 'conga', 0.96], 63: [61, 'bongo', 1.05], 64: [60, 'bongo', 0.92],
+  65: [66, 'timbale', 1.05], 66: [65, 'timbale', 0.92], 67: [68, 'agogo', 1.05], 68: [67, 'agogo', 0.9], 69: [77, 'block', 1.05],
+  70: [76, 'block', 0.9], 71: [75, 'claves', 1], 72: [70, 'shaker', 1], 73: [69, 'cabasa', 1], 74: [82, 'shaker', 0.85]
+};
+const KIT_COL = { kick: '#e08a5f', floor: '#e08a5f', tom: '#e89a63', snare: '#e7cf8f', rim: '#e7cf8f', clap: '#f0b3a3', hhc: '#e6c46a', hhp: '#e6c46a', hho: '#e6c46a',
+  crash: '#e9c25e', ride: '#d8b25a', bell: '#d8b25a', splash: '#f0d27a', china: '#d9a64e', tamb: '#c9b2e8', cowbell: '#a9bcd6', conga: '#c98f5e', bongo: '#d39d68',
+  timbale: '#b9c6d8', agogo: '#a9bcd6', block: '#c4935e', claves: '#c4935e', shaker: '#8fcca6', cabasa: '#9fd0b8' };
+// a small picture of each instrument, standing on y with its middle at x; u is the unit size
+function kitIcon(type, x, y, u, lit, muted) {
+  const col = KIT_COL[type] || '#ccc', ink = lit ? '#fff' : 'rgba(235,238,246,.85)';
+  cx.save(); cx.translate(x, y); cx.lineWidth = Math.max(1, u * 0.09); cx.lineJoin = 'round'; cx.lineCap = 'round';
+  cx.strokeStyle = ink; cx.fillStyle = col;
+  if (lit) { cx.shadowColor = col; cx.shadowBlur = u * 0.9; }
+  const ell = (ex, ey, rx, ry) => { cx.beginPath(); cx.ellipse(ex, ey, Math.max(0.5, rx), Math.max(0.5, ry), 0, 0, Math.PI * 2); };
+  const shell = (w, h, tilt) => {           // a drum: body with top skin, seen a little from above
+    const r = w / 2, e = r * (tilt || 0.32);
+    cx.beginPath(); cx.moveTo(-r, -h); cx.lineTo(-r, 0); cx.ellipse(0, 0, r, e, 0, Math.PI, 0, true); cx.lineTo(r, -h); cx.closePath();
+    cx.globalAlpha = lit ? 1 : 0.8; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+    ell(0, -h, r, e); cx.fillStyle = lit ? '#fff' : 'rgba(240,242,248,.9)'; cx.fill(); cx.stroke(); cx.fillStyle = col;
+  };
+  const stand = (h) => { cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, -h); cx.moveTo(-u * 0.35, 0); cx.lineTo(0, -u * 0.3); cx.lineTo(u * 0.35, 0); cx.stroke(); };
+  const cym = (ry, w, hgt, kind) => {
+    stand(hgt);
+    cx.beginPath(); cx.moveTo(-w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2)); cx.quadraticCurveTo(0, -hgt - ry * 1.5, w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2));
+    cx.quadraticCurveTo(0, -hgt + ry * 0.9, -w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2)); cx.closePath();
+    cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+    ell(0, -hgt - ry * 0.35, w * (kind === 'bell' ? 0.2 : 0.09), ry * (kind === 'bell' ? 0.45 : 0.3)); cx.fillStyle = kind === 'bell' ? '#fff3cf' : col; cx.fill(); cx.stroke();
+  };
+  switch (type) {
+    case 'kick': { const r = u * 0.95; ell(0, -r, r, r); cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+      ell(0, -r, r * 0.72, r * 0.72); cx.fillStyle = lit ? '#fff' : 'rgba(240,242,248,.92)'; cx.fill(); cx.stroke(); ell(0, -r, r * 0.22, r * 0.22); cx.fillStyle = col; cx.fill(); break; }
+    case 'snare': case 'rim': shell(u * 1.5, u * 0.55);
+      cx.beginPath(); for (let i = -2; i <= 2; i++) { cx.moveTo(i * u * 0.28, -u * 0.5); cx.lineTo(i * u * 0.28, -u * 0.08); } cx.globalAlpha = .5; cx.stroke(); cx.globalAlpha = 1;
+      if (type === 'rim') { cx.beginPath(); cx.moveTo(-u * 0.9, -u * 1.05); cx.lineTo(u * 0.1, -u * 0.55); cx.lineWidth *= 1.6; cx.stroke(); } break;
+    case 'tom': shell(u * 1.35, u * 0.95, 0.36); break;
+    case 'floor': cx.beginPath(); cx.moveTo(-u * 0.55, 0); cx.lineTo(-u * 0.6, u * 0.12); cx.moveTo(u * 0.55, 0); cx.lineTo(u * 0.6, u * 0.12); cx.stroke(); shell(u * 1.55, u * 1.35, 0.3); break;
+    case 'hhc': case 'hhp': case 'hho': { const h = u * 2.1, w = u * 1.6, gap = type === 'hho' ? u * 0.35 : u * 0.1;
+      stand(h); [h + gap, h].forEach((hh, i) => { cx.beginPath(); cx.moveTo(-w / 2, -hh); cx.quadraticCurveTo(0, -hh - u * (i ? -0.28 : 0.32), w / 2, -hh); cx.quadraticCurveTo(0, -hh + u * (i ? -0.02 : 0.1), -w / 2, -hh); cx.closePath(); cx.fill(); cx.stroke(); });
+      if (type === 'hhp') { cx.beginPath(); cx.moveTo(-u * 0.45, -u * 0.05); cx.lineTo(u * 0.35, -u * 0.32); cx.lineWidth *= 2; cx.stroke(); } break; }
+    case 'crash': case 'splash': case 'china': cym(u * 0.32, u * 1.75, u * (type === 'splash' ? 2.2 : 2.6), type); break;
+    case 'ride': case 'bell': cym(u * 0.34, u * 1.9, u * 2.35, type); break;
+    case 'clap': for (const sx of [-1, 1]) { cx.save(); cx.scale(sx, 1); cx.beginPath(); cx.moveTo(u * 0.08, -u * 0.1); cx.quadraticCurveTo(u * 0.55, -u * 0.6, u * 0.42, -u * 1.45); cx.quadraticCurveTo(u * 0.3, -u * 1.7, u * 0.12, -u * 1.45); cx.lineTo(u * 0.08, -u * 0.1); cx.closePath(); cx.fill(); cx.stroke(); cx.restore(); }
+      cx.beginPath(); [[-0.9, -1.5, -0.65, -1.3], [0.9, -1.5, 0.65, -1.3], [0, -1.95, 0, -1.7]].forEach(([a, b, c2, d]) => { cx.moveTo(a * u, b * u); cx.lineTo(c2 * u, d * u); }); cx.stroke(); break;
+    case 'tamb': { const r = u * 0.75; ell(0, -r - u * 0.1, r, r); cx.lineWidth *= 2.2; cx.strokeStyle = col; cx.stroke(); cx.lineWidth /= 2.2; cx.strokeStyle = ink; cx.stroke();
+      for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; ell(Math.cos(a) * r, -r - u * 0.1 + Math.sin(a) * r, u * 0.15, u * 0.15); cx.fillStyle = '#eee'; cx.fill(); cx.stroke(); } break; }
+    case 'cowbell': cx.beginPath(); cx.moveTo(-u * 0.35, -u * 1.6); cx.lineTo(u * 0.35, -u * 1.6); cx.lineTo(u * 0.6, -u * 0.15); cx.lineTo(-u * 0.6, -u * 0.15); cx.closePath(); cx.fill(); cx.stroke();
+      cx.beginPath(); cx.moveTo(-u * 0.15, -u * 1.6); cx.lineTo(-u * 0.15, -u * 1.85); cx.lineTo(u * 0.15, -u * 1.85); cx.lineTo(u * 0.15, -u * 1.6); cx.stroke(); break;
+    case 'conga': { const h = u * 2.1, wt = u * 0.95, wb = u * 0.8;
+      cx.beginPath(); cx.moveTo(-wt / 2, -h); cx.bezierCurveTo(-wt * 0.75, -h * 0.55, -wb * 0.7, -h * 0.2, -wb / 2, 0); cx.lineTo(wb / 2, 0); cx.bezierCurveTo(wb * 0.7, -h * 0.2, wt * 0.75, -h * 0.55, wt / 2, -h); cx.closePath();
+      cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke(); ell(0, -h, wt / 2, wt * 0.16); cx.fillStyle = '#f3ead8'; cx.fill(); cx.stroke();
+      if (muted) { cx.fillStyle = 'rgba(30,30,40,.55)'; ell(u * 0.12, -h, wt * 0.22, wt * 0.09); cx.fill(); } break; }
+    case 'bongo': cx.save(); cx.translate(0, 0); shell(u * 1.1, u * 0.9, 0.3); cx.restore(); cx.beginPath(); cx.moveTo(-u * 0.55, -u * 0.25); cx.lineTo(-u * 0.95, -u * 0.25); cx.stroke(); break;
+    case 'timbale': shell(u * 1.35, u * 0.75, 0.3); cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, u * 0.12); cx.stroke(); break;
+    case 'agogo': cx.beginPath(); cx.moveTo(-u * 0.25, -u * 1.9); cx.lineTo(u * 0.25, -u * 1.9); cx.lineTo(u * 0.4, -u * 0.6); cx.lineTo(-u * 0.4, -u * 0.6); cx.closePath(); cx.fill(); cx.stroke();
+      cx.beginPath(); cx.moveTo(0, -u * 0.6); cx.quadraticCurveTo(u * 0.1, -u * 0.1, u * 0.6, 0); cx.stroke(); break;
+    case 'block': cx.beginPath(); cx.roundRect ? cx.roundRect(-u * 0.8, -u * 0.95, u * 1.6, u * 0.85, u * 0.2) : cx.rect(-u * 0.8, -u * 0.95, u * 1.6, u * 0.85); cx.fill(); cx.stroke();
+      cx.beginPath(); cx.moveTo(-u * 0.55, -u * 0.62); cx.lineTo(u * 0.55, -u * 0.62); cx.lineWidth *= 1.8; cx.strokeStyle = 'rgba(20,20,30,.6)'; cx.stroke(); break;
+    case 'claves': cx.lineWidth = u * 0.28; cx.strokeStyle = col; cx.beginPath(); cx.moveTo(-u * 0.8, -u * 0.25); cx.lineTo(u * 0.7, -u * 1.25); cx.moveTo(-u * 0.75, -u * 1.35); cx.lineTo(u * 0.8, -u * 0.5); cx.stroke(); break;
+    case 'shaker': ell(0, -u * 0.95, u * 0.55, u * 0.85); cx.fill(); cx.stroke(); cx.fillStyle = 'rgba(20,20,30,.45)'; for (let i = 0; i < 5; i++) { ell(-u * 0.2 + (i % 3) * u * 0.2, -u * 1.25 + Math.floor(i / 3) * u * 0.5 + (i % 2) * u * 0.1, u * 0.06, u * 0.06); cx.fill(); } break;
+    case 'cabasa': cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, -u * 0.8); cx.stroke(); ell(0, -u * 1.35, u * 0.6, u * 0.55); cx.fill(); cx.stroke();
+      cx.beginPath(); for (let i = -2; i <= 2; i++) { cx.moveTo(-u * 0.55, -u * 1.35 + i * u * 0.18); cx.lineTo(u * 0.55, -u * 1.35 + i * u * 0.18); } cx.globalAlpha = .45; cx.stroke(); cx.globalAlpha = 1; break;
+  }
+  cx.restore();
+}
+// with the drum kit as the instrument, the instruments stand behind the keys: drums on the white keys in front,
+// hi-hats and cymbals of the black keys behind them; a hit makes its instrument light up
+function drawKitBand(now) {
+  const top = KB.top, ww = KB.ww; if (ww < 8) return;
+  const u = Math.max(5, Math.min(20, ww * 0.42)), back = u * 2.6;
+  // a soft floor for the kit to stand on
+  const fl = cx.createLinearGradient(0, top - back - u * 3.6, 0, top); fl.addColorStop(0, 'rgba(7,9,15,0)'); fl.addColorStop(1, 'rgba(7,9,15,.78)');
+  cx.fillStyle = fl; cx.fillRect(0, top - back - u * 3.6, W, back + u * 3.6);
+  const lit = m => pressed.has(m) || autoOn.has(m) || (loopLit.get(m) || 0) > performance.now();
+  for (const black of [true, false]) {
+    for (const m in KIT) {
+      const k = KB.keys[m]; if (!k || k.black !== black) continue;
+      const [, type, sz, muted] = KIT[m], on = lit(+m), x = k.x + k.w / 2;
+      const y = top - 4 - (black ? back : 0) - (on ? u * 0.12 : 0);
+      cx.globalAlpha = on ? 1 : 0.62; kitIcon(type, x, y, u * sz * (on ? 1.06 : 1), on, muted);
+    }
+  }
+  cx.globalAlpha = 1;
+}
 const drumName = m => (DRUM_SOUNDS.find(x => x[0] === +m) || [0, 'Klang ' + m])[1];
 // a step is a velocity, or {v, off, pit, dec, rep} once it has effects
 const hv = x => x && typeof x === 'object' ? x.v : (x || 0);
@@ -1597,6 +1701,9 @@ function builtin(def) {
   return song;
 }
 const BUILTIN = [
+  { title: 'Flohwalzer', level: 'leicht', bpm: 104, sig: [2, 4], key: 6, spell: 'sharp', pickup: 0.5, source: 'Volksgut, fast nur schwarze Tasten', voices: [
+    { name: 'Rechte Hand', notes: 'D#5/.25 C#5/.25 | r/.5 F#4+A#4/.5 F#4+A#4/.5 D#5/.25 C#5/.25 | r/.5 F#4+A#4/.5 F#4+A#4/.5 D#5/.25 C#5/.25 | r/.5 G#4+B4/.5 G#4+B4/.5 D#5/.25 C#5/.25 | r/.5 G#4+B4/.5 G#4+B4/.5 D#5/.25 C#5/.25 | r/.5 F#4+A#4/.5 F#4+A#4/.5 D#5/.25 C#5/.25 | r/.5 F#4+A#4/.5 F#4+A#4/.5 D#5/.25 C#5/.25 | r/.5 G#4+B4/.5 G#4+B4/.5 D#5/.25 C#5/.25 | r/.5 F#4+A#4+C#5/1 F#5/.25 D#5/.25 | r/.5 B4+D#5/.5 B4+D#5/.5 F#5/.25 D#5/.25 | r/.5 A#4+C#5/.5 A#4+C#5/.5 F#5/.25 D#5/.25 | r/.5 G#4+B4/.5 G#4+B4/.5 F#5/.25 D#5/.25 | r/.5 A#4+C#5/.5 A#4+C#5/.5 F#5/.25 D#5/.25 | r/.5 B4+D#5/.5 B4+D#5/.5 F#5/.25 D#5/.25 | r/.5 A#4+C#5/.5 A#4+C#5/.5 F#5/.25 D#5/.25 | r/.5 G#4+B4/.5 G#4+B4/.5 D#5/.25 C#5/.25 | r/.5 F#4+A#4+C#5/1.5' },
+    { name: 'Linke Hand', vel: 72, notes: 'r/.5 | F#3/.5 r/1.5 | F#3/.5 r/1.5 | C#3/.5 r/1.5 | C#3/.5 r/1.5 | F#3/.5 r/1.5 | F#3/.5 r/1.5 | C#3/.5 r/1.5 | F#3/.5 r/1.5 | B2/.5 r/1.5 | F#3/.5 r/1.5 | C#3/.5 r/1.5 | F#3/.5 r/1.5 | B2/.5 r/1.5 | F#3/.5 r/1.5 | C#3/.5 r/1.5 | F#2+F#3/2' }] },
   { title: 'Alle meine Entchen', level: 'leicht', bpm: 100, sig: [4, 4], source: 'Volkslied', voices: [
     { name: 'Melodie', notes: 'C4/1 D4/1 E4/1 F4/1 G4/2 G4/2 A4/1 A4/1 A4/1 A4/1 G4/4 A4/1 A4/1 A4/1 A4/1 G4/4 F4/1 F4/1 F4/1 F4/1 E4/2 E4/2 D4/1 D4/1 D4/1 D4/1 C4/4' },
     { name: 'Bass', vel: 70, notes: 'C3/4 E3/4 F3/4 E3/4 F3/4 E3/4 D3/4 C3/4 G2/4 C3/4' }] },
@@ -1721,6 +1828,7 @@ function render(now) {
   $('#score').hidden = view !== 'score' && view !== 'page';
   KEY3D = null;
   if (view === 'road' && settings.road > 0 && settings.keys3d) drawKeys3d(now); else drawKeyboard(now);
+  if (settings.sound === 'drumkit') drawKitBand(now);
   drawSeq();
   syncFeather();
 }
@@ -2494,8 +2602,8 @@ function drawScore(y0, y1) {
 /* ---------- Range / zoom ---------- */
 function fitRange() {
   if (!song) return;
-  const ns = song.all.filter(n => rn(n) !== 'M'); if (!ns.length) return;
-  let lo = Math.min(...ns.map(n => n.midi)), hi = Math.max(...ns.map(n => n.midi));
+  const ns = song.all.filter(n => rn(n) !== 'M'), kit = settings.sound === 'drumkit'; if (!ns.length && !kit) return;
+  let lo = Math.min(...ns.map(n => n.midi), kit ? 36 : 999), hi = Math.max(...ns.map(n => n.midi), kit ? 74 : 0);
   lo = Math.max(21, lo - 2); hi = Math.min(108, hi + 2);
   let a = WHITES.findIndex(m => m >= lo), b = WHITES.length - 1 - [...WHITES].reverse().findIndex(m => m <= hi);
   // at least two octaves, start on C or F where it fits
@@ -3069,8 +3177,9 @@ function renderDrawer() {
     nm.appendChild(ins);
     row.append(sw, nm, sel, sh, del); el.appendChild(row);
   });
-  if (rec && rec.overdub) { const row = document.createElement('div'); row.className = 'track rec'; row.innerHTML = '<span class="sw" style="background:#ff5d6c"></span><div class="tn"><b>Aufnahme läuft</b><small>neue Spur</small></div>'; el.appendChild(row); }
+  if (rec && rec.overdub) { const row = document.createElement('div'); row.className = 'track rec'; row.innerHTML = '<span class="sw" style="background:#ff5d6c"></span><div class="tn"><b>Aufnahme läuft</b><small>' + (rec.loop ? 'Loop, Runde ' + (rec.loop.pass + 1) : 'neue Spur') + '</small></div>'; el.appendChild(row); }
   $('#trNew').hidden = !!rec;
+  $('#trUndo').hidden = !(rec && rec.loop && rec.loop.hits.some(h => h.pass < rec.loop.pass)); $('#trLoopRow').hidden = !!rec;
   $('#trRec').classList.toggle('on', !!(rec && rec.overdub)); $('#trRecTxt').textContent = rec && rec.overdub ? 'Spur fertig' : 'Neue Spur aufnehmen';
 }
 // a second click within 3 s really deletes (no browser dialogs)
@@ -3113,6 +3222,10 @@ function overdubStart() {
   seek(bar0 - cnt * spb, true);
   if (settings.metroClick !== 'off' && +settings.metroCount) for (let k = 0; k < cnt; k++) metroClick(a0 + k * spb / sp, k % n === 0 ? 2 : 0);
   rec = { overdub: true, ev: [] };
+  // loop: the chosen bars from the first recorded bar on repeat, and every round adds to the take
+  const nb = +settings.recLoop || 0;
+  if (nb) { const bars = B.filter(x => x.bar).map(x => x.time); const ai = bars.findIndex(x => x >= bar0 - 1e-6); const a = ai >= 0 ? bars[ai] : bar0; const b = ai >= 0 && bars[ai + nb] !== undefined ? bars[ai + nb] : a + nb * n * spb;
+    rec.loop = { a, b, pass: 0, hits: [], open: new Map(), prevT: t }; }
   if (!drawerOpen()) setDrawer(true);
   $('#recBtn').classList.add('on');
   setPlaying(true); renderDrawer();
@@ -3123,11 +3236,53 @@ function trackName() {
   const base = (settings.trackName || '').trim() || instName(settings.sound), have = new Set(song ? song.parts.map(p => p.name) : []);
   if (!have.has(base)) return base; let k = 2; while (have.has(base + ' ' + k)) k++; return base + ' ' + k;
 }
+// the take of a loop recording: everything inside the loop, and if wished repeated to the end of the piece
+function loopNotes(L, notes) {
+  const len = L.b - L.a;
+  notes = notes.map(n => ({ ...n, start: Math.min(L.b - 0.02, Math.max(L.a, n.start)), end: Math.min(L.b, Math.max(n.end, n.start + 0.05)) })).filter(n => n.end > n.start);
+  if (!settings.loopFill) return notes;
+  const end = song.parts.length ? song.duration : song.beats[song.beats.length - 1].time, out = [];
+  for (let k = 0; L.a + k * len < end - 0.01; k++) notes.forEach(n => { if (n.start + k * len < end) out.push({ ...n, start: n.start + k * len, end: n.end + k * len }); });
+  return out;
+}
+const loopLit = new Map();   // keys of earlier rounds that just sounded, for the drum kit picture
+function loopPlay(from, to) {
+  const L = rec.loop;
+  for (const h of L.hits) if (h.pass < L.pass && h.t >= from && h.t < to) {
+    const dur = Math.max(0.08, ((h.end !== null && h.end > h.t ? h.end : h.t + 0.3) - h.t)) / (settings.speed / 100);
+    synth.playAuto(h.m, h.v, dur, 1, 'guide', settings.sound); loopLit.set(h.m, performance.now() + 140);
+  }
+}
+function loopTick() {
+  const L = rec && rec.overdub && rec.loop; if (!L || !playing) return;
+  if (t >= L.b) {
+    loopPlay(L.prevT, L.b);
+    // keys held over the end of the loop go on into the next round
+    const held = [...L.open.entries()]; L.open.clear();
+    held.forEach(([m, h]) => { rec.ev.push([0, m, 0, L.b - 0.001, h.pass]); h.end = L.b; });
+    L.pass++;
+    held.forEach(([m, h]) => { rec.ev.push([1, m, h.v, L.a, L.pass]); const nh = { m, v: h.v, t: L.a, pass: L.pass, end: null }; L.hits.push(nh); L.open.set(m, nh); });
+    seek(L.a + Math.min(L.b - L.a, t - L.b), true); L.prevT = L.a; renderDrawer();
+  }
+  loopPlay(L.prevT, t); L.prevT = t;
+}
+// throws away the most recent finished round of a loop recording
+$('#trUndo').onclick = () => {
+  const L = rec && rec.loop; if (!L) return;
+  const last = Math.max(-1, ...L.hits.filter(h => h.pass < L.pass).map(h => h.pass)); if (last < 0) return;
+  L.hits = L.hits.filter(h => h.pass !== last); rec.ev = rec.ev.filter(e => e[4] !== last); renderDrawer();
+};
+$('#trLoop').value = String(settings.recLoop || 0); $('#trFill').checked = settings.loopFill !== false;
+const syncLoopUi = () => { $('#trFillL').hidden = !+settings.recLoop; };
+$('#trLoop').onchange = e => { settings.recLoop = +e.target.value; saveSettings(); syncLoopUi(); };
+$('#trFill').onchange = e => { settings.loopFill = e.target.checked; saveSettings(); };
+syncLoopUi();
 function overdubStop(keep) {
   const r = rec; rec = null; $('#recBtn').classList.remove('on');
   if (playing) togglePlay();
   if (keep && r && r.ev.length) {
-    const notes = eventsToNotes(r.ev, true).filter(x => x.end > 0);
+    let notes = eventsToNotes(r.ev, true).filter(x => x.end > 0);
+    if (r.loop && notes.length) notes = loopNotes(r.loop, notes);
     if (notes.length) {
       const parts = [...song.parts, { name: trackName(), ch: 0, program: 0, drum: false, role: settings.recHand || 'P', sound: settings.sound, notes }];
       tracksRebuild(parts); seek(song.firstStart - 1);
@@ -3241,7 +3396,14 @@ let rec = null;
 function recEvent(type, m, v) {
   if (!rec) return;
   // overdub: in song time, so the new track lines up with what is playing
-  if (rec.overdub) { if (playing) rec.ev.push([type, m, v, t + (performance.now() - lastNow) / 1000 * settings.speed / 100]); return; }
+  if (rec.overdub) {
+    if (!playing) return;
+    let time = t + (performance.now() - lastNow) / 1000 * settings.speed / 100; const L = rec.loop; let pass = L ? L.pass : 0;
+    if (L && time >= L.b) { time = L.a + (time - L.b); pass++; }
+    rec.ev.push([type, m, v, time, pass]);
+    if (L) { if (type === 1) { const h = { m, v, t: time, pass, end: null }; L.hits.push(h); L.open.set(m, h); } else if (type === 0) { const h = L.open.get(m); if (h) { h.end = time; L.open.delete(m); } } }
+    return;
+  }
   rec.ev.push([type, m, v, (performance.now() - rec.t0) / 1000]);
 }
 // Einspielen: the R button opens a metronome screen instead of the notes; it counts in and records in time
@@ -3506,7 +3668,7 @@ function printScore() {
   setTimeout(() => window.print(), 50);
 }
 $('#pdfBtn').onclick = printScore;
-$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (song && !song.blank) { const m = store.get('songSound', {}); m[songKey] = settings.sound; store.set('songSound', m); } if (settings.sound === 'concert') synth.loadPiano(); if (ORCH[settings.sound]) ORCH[settings.sound].layers.forEach(L => synth.loadOrch(L.dir)); soundNote(); syncInst(); };
+$('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (song && !song.blank) { const m = store.get('songSound', {}); m[songKey] = settings.sound; store.set('songSound', m); } if (settings.sound === 'concert') synth.loadPiano(); if (ORCH[settings.sound]) ORCH[settings.sound].layers.forEach(L => synth.loadOrch(L.dir)); soundNote(); syncInst(); if (autoRange) fitRange(); };
 $('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); };
 soundNote();
 $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings.color = e.target.value; saveSettings(); };
@@ -3574,6 +3736,7 @@ const INSTS = [
   ['gamelan', 'Gamelan', IC('<path d="M3 24h26M6 24v4M26 24v4"/><path d="M3 16h26"/><circle cx="9" cy="13" r="3"/><circle cx="16" cy="13" r="3"/><circle cx="23" cy="13" r="3"/><path d="M9 10V9M16 10V9M23 10V9"/>')],
   ['panflute', 'Panflöte', IC('<path d="M4 6h4v20H4zM9 6h4v17H9zM14 6h4v14h-4zM19 6h4v11h-4zM24 6h4v8h-4z"/><path d="M3 11h26" opacity=".6"/>')]
 ];
+INSTS.push(['drumkit', 'Schlagzeug', IC('<ellipse cx="16" cy="20" rx="6" ry="6"/><circle cx="16" cy="20" r="2"/><ellipse cx="7" cy="15" rx="4" ry="1.6"/><path d="M3 15v6c0 .9 1.8 1.6 4 1.6s4-.7 4-1.6v-6"/><ellipse cx="25" cy="16" rx="3.4" ry="1.4"/><path d="M21.6 16v4.5c0 .8 1.5 1.4 3.4 1.4s3.4-.6 3.4-1.4V16"/><path d="M2 8.5l7 1.4M5.5 9.2V14" opacity=".8"/><path d="M23 7.5l7-1.2M26.5 6.9V14.5" opacity=".8"/>')]);
 const DRUMS = [['off', 'Aus'], ['file', 'Aus der Datei'], ['pop', 'Pop'], ['rock', 'Rock'], ['swing', 'Swing'], ['shuffle', 'Shuffle'], ['bossa', 'Bossa'], ['waltz', 'Walzer'], ['latin', 'Percussion']];
 // grouped like the instrument list in the settings
 $('#instGrid').innerHTML = [...$('#soundSel').querySelectorAll('optgroup')].map(g => {
@@ -3755,7 +3918,7 @@ function syncInst() {
   document.querySelectorAll('#instGrid button').forEach(b => b.setAttribute('aria-pressed', b.dataset.inst === settings.sound));
   document.querySelectorAll('#drumChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.drum === settings.drums));
 }
-$('#instGrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); if (synth.ensure()) { synth.noteOn(60, 88); synth.noteOn(64, 80); synth.noteOn(67, 80); setTimeout(() => [60, 64, 67].forEach(m => synth.noteOff(m)), 450); } };
+$('#instGrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); if (synth.ensure()) { if (settings.sound === 'drumkit') { [[36, 0], [42, 0], [42, 140], [38, 280], [42, 280]].forEach(([m, d]) => setTimeout(() => synth.voice(m, 100), d)); return; } synth.noteOn(60, 88); synth.noteOn(64, 80); synth.noteOn(67, 80); setTimeout(() => [60, 64, 67].forEach(m => synth.noteOff(m)), 450); } };
 $('#drumChips').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   if (b.dataset.dpnew) { dpOpen(null); return; }
@@ -4239,22 +4402,33 @@ async function folderStartup() {
 folderStartup();
 
 /* ---------- Main loop ---------- */
-function frame(now) {
-  const dt = Math.min(0.1, (now - lastNow) / 1000); lastNow = now;
+// sound first: the song clock and its notes run on a timer of their own as well, so an expensive picture never holds a note back
+function tick() {
+  const now = performance.now(), dt = Math.max(0, Math.min(0.1, (now - lastNow) / 1000)); lastNow = now;
   if (playing) advance(dt * settings.speed / 100);
-  // release key colours of auto notes when paused
-  render(now);
-  if (song) $('#tNow').textContent = fmt(Math.max(0, t));
-  drawOverview();
-  updateWaitHint();
-  metroDraw();
-  if (rec) $('#recBtn').title = 'Aufnahme läuft (zum Beenden klicken)';
+  if (rec && rec.loop) loopTick();
+}
+setInterval(() => { if (!document.hidden) tick(); }, 10);
+let drawCost = 0, lastDraw = 0;
+function frame() {
+  tick();
+  // when drawing gets expensive, draw a little less often so the timer keeps its pace
+  const r0 = performance.now();
+  if (r0 - lastDraw >= (drawCost > 12 ? drawCost * 1.5 : 0)) {
+    render(r0);
+    if (song) $('#tNow').textContent = fmt(Math.max(0, t));
+    drawOverview();
+    updateWaitHint();
+    metroDraw();
+    if (rec) $('#recBtn').title = 'Aufnahme läuft (zum Beenden klicken)';
+    const r1 = performance.now(); drawCost = drawCost * 0.85 + (r1 - r0) * 0.15; lastDraw = r1;
+  }
   requestAnimationFrame(frame);
 }
 // open with a song ready so the first view shows what the app does
-loadSong(builtin(BUILTIN.find(b => b.title.startsWith('Gymnopédie')) || BUILTIN[3]));
+loadSong(builtin(BUILTIN.find(b => b.title === 'Flohwalzer') || BUILTIN[0]));
 updateRangeLabel();
-requestAnimationFrame(t0 => { lastNow = t0; requestAnimationFrame(frame); });
+lastNow = performance.now(); requestAnimationFrame(frame);
 window.mmm = { edit, hits: () => sheetHits, get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
