@@ -75,3 +75,12 @@ Settings → Pages → *Deploy from a branch* → `main` / `(root)`. Danach läu
 | ↑ / ↓ | Tempo |
 
 `Midi.html` ist die ursprüngliche Keyboard-Testseite.
+
+## Lizenz
+
+mmmusik steht unter einer Bildungslizenz (siehe [LICENSE.md](LICENSE.md)):
+- Schulen und Bildungseinrichtungen dürfen die App kostenlos auf ihrer eigenen Hardware installieren und im Unterricht nutzen.
+- Privatpersonen dürfen sie zum eigenen Üben nutzen.
+- Kommerzielle Anbieter brauchen eine ausdrückliche schriftliche Genehmigung.
+
+Die Klavier- und Orchester-Aufnahmen stehen unter CC BY 3.0, VexFlow unter der MIT-Lizenz.
