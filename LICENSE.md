@@ -7,7 +7,7 @@ Copyright © 2026 lasjoh-toho. Alle Rechte vorbehalten, soweit unten nichts ande
 ## 1. Erlaubt ohne Genehmigung
 
 1. **Schulen und Bildungseinrichtungen** dürfen die Software kostenlos nutzen. Gemeint sind allgemein- und berufsbildende Schulen, Musikschulen in öffentlicher oder gemeinnütziger Trägerschaft, Hochschulen sowie Einrichtungen der Lehrerbildung. Sie dürfen
-   - die Software durch eigenes Personal auf ihrer eigenen Hardware installieren und betreiben, also auf Rechnern, Tablets und Servern, die die Einrichtung besitzt oder verwaltet, auch im eigenen Schulnetz,
+   - die Software auf ihrer eigenen Hardware installieren und betreiben, also auf Rechnern, Tablets und Servern, die die Einrichtung besitzt oder verwaltet und die in der Schule stehen, auch im eigenen Schulnetz. Das darf auch ein von der Schule oder vom Schulträger beauftragter Dienstleister tun, solange die Software auf dieser Hardware der Schule bleibt,
    - sie im Unterricht und zum Üben einsetzen, auch auf Geräten von Lehrkräften, Schülerinnen und Schülern, soweit die Einrichtung den Zugang bereitstellt,
    - sie für den eigenen Unterricht anpassen.
 2. **Privatpersonen** dürfen die Software für das eigene, nicht kommerzielle Lernen und Üben nutzen.
@@ -19,7 +19,7 @@ Copyright © 2026 lasjoh-toho. Alle Rechte vorbehalten, soweit unten nichts ande
 - Hosting oder das Anbieten der Software als Dienst,
 - der Vertrieb, auch gebündelt mit Hardware oder anderer Software,
 - die Nutzung in Produkten, Apps oder Werbung,
-- Dienstleister, die im Auftrag einer Schule oder eines Schulträgers handeln, etwa IT-Dienstleister, Rechenzentren oder Anbieter von Lernplattformen. Sie brauchen die Genehmigung auch dann, wenn sie die Software nur für eine Schule installieren, betreiben oder bereitstellen.
+- jede Installation oder jeder Betrieb durch einen kommerziellen Anbieter auf Hardware außerhalb der Schule, etwa auf eigenen Servern, in Rechenzentren, in der Cloud oder auf Lernplattformen. Das gilt auch dann, wenn der Anbieter im Auftrag einer Schule oder eines Schulträgers handelt und die Software nur für diese Schule bereitstellt.
 
 Eine Genehmigung muss schriftlich vorliegen, zum Beispiel per E-Mail oder als Brief. Anfragen gehen über GitHub an den Rechteinhaber: https://github.com/lasjoh-toho
 
