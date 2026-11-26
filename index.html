@@ -978,7 +978,7 @@ function rn(n) {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'grand', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 if (settings.view === 'both') settings.view = 'score';
 // Regen and Straße share one button now: Regen is the road with no tilt
 if (settings.view === 'rain') { settings.view = 'road'; settings.road = 0; }
@@ -1819,21 +1819,22 @@ function drawKeys3d(now) {
   // the keys continue the road towards you: drawn flat first, then laid down in the same perspective
   const y1 = KB.top, kh = KB.h, G = roadGeo(y1);
   const L = kh * G.f / (G.f * G.c + kh * G.sn);       // key length on the road so the keys fill their strip
-  const rw = Math.round(W * DPR), rh = Math.round(H * DPR);
+  // only the band with the keys and the glow above them is drawn flat, not the whole screen
+  const M = Math.min(y1, 90), oy = y1 - M, rw = Math.round(W * DPR), rh = Math.round((M + kh + 2) * DPR);
   if (keyCv.width !== rw || keyCv.height !== rh) { keyCv.width = rw; keyCv.height = rh; }
-  const keep = cx; cx = keyCx; cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.clearRect(0, 0, W, H);
+  const keep = cx; cx = keyCx; cx.setTransform(DPR, 0, 0, DPR, 0, -oy * DPR); cx.clearRect(0, oy, W, M + kh + 2);
   drawKeyboard(now);
   cx = keep;
   // glow above the keys stays flat, it already sits on the road at the hit line
-  cx.drawImage(keyCv, 0, 0, rw, Math.round((y1 - 3) * DPR), 0, 0, W, y1 - 3);
+  cx.drawImage(keyCv, 0, 0, rw, Math.round((M - 3) * DPR), 0, oy, W, M - 3);
   cx.fillStyle = '#05060a'; cx.fillRect(0, y1 - 3, W, H - y1 + 3);
-  const step = 1.5;
+  const step = 2;
   for (let Y = 0; Y < kh; Y += step) {
     const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2), sc = G.scale(-(da + db) / 2);
-    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR), dw = W * sc;
+    const sy = (M + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR), dw = W * sc;
     cx.drawImage(keyCv, 0, sy, rw, sh, (W - dw) / 2, y1 + Y, dw, Y2 - Y + 0.6);
   }
-  cx.drawImage(keyCv, 0, (y1 - 3) * DPR, rw, 3 * DPR, 0, y1 - 3, W, 3);
+  cx.drawImage(keyCv, 0, (M - 3) * DPR, rw, 3 * DPR, 0, y1 - 3, W, 3);
   KEY3D = { G, L, y1, kh };
 }
 function drawRoad(y0, y1, now) {
@@ -1841,20 +1842,21 @@ function drawRoad(y0, y1, now) {
   const { f, sn, toD, toY } = roadGeo(h);
   const yTop = Math.min(h, toY(h * 6));                 // the road ends at 6 screens of look-ahead, maybe below the top
   const D = toD(yTop);
-  const rw = Math.round(W * DPR), rh = Math.round(D * DPR);
+  // the flat picture is squeezed in depth: far away the road is foreshortened anyway, so a full-size picture only costs time
+  const vs = Math.min(1, h * 1.3 / D), rw = Math.round(W * DPR), rh = Math.max(1, Math.round(D * vs * DPR));
   if (roadCv.width !== rw || roadCv.height !== rh) { roadCv.width = rw; roadCv.height = rh; }
   const keep = cx; cx = roadCx;
-  cx.setTransform(DPR, 0, 0, DPR, 0, 0); cx.fillStyle = '#07090f'; cx.fillRect(0, 0, W, D); // opaque, so overlapping strips leave no seams
+  cx.setTransform(DPR, 0, 0, DPR * vs, 0, 0); cx.fillStyle = '#07090f'; cx.fillRect(0, 0, W, D); // opaque, so overlapping strips leave no seams
   ROADN = [];
   drawRain(0, D, now, h / settings.look);
   cx = keep;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
   // lay the flat picture down strip by strip, each one scaled around the centre
-  const step = 1.5;
+  const step = 2;
   cx.imageSmoothingEnabled = true;
   for (let Y = 0; Y < yTop; Y += step) {
     const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2), sc = f / (f + (da + db) / 2 * sn);
-    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR), dw = W * sc;
+    const sy = (D - db) * vs * DPR, sh = Math.max(1, (db - da) * vs * DPR), dw = W * sc;
     cx.drawImage(roadCv, 0, sy, rw, sh, (W - dw) / 2, y1 - Y2, dw, Y2 - Y + 0.6);
   }
   drawRoadBlocks(y1, D, roadGeo(h));
@@ -3019,7 +3021,7 @@ function loadSong(s, meta = {}) {
   if (typeof drill !== 'undefined' && drill.on) { drill.on = false; setTimeout(syncPractice); }
   rebuildYou();
   // every song starts with its own instrument (or the grand piano); a choice made for a song is remembered for that song only
-  { const snd = (!s.blank && store.get('songSound', {})[songKey]) || s.sound || (s.parts.find(p => p.sound) || {}).sound || 'grand';
+  { const snd = (!s.blank && store.get('songSound', {})[songKey]) || s.sound || (s.parts.find(p => p.sound) || {}).sound || 'concert';
     if (snd !== settings.sound) { settings.sound = snd; const ss = document.getElementById('soundSel'); if (ss) ss.value = snd; saveSettings(); if (snd === 'concert') synth.loadPiano(); if (typeof ORCH !== 'undefined' && ORCH[snd]) ORCH[snd].layers.forEach(L => synth.loadOrch(L.dir)); if (typeof syncInst === 'function') syncInst(); } }
   $('#songTitle').textContent = s.title;
   const you = s.parts.filter(p => youRole(p.role)).length;
