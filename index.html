@@ -2969,6 +2969,8 @@ function finish() {
   setPlaying(false); t = song.duration;
   if (settings.mode === 'watch') return;
   const judged = sc.hits + sc.miss, acc = judged ? sc.hits / judged : 0;
+  // results only when you actually played along, at least a little; a song that just ran through ends quietly
+  if (sc.hits + sc.wrong < Math.max(3, Math.round(judged * 0.05))) return;
   $('#resTitle').textContent = settings.mode === 'score' ? (acc >= .9 ? 'Großartig gespielt!' : 'Geschafft!') : 'Übung beendet';
   $('#resGrade').textContent = grade(acc);
   $('#resScore').textContent = (settings.mode === 'score' ? sc.score : sc.hits).toLocaleString('de-DE');
