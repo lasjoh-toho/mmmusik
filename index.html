@@ -1657,6 +1657,8 @@ const lastPress = new Map();      // midi -> time of the last key press, for the
 const autoOn = new Map();       // midi -> {until, part}
 const flashes = [];             // hit effects
 const popups = [];              // judgement text
+// practising difficult places (declared early: the practice menu reads it while the page starts)
+const drill = { on: false, spots: [], i: 0, errs: 0, clean: 0 };
 const sc = { score: 0, combo: 0, best: 0, hits: 0, perfect: 0, good: 0, ok: 0, miss: 0, wrong: 0, total: 0, bars: {}, hand: { R: 0, L: 0 } };
 let kbOct = 60;
 
@@ -2872,7 +2874,6 @@ function updateWaitHint() {
 }
 
 /* ---------- Analysis & difficult places ---------- */
-const drill = { on: false, spots: [], i: 0, errs: 0, clean: 0 };
 function barLabel(a, b) { return a === b ? 'Takt ' + (a + 1) : 'Takt ' + (a + 1) + '–' + (b + 1); }
 function spotOf(a, b) { const bs = barStarts(), end = bs[b + 1] ?? song.duration; return { a: bs[a], b: end, label: barLabel(a, b), bars: [a, b] }; }
 // how hard each bar went in this run: missed notes count double, waiting longer than a moment and an unsteady beat count too
