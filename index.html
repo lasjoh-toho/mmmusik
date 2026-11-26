@@ -1829,9 +1829,9 @@ function drawKeys3d(now) {
   cx.fillStyle = '#05060a'; cx.fillRect(0, y1 - 3, W, H - y1 + 3);
   const step = 1.5;
   for (let Y = 0; Y < kh; Y += step) {
-    const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2);
-    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR);
-    cx.drawImage(keyCv, 0, sy, rw, sh, 0, y1 + Y, W, Y2 - Y + 0.6);
+    const Y2 = Math.min(kh, Y + step), da = -G.toD(-Y), db = -G.toD(-Y2), sc = G.scale(-(da + db) / 2);
+    const sy = (y1 + da / L * kh) * DPR, sh = Math.max(1, (db - da) / L * kh * DPR), dw = W * sc;
+    cx.drawImage(keyCv, 0, sy, rw, sh, (W - dw) / 2, y1 + Y, dw, Y2 - Y + 0.6);
   }
   cx.drawImage(keyCv, 0, (y1 - 3) * DPR, rw, 3 * DPR, 0, y1 - 3, W, 3);
   KEY3D = { G, L, y1, kh };
@@ -1849,13 +1849,13 @@ function drawRoad(y0, y1, now) {
   drawRain(0, D, now, h / settings.look);
   cx = keep;
   cx.save(); cx.beginPath(); cx.rect(0, y0, W, h); cx.clip();
-  // lay the flat picture down strip by strip: only the depth is foreshortened, the paths keep running straight up to their keys
+  // lay the flat picture down strip by strip, each one scaled around the centre
   const step = 1.5;
   cx.imageSmoothingEnabled = true;
   for (let Y = 0; Y < yTop; Y += step) {
-    const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2);
-    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR);
-    cx.drawImage(roadCv, 0, sy, rw, sh, 0, y1 - Y2, W, Y2 - Y + 0.6);
+    const Y2 = Math.min(yTop, Y + step), da = toD(Y), db = toD(Y2), sc = f / (f + (da + db) / 2 * sn);
+    const sy = (D - db) * DPR, sh = Math.max(1, (db - da) * DPR), dw = W * sc;
+    cx.drawImage(roadCv, 0, sy, rw, sh, (W - dw) / 2, y1 - Y2, dw, Y2 - Y + 0.6);
   }
   drawRoadBlocks(y1, D, roadGeo(h));
   // haze towards the horizon
@@ -1874,43 +1874,49 @@ function drawRoad(y0, y1, now) {
     const fb = cx.createLinearGradient(0, hy - pad - 18, 0, hy); fb.addColorStop(0, 'rgba(20,24,38,0)'); fb.addColorStop(1, 'rgba(20,24,38,1)'); cx.fillStyle = fb; cx.fillRect(0, hy - pad - 18, W, pad + 18);
   }
 }
-// the note blocks on the road: depth is foreshortened, but nothing leans, so every block stays an upright box
-// with a rectangular front face and the letter on it undistorted
+// the note blocks on the road: the ground plan follows the perspective, but every edge that stands up stays vertical,
+// so the front face is a true rectangle and the letter on it is not sheared
 function drawRoadBlocks(y1, D, G) {
   const lift = Math.min(1, settings.road / 40), up = 0.45 + 0.55 * G.sn / Math.sin(ROAD_MAX);
   const frontText = settings.road >= 45, fs = Math.max(9, Math.min(13, KB.ww * 0.42));
-  const P = d => ({ y: y1 - G.toY(d), s: G.scale(d) });
+  const P = d => { const s = G.scale(d); return { y: y1 - G.toY(d), s }; };
+  const X = (x, s) => W / 2 + (x - W / 2) * s;
   ROADN.sort((a, b) => b.dA - a.dA);                    // far blocks first, near ones stand in front of them
   for (const b of ROADN) {
     const n = b.n, dB = Math.min(b.dB, D); if (b.dA >= D) continue;
     const A = P(b.dA), B = P(dB), Hb = lift * Math.max(9, Math.min(18, b.w * 0.95));
-    const ha = Hb * A.s * up, hb = Hb * B.s * up, x = b.xc - b.w / 2, w = b.w;
+    const ha = Hb * A.s * up, hb = Hb * B.s * up;
+    const aL = X(b.xc - b.w / 2, A.s), aR = X(b.xc + b.w / 2, A.s), bL = X(b.xc - b.w / 2, B.s), bR = X(b.xc + b.w / 2, B.s);
     const acc = dimRole(rn(n)), k = KB.keys[n.midi];
     cx.globalAlpha = acc ? 0.55 : (n.state === 2 ? 0.35 : 1);
     const top = settings.color === 'hand' ? colorOf(n, k && k.black) : colorOf(n), dark = colorOf(n, true);
-    const ft = A.y - ha, tt = Math.min(ft - 1, B.y - hb), topH = ft - tt, rad = Math.min(4, w * 0.25);
+    const poly = pts => { cx.beginPath(); cx.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) cx.lineTo(pts[i], pts[i + 1]); cx.closePath(); };
     // shadow on the road
-    cx.fillStyle = 'rgba(0,0,0,.4)'; rr(x + 2, B.y + 1, w, A.y - B.y + 1, rad); cx.fill();
+    cx.fillStyle = 'rgba(0,0,0,.4)'; poly([aL + 2, A.y + 2, aR + 2, A.y + 2, bR + 2, B.y + 1, bL + 2, B.y + 1]); cx.fill();
+    // the side that faces the middle of the road
+    const right = b.xc < W / 2, sa = right ? aR : aL, sb = right ? bR : bL;
+    cx.fillStyle = dark; poly([sa, A.y, sa, A.y - ha, sb, B.y - hb, sb, B.y]); cx.fill();
+    cx.fillStyle = 'rgba(0,0,0,.32)'; cx.fill();
     // top face
-    const gr = cx.createLinearGradient(0, tt, 0, ft); gr.addColorStop(0, top); gr.addColorStop(1, dark);
-    cx.fillStyle = gr; rr(x, tt, w, topH + rad, rad); cx.fill();
-    const hg = cx.createLinearGradient(x, 0, x + w, 0); hg.addColorStop(0, 'rgba(255,255,255,.26)'); hg.addColorStop(0.35, 'rgba(255,255,255,0)'); hg.addColorStop(1, 'rgba(0,0,0,.16)'); cx.fillStyle = hg; cx.fill();
+    const gr = cx.createLinearGradient(0, B.y - hb, 0, A.y - ha); gr.addColorStop(0, top); gr.addColorStop(1, dark);
+    cx.fillStyle = gr; poly([aL, A.y - ha, aR, A.y - ha, bR, B.y - hb, bL, B.y - hb]); cx.fill();
     cx.strokeStyle = 'rgba(255,255,255,.28)'; cx.lineWidth = 1; cx.stroke();
     if (n.state === 1) { cx.fillStyle = 'rgba(255,255,255,.18)'; cx.fill(); }
     if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
     // front face: an upright rectangle, lit a little from above
-    const fg = cx.createLinearGradient(0, ft, 0, A.y); fg.addColorStop(0, top); fg.addColorStop(1, dark);
-    cx.fillStyle = fg; rr(x, ft, w, ha, Math.min(3, rad)); cx.fill(); cx.fillStyle = 'rgba(0,0,0,.2)'; cx.fill();
-    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(x + 1.5, ft, w - 3, 1);
+    const fw = aR - aL, fg = cx.createLinearGradient(0, A.y - ha, 0, A.y); fg.addColorStop(0, top); fg.addColorStop(1, dark);
+    cx.fillStyle = fg; rr(aL, A.y - ha, fw, ha, Math.min(3, fw * 0.2)); cx.fill(); cx.fillStyle = 'rgba(0,0,0,.16)'; cx.fill();
+    cx.fillStyle = 'rgba(255,255,255,.35)'; cx.fillRect(aL + 1.5, A.y - ha, fw - 3, 1);
     if (n.state === 2) { cx.strokeStyle = 'rgba(255,107,122,.8)'; cx.stroke(); }
     cx.globalAlpha = 1;
-    if (settings.names && w > 13 && !acc) {
-      const sz = Math.min(fs, w * 0.62);
+    const topH = (A.y - ha) - (B.y - hb), cxA = (aL + aR) / 2;
+    if (settings.names && fw > 13 && !acc) {
+      const sz = Math.min(fs, fw * 0.62);
       cx.font = `600 ${sz}px Inter, system-ui, sans-serif`; cx.textAlign = 'center'; cx.textBaseline = 'middle';
-      if (frontText && ha >= sz * 0.95) { cx.fillStyle = 'rgba(255,255,255,.94)'; cx.fillText(noteName(n.midi), b.xc, ft + ha / 2 + 0.5); }
-      else if (topH > sz + 4) { cx.fillStyle = 'rgba(10,12,20,.8)'; cx.fillText(noteName(n.midi), b.xc, ft - sz / 2 - 2); }
+      if (frontText && ha >= sz * 0.95) { cx.fillStyle = 'rgba(255,255,255,.94)'; cx.fillText(noteName(n.midi), cxA, A.y - ha / 2 + 0.5); }
+      else if (topH > sz + 4) { cx.fillStyle = 'rgba(10,12,20,.8)'; cx.fillText(noteName(n.midi), cxA, A.y - ha - sz / 2 - 2); }
     }
-    if (n.f && w > 9 && topH > 10) fingerBadge(b.xc, ft - Math.min(topH * 0.5, settings.names && !frontText ? fs + 14 : 12), Math.min(9, w * 0.42), n.f);
+    if (n.f && fw > 9 && topH > 10) fingerBadge((aL + aR + bL + bR) / 4, A.y - ha - Math.min(topH * 0.5, settings.names && !frontText ? fs + 14 : 12), Math.min(9, fw * 0.42), n.f);
   }
   cx.textBaseline = 'bottom';
 }
@@ -2771,7 +2777,7 @@ window.addEventListener('keyup', e => { const m = downKeys.get(e.code); if (m !=
 const ptrs = new Map(); let pinch = null;
 function keyAt(x, y) {
   if (y < KB.top) return null;
-  if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y); y = y1 + (-d) / L * kh; }
+  if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y), sc = G.scale(d); x = W / 2 + (x - W / 2) / sc; y = y1 + (-d) / L * kh; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && k.black && x >= k.x && x <= k.x + k.w && y <= KB.top + KB.h * 0.62) return m; }
   for (let m = KB.lo; m <= KB.hi; m++) { const k = KB.keys[m]; if (k && !k.black && x >= k.x && x < k.x + k.w) return m; }
   return null;
