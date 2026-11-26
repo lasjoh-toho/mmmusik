@@ -139,6 +139,7 @@ header.bar {
 .m-svg .tick { stroke: rgba(255,255,255,.16); stroke-width: 1; }
 .m-svg .arm { stroke: #e9edf6; stroke-width: 2.4; stroke-linecap: round; }
 .m-svg .weight { fill: var(--gold); }
+#mGrab { cursor: ns-resize; touch-action: none; }
 .m-svg .pivot { fill: #e9edf6; }
 .m-num { display: grid; justify-items: center; min-width: 4ch; }
 .m-num b { font-family: var(--f-mono); font-weight: 500; font-size: clamp(44px, 10vh, 100px); line-height: 1; color: var(--fg); font-variant-numeric: tabular-nums; transition: color .1s; }
@@ -656,7 +657,7 @@ header.bar.hide2 { display: none !important; }
             <path class="body" d="M42 6 H78 L112 164 V180 H8 V164 Z" stroke-linejoin="round"/>
             <path class="face" d="M47 18 H73 L96 138 H24 Z"/>
             <g id="mTicks"></g>
-            <g id="mArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mWeight" x="52" y="60" width="16" height="12" rx="3"/></g>
+            <g id="mArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mWeight" x="52" y="60" width="16" height="12" rx="3"/><rect id="mGrab" x="40" y="18" width="40" height="96" fill="transparent"/></g>
             <circle class="pivot" cx="60" cy="140" r="4"/>
           </svg>
           <div class="pop-ctl knob-ctl m-foot" id="mBpmCtl">
@@ -674,10 +675,11 @@ header.bar.hide2 { display: none !important; }
           <div class="m-f m-only">Takt<span class="seg" id="mSigSeg"><button data-metro-sig="2/4">2/4</button><button data-metro-sig="3/4">3/4</button><button data-metro-sig="4/4">4/4</button><button data-metro-sig="6/8">6/8</button></span></div>
           <div class="m-f m-only">Einzählen<span class="seg" id="mCountSeg"><button data-metro-count="0">Aus</button><button data-metro-count="1">1 Takt</button><button data-metro-count="2">2 Takte</button></span></div>
           <div class="m-f">Klick<span class="seg" id="mClickSeg"><button data-metro-click="on">Immer</button><button data-metro-click="count">Nur Einzählen</button><button data-metro-click="off">Stumm</button></span></div>
+          <div class="m-f">Klang<span class="seg" id="mSoundSeg"><button data-metro-sound="wood" title="Wie ein echtes Pendel-Metronom: Holzklick, auf der Eins die Glocke">Metronom</button><button data-metro-sound="beep" title="Ein heller, elektronischer Klick">Elektronisch</button><button data-metro-sound="drums" title="Ein einfacher Schlagzeug-Groove zur Orientierung; eingezählt wird mit den Sticks. Er wird nicht mit aufgenommen.">Schlagzeug</button></span></div>
           <div class="m-f">Lautstärke<span class="m-vol"><input type="range" id="mVol" min="0" max="100" step="1" aria-label="Lautstärke des Metronoms"><b id="mVolPct">70</b></span></div>
         </div>
         <div class="m-acts"><button class="btn primary" id="mGo">Einzählen und aufnehmen</button><button class="btn" id="mCancel">Abbrechen</button></div>
-        <p class="m-hint" id="mHint">Spiel im Takt des Metronoms. Die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.</p>
+        <p class="m-hint" id="mHint">Drücke eine Taste, danach zähle ich ein. Spiel im Takt, die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.</p>
       </div>
     </div>
     <div class="drop-veil" id="dropVeil" hidden>MIDI-Datei hier ablegen</div>
@@ -1013,7 +1015,7 @@ function rn(n) {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', vz: {}, kl: {}, recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroSound: 'wood', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', vz: {}, kl: {}, recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 // every view has its own zoom and its own switch for the coloured lights on the keys
 const viewKey = () => settings.view === 'rain' ? 'road' : settings.view;
 const zoomOf = v => Math.max(0.4, Math.min(3, (settings.vz || {})[v || viewKey()] || 1));
@@ -2708,7 +2710,7 @@ function advance(dt) {
     if (g !== null && nt >= g) { if (waiting && playing && !rec) barStat(g).wait += dt / (settings.speed / 100); nt = Math.max(t, g); waiting = true; } else waiting = false;
   }
   // the metronome only sounds while you record; it is never part of the recording
-  if (rec && rec.overdub && settings.metroClick === 'on' && synth.ctx && nt > t) for (const b of song.beats) if (b.time >= t && b.time < nt) metroClick(synth.ctx.currentTime + 0.005, b.bar ? 2 : 0);
+  if (rec && rec.overdub && settings.metroClick === 'on' && synth.ctx && nt > t) { let pos = 0; const B = song.beats; for (let i = 0; i < B.length; i++) { const b = B[i]; pos = b.bar ? 0 : pos + 1; if (b.time >= t && b.time < nt) { const spb = (B[i + 1] ? B[i + 1].time - b.time : 0.5) / (settings.speed / 100); metroBeat(synth.ctx.currentTime + 0.005, pos, b.n || 4, spb, false); } if (b.time >= nt) break; } }
   // drum groove: when a beat starts, schedule its hits
   if (grooveOf(settings.drums) && !waitish() && synth.ctx && nt > t) { const B = song.beats; for (let i = lb(B, t, 'time'); i < B.length && B[i].time < nt; i++) if (B[i].time >= t) grooveHits(B[i], B[i + 1], settings.speed); }
   // auto-played notes
@@ -2778,6 +2780,8 @@ function judge(m, now) {
 function noteOn(m, vel = 96) {
   m += settings.transp | 0; if (m < 0 || m > 127) return;
   synth.noteOn(m, vel); recEvent(1, m, vel); lastPress.set(m, performance.now());
+  // on the Einspielen screen the first key you press starts the count-in
+  if (metroOpen() && metro.phase === 'ready') setTimeout(() => { if (metroOpen() && metro.phase === 'ready') metroGoStop(); });
   const now = performance.now();
   const good = judge(m, now);
   let c = 'rgba(220,185,120,.95)';
@@ -3263,7 +3267,7 @@ function overdubStart() {
   seek(bar0 - n * spb, true);
   const sp = settings.speed / 100, a0 = synth.ctx.currentTime + 0.05, cnt = Math.max(1, +settings.metroCount || 0) * n;
   seek(bar0 - cnt * spb, true);
-  if (settings.metroClick !== 'off' && +settings.metroCount) for (let k = 0; k < cnt; k++) metroClick(a0 + k * spb / sp, k % n === 0 ? 2 : 0);
+  if (settings.metroClick !== 'off' && +settings.metroCount) for (let k = 0; k < cnt; k++) metroBeat(a0 + k * spb / sp, k % n, n, spb / sp, true);
   rec = { overdub: true, ev: [] };
   // loop: the chosen bars from the first recorded bar on repeat, and every round adds to the take
   const nb = +settings.recLoop || 0;
@@ -3465,8 +3469,8 @@ function metroLayout() {
   const el = $('#mBeats'); el.innerHTML = '';
   for (let i = 0; i < n; i++) { const b = document.createElement('i'); if (i === 0 || (n === 6 && i === 3)) b.className = 'acc'; el.appendChild(b); }
   $('#mBpm').value = settings.metroBpm; $('#mBpmPct').textContent = settings.metroBpm; $('#mBpmArc').style.strokeDasharray = (75 * (settings.metroBpm - 40) / 168) + ' 100';
-  // a real metronome: the weight slides down for faster tempi
-  $('#mWeight').setAttribute('y', 28 + (208 - settings.metroBpm) / 168 * 70);
+  // a real metronome: the weight slides down for faster tempi, up for slower ones
+  $('#mWeight').setAttribute('y', metroWeightY(settings.metroBpm));
   if (metro.phase === 'ready') { $('#mNum').textContent = settings.metroSig; $('#mSub').textContent = settings.metroBpm + ' Schläge pro Minute'; }
   $('#mGo').textContent = metro.phase === 'ready' ? (metroTracks() ? 'Neue Spur aufnehmen' : settings.metroCount === '0' ? 'Aufnehmen' : 'Einzählen und aufnehmen') : 'Fertig';
   $('#mVol').value = settings.metroVol; $('#mVolPct').textContent = settings.metroVol;
@@ -3476,7 +3480,7 @@ function metroLayout() {
   if (metro.fresh && metro.phase === 'ready') { $('#mGo').textContent = +settings.metroCount ? 'Einzählen und aufnehmen' : 'Aufnehmen'; }
   $('#metro').dataset.with = metroTracks() ? 'tracks' : 'metro';
   if (metro.phase === 'ready' && metroTracks()) { $('#mNum').textContent = song.parts.length; $('#mSub').textContent = (song.parts.length === 1 ? 'Spur spielt mit' : 'Spuren spielen mit') + ' · ein Takt Einzählen'; }
-  $('#mHint').textContent = metroTracks() ? '„' + song.title + '“ spielt mit, und du spielst eine neue Spur dazu. Der Klick folgt dem Takt des Lieds. Mit „Fertig“ oder am Ende des Lieds wird die Spur gespeichert.' : 'Spiel im Takt des Metronoms. Die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.';
+  $('#mHint').textContent = metroTracks() ? '„' + song.title + '“ spielt mit, und du spielst eine neue Spur dazu. Der Klick folgt dem Takt des Lieds. Mit „Fertig“ oder am Ende des Lieds wird die Spur gespeichert.' : 'Drücke eine Taste, danach zähle ich ein. Spiel im Takt, die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.';
 }
 const metroTracks = () => !metro.fresh && settings.metroWith === 'tracks' && !!(song && song.parts.length);
 function metroOpenScreen() {
@@ -3489,14 +3493,51 @@ function metroOpenScreen() {
     for (let i = 0; i < 9; i++) { const y = 34 + i * 11; const l = document.createElementNS('http://www.w3.org/2000/svg', 'line'); l.setAttribute('class', 'tick'); l.setAttribute('x1', 56); l.setAttribute('x2', 64); l.setAttribute('y1', y); l.setAttribute('y2', y); $('#mTicks').appendChild(l); }
   }
 }
+const metroWeightY = bpm => 28 + (bpm - 40) / 168 * 70;
+// the click: like a wooden pendulum metronome (with its little bell on the one), an electronic beep,
+// or a simple drum groove to play along with (it only sounds, it is never recorded)
 function metroClick(at, accent) {
   const c = synth.ctx; if (!c) return;
-  const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
-  o.type = 'triangle'; o.frequency.value = accent === 2 ? 1760 : accent === 1 ? 1480 : 1175;
-  f.type = 'highpass'; f.frequency.value = 600;
-  const peak = Math.max(0.0002, (accent ? 0.62 : 0.4) * settings.metroVol / 100);
-  g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(peak, at + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
-  o.connect(f); f.connect(g); g.connect(c.destination); o.start(at); o.stop(at + 0.08);
+  const vol = settings.metroVol / 100;
+  if ((settings.metroSound || 'wood') === 'beep') {
+    const o = c.createOscillator(), g = c.createGain(), f = c.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.value = accent === 2 ? 1760 : accent === 1 ? 1480 : 1175;
+    f.type = 'highpass'; f.frequency.value = 600;
+    const peak = Math.max(0.0002, (accent ? 0.62 : 0.4) * vol);
+    g.gain.setValueAtTime(0.0001, at); g.gain.exponentialRampToValueAtTime(peak, at + 0.002); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.06);
+    o.connect(f); f.connect(g); g.connect(c.destination); o.start(at); o.stop(at + 0.08);
+    return;
+  }
+  // wood: a short knock of noise through two resonances of the case, plus a dry low "tok"
+  if (!synth.noise) synth.drum(0, 0);
+  const src = c.createBufferSource(); src.buffer = synth.noise;
+  const out = c.createGain(); out.gain.value = Math.max(0.0002, (accent ? 0.95 : 0.75) * vol); out.connect(c.destination);
+  [[accent ? 2300 : 2000, 9, 1], [accent ? 4100 : 3600, 6, 0.45]].forEach(([fq, q, amt]) => {
+    const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fq; bp.Q.value = q;
+    const g = c.createGain(); g.gain.setValueAtTime(amt, at); g.gain.exponentialRampToValueAtTime(0.0001, at + 0.035);
+    src.connect(bp).connect(g).connect(out);
+  });
+  src.start(at, Math.random() * 0.5); src.stop(at + 0.06);
+  const o = c.createOscillator(), og = c.createGain(); o.type = 'sine'; o.frequency.setValueAtTime(accent ? 1100 : 900, at); o.frequency.exponentialRampToValueAtTime(420, at + 0.025);
+  og.gain.setValueAtTime(0.5, at); og.gain.exponentialRampToValueAtTime(0.0001, at + 0.03); o.connect(og).connect(out); o.start(at); o.stop(at + 0.04);
+  if (accent === 2) {
+    // the bell on the one
+    [[2637, 0.22], [5274, 0.07], [7040, 0.04]].forEach(([fq, amp]) => { const b = c.createOscillator(), bg = c.createGain(); b.type = 'sine'; b.frequency.value = fq;
+      bg.gain.setValueAtTime(0.0001, at); bg.gain.exponentialRampToValueAtTime(amp * vol, at + 0.003); bg.gain.exponentialRampToValueAtTime(0.0001, at + 0.5); b.connect(bg).connect(c.destination); b.start(at); b.stop(at + 0.55); });
+  }
+}
+// one beat of the guide: the click, or with "Schlagzeug" a groove (counted in with the sticks)
+function metroBeat(at, pos, n, spb, count) {
+  if ((settings.metroSound || 'wood') !== 'drums') { metroClick(at, pos === 0 ? 2 : (n === 6 && pos === 3) ? 1 : 0); return; }
+  const v = Math.round(30 + 90 * settings.metroVol / 100), fx = { bus: 'acc' };
+  if (count) { synth.drum(37, pos === 0 ? v : Math.round(v * 0.8), at, fx); return; }
+  const kick = pos === 0 || (n === 4 && pos === 2) || (n === 6 && pos === 3 && false);
+  const snare = (n === 4 && (pos === 1 || pos === 3)) || (n === 2 && pos === 1) || (n === 6 && pos === 3);
+  if (kick) synth.drum(36, v, at, fx);
+  if (snare) synth.drum(38, Math.round(v * 0.85), at, fx);
+  if (n === 3 && pos > 0) synth.drum(42, Math.round(v * 0.7), at, fx);
+  synth.drum(42, Math.round(v * 0.6), at, fx);
+  if (n !== 6 && n !== 3) synth.drum(42, Math.round(v * 0.4), at + spb / 2, fx);
 }
 function metroStart() {
   const c = synth.ctx; const { n, d } = metroSig();
@@ -3513,7 +3554,7 @@ function metroStart() {
     while (metro.a0 + metro.nextBeat * metro.spb < until) {
       const i = metro.nextBeat, inCount = i < metro.countBeats, pos = i % metro.n;
       const play = settings.metroClick === 'on' || (settings.metroClick === 'count' && inCount);
-      if (play) metroClick(metro.a0 + i * metro.spb, pos === 0 ? 2 : (metro.n === 6 && pos === 3) ? 1 : 0);
+      if (play) metroBeat(metro.a0 + i * metro.spb, pos, metro.n, metro.spb, inCount);
       metro.nextBeat++;
     }
   }, 25);
@@ -3582,6 +3623,18 @@ $('#mTap').onclick = () => {
 segInit('#mSigSeg', 'metroSig', metroLayout);
 segInit('#mCountSeg', 'metroCount', metroLayout);
 segInit('#mClickSeg', 'metroClick', () => {});
+// hear the chosen sound: one bar
+segInit('#mSoundSeg', 'metroSound', () => { if (!synth.ensure()) return; const { n } = metroSig(), spb = 60 / settings.metroBpm, a = synth.ctx.currentTime + 0.05; for (let k = 0; k < n; k++) metroBeat(a + k * spb, k, n, spb, false); });
+// like on a real metronome the tempo is set by sliding the weight on the pendulum: up is slower, down faster
+{
+  const svg = $('#metro .m-svg'); let drag = false;
+  const at = e => { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()).y; };
+  const move = e => { const y = at(e) - 6; setMetroBpm(40 + (Math.max(28, Math.min(98, y)) - 28) / 70 * 168); };
+  $('#mGrab').addEventListener('pointerdown', e => { if (metro.phase !== 'ready') return; drag = true; $('#mGrab').setPointerCapture(e.pointerId); move(e); e.preventDefault(); });
+  $('#mGrab').addEventListener('pointermove', e => { if (drag) move(e); });
+  $('#mGrab').addEventListener('pointerup', () => { drag = false; });
+  $('#mGrab').addEventListener('pointercancel', () => { drag = false; });
+}
 segInit('#mWithSeg', 'metroWith', metroLayout);
 segInit('#mHandSeg', 'recHand', () => {});
 $('#mInst').onclick = () => $('#instBtn').click();
