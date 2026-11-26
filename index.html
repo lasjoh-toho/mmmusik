@@ -2143,6 +2143,22 @@ function drawKeyboard(now) {
   }
   const fingerOnKey = (m, x, w, y) => { const n = fing.get(m); if (!n) return; const soonA = n.start <= t ? 1 : 1 - (n.start - t) / 1.6; cx.save(); cx.globalAlpha = 0.35 + 0.65 * soonA; fingerBadge(x + w / 2, y, Math.min(10, w * 0.36), n.f); cx.restore(); };
   const BH = h * 0.62;
+  // with guide lines on, the coming keys light up from below as a gradient: the next one about half way, the ones after it faintly a quarter
+  const glead = new Map();
+  if (song && settings.guide > 0) {
+    let groups = 0, last = -1;
+    for (let i = lb(song.all, t + 0.001, 'start'); i < song.all.length; i++) {
+      const n = song.all[i]; if (n.start - t > Math.max(2, settings.look)) break; if (!guided(rn(n)) || glead.has(n.midi)) continue;
+      if (last < 0 || n.start - last > 0.04) { groups++; last = n.start; if (groups > 4) break; }
+      glead.set(n.midi, { c: colOfRole(rn(n), n.midi), f: groups === 1 ? 0.5 : 0.25, a: groups === 1 ? 0.75 : 0.3 });
+    }
+  }
+  const lead = (m, x, w, yBot, len, r) => {
+    const o = glead.get(m); if (!o) return; const yTop = yBot - len * o.f;
+    const g = cx.createLinearGradient(0, yBot, 0, yTop);
+    g.addColorStop(0, o.c.replace(/[\d.]+\)$/, o.a + ')')); g.addColorStop(1, o.c.replace(/[\d.]+\)$/, '0)'));
+    cx.fillStyle = g; rr(x, yTop, w, yBot - yTop, r); cx.fill();
+  };
   // on the road the blocks end at the edge of the keys, so a sounding key only gets a thin line instead of a coloured cap
   const onRoad = settings.view === 'road' && settings.road > 0;
   const fuse = (m, x, w, yStart, yEnd, r) => {
@@ -2189,6 +2205,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#d9dce4'); g.addColorStop(0.15, '#f4f5f8'); g.addColorStop(1, '#ffffff'); }
     cx.fillStyle = g; rr(x, top, w, h - 1, Math.min(5, w * .2)); cx.fill();
     if (!st) fuse(m, x + 1, w - 2, top + BH, top + Math.max(5, h * 0.085) + 1, 3);
+    if (!st) lead(m, x + 1, w - 2, top + h - 2, h - 2, 4);
     stripe(m, x + 1.5, top + 1, w - 3, onRoad ? 3 : Math.max(5, h * 0.085), onRoad ? 1.5 : 3);
     fingerOnKey(m, x, w, top + h * 0.8);
     if (expect.has(m) && !st) { const pulse = 0.35 + 0.25 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(x, top + h * 0.55, w, h * 0.45 - 1, 4); cx.fill(); }
@@ -2203,6 +2220,7 @@ function drawKeyboard(now) {
     else { g.addColorStop(0, '#101219'); g.addColorStop(0.85, '#272b38'); g.addColorStop(1, '#3a3f4f'); }
     cx.fillStyle = g; rr(k.x, top - 1, k.w, bh, 3); cx.fill();
     if (!st) fuse(m, k.x + 1.5, k.w - 3, top + bh - 2, top + Math.max(4, bh * 0.1), 2);
+    if (!st) lead(m, k.x + 1.5, k.w - 3, top + bh - 2, bh - 2, 2);
     stripe(m, k.x + 1.5, top, k.w - 3, onRoad ? 3 : Math.max(4, bh * 0.1), onRoad ? 1.5 : 2);
     fingerOnKey(m, k.x, k.w, top + bh * 0.72);
     if (expect.has(m) && !st) { const pulse = 0.4 + 0.3 * Math.sin(now / 160); cx.fillStyle = `rgba(220,185,120,${pulse})`; rr(k.x + 2, top + bh * 0.5, k.w - 4, bh * 0.45, 3); cx.fill(); }
