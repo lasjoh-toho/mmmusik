@@ -115,11 +115,30 @@ header.bar {
   display: flex; gap: 8px; flex-wrap: wrap; pointer-events: none;
 }
 .metro {
-  position: absolute; left: 0; right: 0; top: 0; bottom: var(--kbh, 120px); z-index: 6;
-  display: flex; flex-direction: column; padding: 16px; overflow: auto;
-  background: radial-gradient(120% 90% at 50% 0%, #161b2b 0%, #0a0d16 60%, #07090f 100%);
+  position: absolute; right: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 9; width: min(430px, calc(100% - 28px)); max-height: calc(100% - var(--kbh, 120px) - 28px);
+  display: flex; flex-direction: column; padding: 14px; overflow: auto; border-radius: 18px; border: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(22,27,43,.97), rgba(10,13,22,.97)); box-shadow: 0 30px 60px rgba(0,0,0,.45);
 }
-.metro[hidden] { display: none; }
+.metro[hidden], .metro:not([data-phase=ready]) { display: none; }
+.metro .m-svg { width: 72px; }
+.metro .m-num b { font-size: 46px; }
+.metro .m-cfg { gap: 8px 12px; }
+.metro .m-cfg .m-f { font-size: 10px; }
+.metro .m-cfg .seg button { padding: 5px 9px; font-size: 12px; }
+.metro[data-mode]:not([data-mode=sound]) .m-snd { display: none; }
+/* while recording, a small metronome stays in the bottom right corner */
+.metro-mini { position: absolute; right: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 8; display: flex; gap: 10px; align-items: center; padding: 8px 14px 8px 8px; border-radius: 16px; border: 1px solid var(--line); background: rgba(12,15,24,.84); backdrop-filter: blur(6px); pointer-events: none; transition: box-shadow .08s, border-color .08s; }
+.metro-mini[hidden] { display: none; }
+.metro-mini .m-svg { width: 34px; }
+.metro-mini .mm-info { display: grid; gap: 3px; min-width: 70px; }
+.metro-mini b { font: 500 26px/1 var(--f-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.metro-mini span { font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
+.metro-mini .mm-beats { display: flex; gap: 5px; }
+.metro-mini .mm-beats i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.metro-mini .mm-beats i.on { background: var(--gold); box-shadow: 0 0 10px rgba(220,185,120,.7); }
+.metro-mini.count b { color: var(--gold); }
+.metro-mini.hit { border-color: rgba(220,185,120,.6); }
+.metro-mini.hit.one { box-shadow: 0 0 0 2px rgba(220,185,120,.45), 0 0 24px rgba(220,185,120,.35); }
 .m-card { margin: auto; width: min(640px, 100%); display: grid; gap: clamp(8px, 1.6vh, 14px); justify-items: center; }
 .m-top { display: flex; gap: 10px; align-items: center; font-size: 12px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
 .m-top .m-state { display: inline-flex; gap: 6px; align-items: center; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); font-family: var(--f-mono); letter-spacing: .04em; text-transform: none; color: var(--fg); }
@@ -552,9 +571,14 @@ body.tv .td-list .track { height: 76px; }
 .rec-bar button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: 600 12.5px Inter, system-ui, sans-serif; cursor: pointer; }
 .rec-bar button:hover { border-color: rgba(220,185,120,.6); }
 .rec-bar button svg { width: 15px; height: 15px; fill: currentColor; }
+.rec-bar button svg.st { fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; width: 17px; height: 17px; }
+.rec-bar button span { white-space: nowrap; }
+.rec-bar #rbAdd { border-color: rgba(220,185,120,.55); color: var(--gold); }
+.rec-bar #rbAdd[hidden] { display: none; }
 .rec-bar .go, .rec-bar.paused .pz { display: none; } .rec-bar.paused .go { display: inline; }
 #rbStop { background: #ff5d6c; border-color: #ff5d6c; color: #fff; }
 .rec-bar .rb-x { color: var(--muted); padding: 0 12px; font-weight: 500; }
+@media (max-width: 640px) { .rec-bar #rbAdd span, .rec-bar #rbErase span { display: none; } }
 @media (max-width: 640px) { .rec-bar { top: auto; bottom: 150px; } .rb-txt { min-width: 0; } .rec-bar .rb-x { display: none; } }
 .band { --bw: 74px; --bf: 12px; display: none; position: absolute; left: 0; right: 0; top: 0; bottom: var(--kbh, 120px); z-index: 7; pointer-events: none; }
 body.free .band { display: block; }
@@ -704,6 +728,8 @@ table.scores tr.me td { color: var(--gold); }
 .tabs { gap: 2px; } .tabs button { padding: 7px 9px; }
 /* while playing, a header that wraps into two rows (small screens) is hidden completely */
 header.bar.hide2 { display: none !important; }
+/* fixed rows, so the stage keeps the middle row even while the header steps aside */
+#app > header.bar { grid-row: 1; } #app > #stage { grid-row: 2; } #app > footer.transport { grid-row: 3; }
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
 </style>
 
@@ -762,6 +788,8 @@ header.bar.hide2 { display: none !important; }
   <div class="rec-bar" id="recBar" hidden role="group" aria-label="Aufnahme">
     <span class="rb-dot"></span><span class="rb-txt" id="rbTxt">Aufnahme</span>
     <button type="button" id="rbPause" title="Aufnahme anhalten (Leertaste)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="pz" x="6" y="5" width="4" height="14" rx="1"/><rect class="pz" x="14" y="5" width="4" height="14" rx="1"/><path class="go" d="M7 5l12 7-12 7z"/></svg><span id="rbPauseTxt">Pause</span></button>
+    <button type="button" id="rbAdd" title="Das bisher Eingespielte als neue Spur behalten. Vorher ist es nur vorläufig."><svg class="st" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 15h6M11 19h10M17 5h4M19 3v4"/><path d="M11 12a4.16 4.16 0 0 1-5.62 3.89A3.78 3.78 0 0 1 3 12.5a3.42 3.42 0 0 1 2.34-3.38l3.79-1.42A2.89 2.89 0 0 0 11 5a2 2 0 0 0-2-2 2 2 0 0 0-2 2v14a2 2 0 0 1-2 2 2 2 0 0 1-2-2"/></svg><span>Spur hinzufügen</span></button>
+    <button type="button" id="rbErase" title="Alles bisher Eingespielte löschen, die Aufnahme läuft weiter"><svg viewBox="-1117 883 256 256" aria-hidden="true"><path d="M-1016.4,1091.3l113.9-113.9c13.5-13.5,13.5-35.3,0-48.8l-32.5-32.5c-13.5-13.5-35.3-13.5-48.8,0l-113.9,113.9 c-13.5,13.5-13.5,35.3,0,48.8l32.5,32.5C-1051.7,1104.8-1029.9,1104.8-1016.4,1091.3z M-1057.1,1083.2l-32.5-32.5 c-9-9-9-23.6,0-32.5l67.6-68.1l65.1,65.1l-67.6,68.1c-4.3,4.3-10.1,6.7-16.3,6.7C-1046.9,1089.9-1052.7,1087.6-1057.1,1083.2z M-954.3,1129.7c0,3.5-2.8,6.3-6.3,6.3h-89.3c-3.5,0-6.3-2.8-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3h89.3 C-957.1,1123.4-954.3,1126.2-954.3,1129.7z M-882.3,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-885.2,1123.4-882.3,1126.2-882.3,1129.7z M-907.5,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-910.4,1123.4-907.5,1126.2-907.5,1129.7z M-932.7,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-935.6,1123.4-932.7,1126.2-932.7,1129.7z M-944.5,1107.9c0,3.5-2.8,6.3-6.3,6.3h-51.1c-3.5,0-6.3-2.8-6.3-6.3 c0-3.5,2.8-6.3,6.3-6.3h51.1C-947.4,1101.6-944.5,1104.4-944.5,1107.9z M-894.9,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-897.8,1101.6-894.9,1104.4-894.9,1107.9z M-920.1,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-923,1101.6-920.1,1104.4-920.1,1107.9z M-869.6,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-872.6,1101.6-869.6,1104.4-869.6,1107.9z"/></svg><span>Löschen</span></button>
     <button type="button" id="rbStop" title="Aufnahme beenden und speichern"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stopp</span></button>
     <button type="button" class="rb-x" id="rbDiscard" title="Aufnahme verwerfen, nichts speichern">Verwerfen</button>
   </div>
@@ -803,6 +831,12 @@ header.bar.hide2 { display: none !important; }
       <div class="eb-main"><span class="eb-tag">Bearbeiten</span><b id="ebNote">–</b><span id="ebInfo"></span><button class="btn" id="ebDone">Fertig</button></div>
       <div class="eb-keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Note wählen</span><span><kbd>⇧</kbd>+Pfeile oder ziehen: Note verschieben</span><span>rechte Maustaste ziehen oder <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd><kbd>8</kbd><kbd>6</kbd>: Dauer, <kbd>.</kbd> punktiert</span><span><kbd>+</kbd> dann Buchstaben: Noten einfügen · <kbd>−</kbd> Pause</span><span><kbd>F</kbd> dann <kbd>1</kbd>–<kbd>5</kbd>: Fingersatz · <kbd>H</kbd> Note auf die andere Hand legen</span><span><kbd>S</kbd> gebundene Note teilen · <kbd>V</kbd> mit der nächsten gleichen Note verbinden</span><span><kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd> diese Note und alles danach verschieben, mit <kbd>⇧</kbd> um einen ganzen Takt (Platz einfügen)</span><span><kbd>Entf</kbd> löschen · <kbd>Strg</kbd><kbd>Z</kbd> zurück</span></div>
     </div>
+    <div class="metro-mini" id="metroMini" hidden aria-hidden="true">
+      <svg class="m-svg" viewBox="0 0 120 184"><defs><linearGradient id="mmBody" x1="0" x2="1"><stop offset="0" stop-color="#2a3145"/><stop offset=".5" stop-color="#1b2131"/><stop offset="1" stop-color="#131826"/></linearGradient></defs>
+        <path d="M42 6 H78 L112 164 V180 H8 V164 Z" fill="url(#mmBody)" stroke="rgba(255,255,255,.14)" stroke-linejoin="round"/><path class="face" d="M47 18 H73 L96 138 H24 Z"/>
+        <g id="mmArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mmWeight" x="52" y="60" width="16" height="12" rx="3"/></g><circle class="pivot" cx="60" cy="140" r="4"/></svg>
+      <div class="mm-info"><b id="mmNum">1</b><span id="mmSub">Takt 1</span><span class="mm-beats" id="mmBeats"></span></div>
+    </div>
     <div class="metro" id="metro" data-phase="ready" hidden aria-label="Einspielen: Aufnahme mit Metronom oder zu den Spuren">
       <div class="m-card">
         <div class="m-top">Einspielen <span class="m-state"><i></i><span id="mState">Bereit</span></span></div>
@@ -830,9 +864,10 @@ header.bar.hide2 { display: none !important; }
           <div class="m-f" id="mWithF" hidden>Dazu<span class="seg" id="mWithSeg"><button data-metro-with="metro" title="Nur das Metronom">Metronom</button><button data-metro-with="tracks" title="Das geladene Lied mit seinen Spuren spielt mit, du nimmst eine neue Spur dazu auf">Spuren</button></span></div>
           <div class="m-f m-only">Takt<span class="seg" id="mSigSeg"><button data-metro-sig="2/4">2/4</button><button data-metro-sig="3/4">3/4</button><button data-metro-sig="4/4">4/4</button><button data-metro-sig="6/8">6/8</button></span></div>
           <div class="m-f m-only">Einzählen<span class="seg" id="mCountSeg"><button data-metro-count="0">Aus</button><button data-metro-count="1">1 Takt</button><button data-metro-count="2">2 Takte</button></span></div>
-          <div class="m-f">Klick<span class="seg" id="mClickSeg"><button data-metro-click="on">Immer</button><button data-metro-click="count">Nur Einzählen</button><button data-metro-click="off">Stumm</button></span></div>
-          <div class="m-f">Klang<span class="seg" id="mSoundSeg"><button data-metro-sound="wood" title="Wie ein echtes Pendel-Metronom: Holzklick, auf der Eins die Glocke">Metronom</button><button data-metro-sound="beep" title="Ein heller, elektronischer Klick">Elektronisch</button><button data-metro-sound="drums" title="Ein einfacher Schlagzeug-Groove zur Orientierung; eingezählt wird mit den Sticks. Er wird nicht mit aufgenommen.">Schlagzeug</button></span></div>
-          <div class="m-f">Lautstärke<span class="m-vol"><input type="range" id="mVol" min="0" max="100" step="1" aria-label="Lautstärke des Metronoms"><b id="mVolPct">70</b></span></div>
+          <div class="m-f">Metronom<span class="seg" id="mModeSeg"><button data-metro-mode="sound" title="Klingt wie ein echtes Pendel-Metronom, dazu zeigt das kleine Metronom unten rechts den Schlag">Klang</button><button data-metro-mode="visual" title="Kein Ton: nur das kleine Metronom unten rechts zeigt den Schlag">Nur Licht</button><button data-metro-mode="off" title="Kein Metronom, weder Ton noch Bild">Aus</button></span></div>
+          <div class="m-f m-snd">Klick<span class="seg" id="mClickSeg"><button data-metro-click="on">Immer</button><button data-metro-click="count">Nur Einzählen</button><button data-metro-click="off">Stumm</button></span></div>
+          <div class="m-f m-snd">Klang<span class="seg" id="mSoundSeg"><button data-metro-sound="wood" title="Wie ein echtes Pendel-Metronom: Holzklick, auf der Eins die Glocke">Metronom</button><button data-metro-sound="beep" title="Ein heller, elektronischer Klick">Elektronisch</button><button data-metro-sound="drums" title="Ein einfacher Schlagzeug-Groove zur Orientierung; eingezählt wird mit den Sticks. Er wird nicht mit aufgenommen.">Schlagzeug</button></span></div>
+          <div class="m-f m-snd">Lautstärke<span class="m-vol"><input type="range" id="mVol" min="0" max="100" step="1" aria-label="Lautstärke des Metronoms"><b id="mVolPct">70</b></span></div>
         </div>
         <div class="m-acts"><button class="btn primary" id="mGo">Einzählen und aufnehmen</button><button class="btn" id="mCancel">Abbrechen</button></div>
         <p class="m-hint" id="mHint">Drücke eine Taste, danach zähle ich ein. Spiel im Takt, die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.</p>
@@ -1243,7 +1278,7 @@ function rn(n) {
 const GM_FAMILY = ['Klavier', 'Glocken & Mallets', 'Orgel', 'Gitarre', 'Bass', 'Streicher', 'Ensemble', 'Blechbläser', 'Rohrblatt', 'Flöten', 'Synth-Lead', 'Synth-Pad', 'Synth-Effekte', 'Ethno', 'Perkussion', 'Effekte'];
 
 /* ---------- Settings ---------- */
-const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroSig: '4/4', metroCount: '1', metroClick: 'on', metroSound: 'wood', drumKit: 'lm2', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', vz: {}, kl: {}, recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
+const settings = Object.assign({ drums: 'file', road: 0, keys3d: true, metroBpm: 90, metroMode: 'sound', metroSig: '4/4', metroCount: '1', metroClick: 'on', metroSound: 'wood', drumKit: 'lm2', metroVol: 70, metroWith: 'metro', hands: 'both', recHand: 'P', trackName: '', vz: {}, kl: {}, recLoop: 0, loopFill: true, practStats: false, fingerKeys: true, volLive: 80, volGuide: 60, volAcc: 70, pre: 2, guide: 0, sound: 'concert', color: 'pitch', names: true, german: true, look: 3, vol: 70, self: false, mode: 'watch', view: 'rain', speed: 100, chan: 'all', transp: 0, player: '' }, store.get('settings', {}));
 // every view has its own zoom and its own switch for the coloured lights on the keys
 const viewKey = () => settings.view === 'rain' ? 'road' : settings.view;
 const zoomOf = v => Math.max(0.4, Math.min(3, (settings.vz || {})[v || viewKey()] || 1));
@@ -3916,7 +3951,7 @@ function overdubStart() {
   if (playing) togglePlay();
   if (edit.on) editToggle(false);
   synth.ensure();
-  settings.mode = 'watch'; document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); syncPractice();
+  settings.mode = 'watch'; document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === 'watch')); syncPractice(); syncFree();
   // count in one bar before the first note, with the song's own beat
   const B = song.beats, start = Math.max(0, song.firstStart - 0.05);
   let bi = 0; for (let i = 0; i < B.length; i++) { if (B[i].time <= start + 1e-6 && B[i].bar) bi = i; }
@@ -3988,7 +4023,9 @@ function overdubStop(keep) {
     let notes = eventsToNotes(r.ev, true).filter(x => x.end > 0);
     if (r.loop && notes.length) notes = loopNotes(r.loop, notes);
     if (notes.length) {
-      const parts = [...song.parts, { name: trackName(), ch: 0, program: 0, drum: false, role: settings.recHand || 'P', sound: settings.sound, notes }];
+      const parts = [...song.parts], np = { name: trackName(), ch: 0, program: 0, drum: false, role: settings.recHand || 'P', sound: settings.sound, notes };
+      let at = -1; parts.forEach((p, i) => { if ((p.sound || '') === settings.sound) at = i; });
+      parts.splice(at >= 0 ? at + 1 : parts.length, 0, np);
       tracksRebuild(parts); seek(song.firstStart - 1);
       return;
     }
@@ -4186,6 +4223,7 @@ function metroClick(at, accent) {
 }
 // one beat of the guide: the click, or with "Schlagzeug" a groove (counted in with the sticks)
 function metroBeat(at, pos, n, spb, count) {
+  if ((settings.metroMode || 'sound') !== 'sound') return;   // "Nur Licht" and "Aus" stay silent
   if ((settings.metroSound || 'wood') !== 'drums') { metroClick(at, pos === 0 ? 2 : (n === 6 && pos === 3) ? 1 : 0); return; }
   const v = Math.round(30 + 90 * settings.metroVol / 100), fx = { bus: 'acc' };
   if (count) { synth.drum(37, pos === 0 ? v : Math.round(v * 0.8), at, fx); return; }
@@ -4250,6 +4288,52 @@ function metroDraw() {
     $('#mNum').textContent = pos + 1; $('#mSub').textContent = 'Takt ' + bar + ' · ' + fmt(Math.max(0, (performance.now() - rec.t0) / 1000));
   }
 }
+// the small metronome in the bottom right corner: it swings and counts as long as a take runs
+function metroMiniDraw() {
+  const el = $('#metroMini'), on = (settings.metroMode || 'sound') !== 'off' && !!rec && (rec.overdub || metro.phase !== 'ready') && !!synth.ctx;
+  if (el.hidden === on) el.hidden = !on;
+  if (!on) return;
+  let beat, n, bar = 0, pos;
+  if (rec.overdub) {
+    const B = song.beats; if (!B.length) return;
+    n = (B[0] && B[0].n) || 4;
+    if (t < B[0].time) { const spb = B.length > 1 ? B[1].time - B[0].time : 0.5; beat = (t - B[0].time) / spb; pos = ((Math.floor(beat) % n) + n) % n; bar = 0; }
+    else {
+      let lo = 0, hi = B.length - 1; while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (B[mid].time <= t) lo = mid; else hi = mid - 1; }
+      const nx = B[lo + 1] ? B[lo + 1].time : B[lo].time + 0.5; beat = lo + Math.min(0.999, (t - B[lo].time) / Math.max(0.01, nx - B[lo].time));
+      pos = 0; for (let j = lo; j > 0 && !B[j].bar; j--) pos++;
+      for (let j = 0; j <= lo; j++) if (B[j].bar) bar++;
+      n = B[lo].n || n;
+    }
+  } else {
+    n = metro.n || 4; beat = (synth.ctx.currentTime - metro.a0) / (metro.spb || 0.5) - (metro.countBeats || 0);
+    pos = ((Math.floor(beat) % n) + n) % n; bar = beat < 0 ? 0 : Math.floor(beat / n) + 1;
+  }
+  const count = beat < 0, frac = beat - Math.floor(beat), hit = !rec.paused && frac < 0.3;
+  if ($('#mmBeats').childElementCount !== n) $('#mmBeats').innerHTML = '<i></i>'.repeat(n);
+  [...$('#mmBeats').children].forEach((b, i) => b.classList.toggle('on', hit && i === pos));
+  el.classList.toggle('hit', hit); el.classList.toggle('one', hit && pos === 0); el.classList.toggle('count', count);
+  $('#mmArm').setAttribute('transform', 'rotate(' + (rec.paused ? 0 : 26 * Math.cos(Math.PI * beat)).toFixed(2) + ' 60 140)');
+  $('#mmWeight').setAttribute('y', metroWeightY(rec.overdub && song.beats.length > 1 ? Math.max(40, Math.min(208, 60 / (song.beats[1].time - song.beats[0].time) * settings.speed / 100)) : settings.metroBpm));
+  const num = String(pos + 1), sub = rec.paused ? 'Pause' : count ? 'Einzählen' : 'Takt ' + bar;
+  if ($('#mmNum').textContent !== num) $('#mmNum').textContent = num;
+  if ($('#mmSub').textContent !== sub) $('#mmSub').textContent = sub;
+}
+// "Spur hinzufügen": only now the take becomes a track, next to the tracks of the same instrument, and the track list opens
+function recAddTrack() {
+  if (!rec || rec.starting) return;
+  if (!rec.overdub) { recStop(true); return; }
+  if (!eventsToNotes(rec.ev, true).some(x => x.end > 0)) { rec.msg = 'Noch nichts eingespielt'; rec.msgUntil = performance.now() + 1600; return; }
+  overdubStop(true); setDrawer(true);
+}
+// "Löschen": the take so far is gone, the recording runs on
+function recErase() {
+  if (!rec) return;
+  rec.ev = []; rec.any = false; rec.lastIn = performance.now();
+  if (rec.loop) { rec.loop.hits = []; rec.loop.open.clear(); }
+  rec.msg = 'Gelöscht, spiel neu ein'; rec.msgUntil = performance.now() + 1600; renderDrawer();
+}
+$('#rbAdd').onclick = recAddTrack; $('#rbErase').onclick = recErase;
 /* ---------- recording controls: pause, stop, discard, and the automatic stop after four quiet bars ---------- */
 const recBeat = () => { if (rec && rec.overdub) { const B = song.beats; return B.length > 1 ? (B[1].time - B[0].time) / (settings.speed / 100) : 0.5; } return metro.spb || 0.5; };
 const recBarN = () => rec && rec.overdub ? ((song.beats[0] && song.beats[0].n) || 4) : (metro.n || 4);
@@ -4292,6 +4376,7 @@ function syncRecBar() {
     const left = 4 * recBarN() * recBeat() - (performance.now() - (rec.lastIn || rec.since || performance.now())) / 1000;
     if (left < 2 * recBarN() * recBeat()) txt = rec.any ? 'Stoppt in ' + Math.max(0, Math.ceil(left / (recBarN() * recBeat()))) + ' Takten' : 'Kein Ton, stoppt gleich';
   }
+  if (rec.msgUntil > performance.now()) txt = rec.msg;
   if ($('#rbTxt').textContent !== txt) $('#rbTxt').textContent = txt;
 }
 // called every frame: after four bars without a key, and with nothing else playing, the take ends by itself
@@ -4341,6 +4426,8 @@ $('#mTap').onclick = () => {
 segInit('#mSigSeg', 'metroSig', metroLayout);
 segInit('#mCountSeg', 'metroCount', metroLayout);
 segInit('#mClickSeg', 'metroClick', () => {});
+segInit('#mModeSeg', 'metroMode', () => { $('#metro').dataset.mode = settings.metroMode; });
+$('#metro').dataset.mode = settings.metroMode || 'sound';
 // hear the chosen sound: one bar
 segInit('#mSoundSeg', 'metroSound', () => { if (!synth.ensure()) return; const { n } = metroSig(), spb = 60 / settings.metroBpm, a = synth.ctx.currentTime + 0.05; for (let k = 0; k < n; k++) metroBeat(a + k * spb, k, n, spb, false); });
 // like on a real metronome the tempo is set by sliding the weight on the pendulum: up is slower, down faster
@@ -5284,7 +5371,7 @@ function frame() {
     if (song) $('#tNow').textContent = fmt(Math.max(0, t));
     drawOverview();
     updateWaitHint();
-    metroDraw();
+    metroDraw(); metroMiniDraw();
     recWatch();
     if (rec) $('#recBtn').title = 'Aufnahme läuft (zum Beenden klicken)';
     const r1 = performance.now(); drawCost = drawCost * 0.85 + (r1 - r0) * 0.15; lastDraw = r1;
