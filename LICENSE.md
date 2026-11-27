@@ -38,5 +38,7 @@ Die Software wird so bereitgestellt, wie sie ist, ohne jede Gewährleistung. Der
 Diese Teile stehen unter ihren eigenen Lizenzen. Die Bildungslizenz schränkt sie nicht ein.
 - `samples/salamander`: Salamander Grand Piano von Alexander Holm, CC BY 3.0.
 - `samples/orchester`: Instrument-Aufnahmen, CC BY 3.0. Die Quellen stehen in `samples/orchester/LIZENZ.md`.
+- `samples/drums`: Drumcomputer-Klänge, gemeinfrei (Public Domain). Die Quelle steht in `samples/drums/LIZENZ.md`.
+- Instrument-Bilder (Gitarren, Bässe, Streicher, Bläser, Sitar, Veena, Schlagzeug) aus der Sammlung „Musical Instruments Gallery“ von SVG Repo (https://www.svgrepo.com/collection/musical-instruments-gallery/), SVG Repo License (https://www.svgrepo.com/page/licensing/).
 - VexFlow (Notensatz, zur Laufzeit geladen): MIT-Lizenz.
 - Die mitgelieferten Musikstücke sind gemeinfreie Kompositionen.
