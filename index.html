@@ -640,15 +640,68 @@ table.scores tr.me td { color: var(--gold); }
   .seg-sel .ps-l { padding: 6px 22px 6px 9px; font-size: 12px; } .seg-sel svg { right: 7px; }
   .hud .v { font-size: 13px; }
   .head-actions .btn .txt { display: none; }
-  /* small screens: the views and modes as icons only */
-  #viewSeg .t, #modeSeg .t { display: none; }
-  #viewSeg .vi { width: 18px; height: 18px; }
-  #modeSeg .vi { display: block; width: 18px; height: 18px; }
-  #viewSeg button, #modeSeg button { padding: 6px 10px; }
-  .seg-sel .ps-i { display: block; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
-  .seg-sel.on .ps-i { color: var(--gold); }
-  .seg-sel .ps-l { font-size: 0; padding: 6px 18px 6px 30px; min-height: 30px; box-sizing: border-box; display: inline-block; }
 }
+/* a footer that would need two rows shows its views and modes as icons only (and gets narrower step by step) */
+.transport.compact #viewSeg .t, .transport.compact #modeSeg .t { display: none; }
+.transport.compact #viewSeg .vi { width: 18px; height: 18px; }
+.transport.compact #modeSeg .vi { display: block; width: 18px; height: 18px; }
+.transport.compact #viewSeg button, .transport.compact #modeSeg button { padding: 6px 9px; }
+.transport.compact .seg-sel .ps-i { display: block; position: absolute; left: 9px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--muted); pointer-events: none; }
+.transport.compact .seg-sel.on .ps-i { color: var(--gold); }
+.transport.compact .seg-sel .ps-l { font-size: 0; padding: 6px 16px 6px 28px; min-height: 30px; box-sizing: border-box; display: inline-block; }
+.transport.compact .seg-sel svg:not(.ps-i) { right: 5px; }
+.transport.compact .zoom-box .lbl { display: none; }
+.transport.tiny { gap: 6px 7px; padding-left: max(8px, env(safe-area-inset-left, 0px)); padding-right: max(8px, env(safe-area-inset-right, 0px)); }
+.transport.tiny .play-btn { width: 38px; height: 38px; }
+.transport.tiny .rec-btn, .transport.tiny .btn.icon, .transport.tiny .pop-btn { width: 32px; height: 32px; }
+.transport.tiny #viewSeg button, .transport.tiny #modeSeg button { padding: 5px 6px; }
+.transport.tiny .seg-sel .ps-l { padding: 5px 13px 5px 26px; min-height: 28px; }
+.transport.tiny .seg-sel .ps-i { left: 6px; }
+.transport.tiny .seg, .transport.tiny .hands { padding: 2px; }
+.transport.tiny .hand { width: 30px; height: 30px; }
+.transport.tiny .hand svg { width: 18px; height: 27px; }
+.transport.tiny .view-group { gap: 4px; }
+.transport.tiny .zoom-box .btn { padding: 4px 6px; }
+.transport.tiny .zoom-box .range-label { min-width: 0; padding: 0 3px; font-size: 10px; }
+.transport.tiny2 .zoom-box .range-label, .transport.tiny2 #zAuto, .transport.tiny2 #zFull { display: none; }
+.transport.tiny2 #viewSeg .vi, .transport.tiny2 #modeSeg .vi { width: 16px; height: 16px; }
+.transport.tiny2 #viewSeg button, .transport.tiny2 #modeSeg button { padding: 5px 4px; }
+/* the rhythm picker: its own button next to the instrument */
+.rhy-ctl .rhy-panel { width: 460px; }
+.rhy-panel .note { margin: 0; font-size: 10.5px; color: var(--muted); }
+.drum-chips button small { opacity: .7; margin-left: 4px; font-size: 9.5px; }
+/* the start screen: what do you want to do? The band waits behind it */
+.start-veil { background: radial-gradient(80% 70% at 50% 40%, rgba(4,6,10,.25), rgba(4,6,10,.72)); backdrop-filter: none; z-index: 60; }
+.start-veil[hidden] { display: none; }
+.start-card { width: min(560px, 100%); max-height: calc(100vh - 32px); overflow-y: auto; background: linear-gradient(180deg, rgba(20,26,40,.92), rgba(13,17,27,.94)); backdrop-filter: blur(10px); gap: 14px; }
+.start-card h2 { text-align: center; }
+.st-main { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.st-main button { display: grid; justify-items: center; gap: 6px; padding: 16px 8px 14px; border-radius: 14px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: inherit; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
+.st-main button:hover, .st-main button:focus-visible { border-color: rgba(220,185,120,.6); background: rgba(220,185,120,.08); transform: translateY(-2px); outline: none; }
+.st-main button svg { width: 34px; height: 34px; color: var(--gold); }
+.st-main b { font-family: var(--f-display); font-size: 16px; font-weight: 600; }
+.st-main small { color: var(--muted); font-size: 11.5px; line-height: 1.3; text-align: center; }
+.st-main .rec-dot { width: 16px; height: 16px; margin: 9px; border-radius: 50%; background: #ff5d6c; box-shadow: 0 0 0 5px rgba(255,93,108,.22); }
+.start-card h3 { margin: 4px 0 -4px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.st-styles { display: flex; flex-wrap: wrap; gap: 6px; }
+.st-styles button { padding: 7px 13px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-size: 13px; cursor: pointer; }
+.st-styles button:hover, .st-styles button[aria-pressed=true] { border-color: rgba(220,185,120,.6); color: var(--gold); }
+.st-styles .mine { margin-left: auto; color: var(--gold); border-color: rgba(220,185,120,.45); }
+.st-list { display: grid; gap: 6px; }
+.st-list[hidden] { display: none; }
+.st-list button { display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; text-align: left; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); cursor: pointer; font: inherit; }
+.st-list button:hover { border-color: rgba(220,185,120,.55); }
+.st-list button small { grid-column: 1; color: var(--muted); font-size: 11.5px; }
+.st-list button i { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-style: normal; font-size: 11px; color: var(--muted); }
+.st-list .note { margin: 0; color: var(--muted); font-size: 12.5px; }
+@media (max-width: 520px) { .st-main { grid-template-columns: 1fr; } .st-main button { grid-template-columns: 40px 1fr; justify-items: start; text-align: left; padding: 10px 12px; } .st-main button svg, .st-main .rec-dot { grid-row: span 2; align-self: center; } .st-main small { text-align: left; } }
+/* the about tab: sources and licences */
+.about p { margin: 0 0 8px; font-size: 13px; line-height: 1.5; }
+.about ul { margin: 0 0 6px; padding-left: 18px; font-size: 13px; line-height: 1.5; }
+.about li + li { margin-top: 5px; }
+.about li small { display: block; color: var(--muted); font-size: 11.5px; }
+.about a { color: var(--gold); text-decoration-color: rgba(220,185,120,.4); text-underline-offset: 2px; }
+.tabs { gap: 2px; } .tabs button { padding: 7px 9px; }
 /* while playing, a header that wraps into two rows (small screens) is hidden completely */
 header.bar.hide2 { display: none !important; }
 @media (prefers-reduced-motion: reduce) { .panel { transition: none; } }
@@ -664,7 +717,12 @@ header.bar.hide2 { display: none !important; }
     <div class="pop-ctl inst-ctl" id="instCtl">
       <button class="pop-btn inst-btn" id="instBtn" title="Instrument und Schlagzeug" aria-label="Instrument und Schlagzeug" aria-expanded="false"></button>
       <span class="k-lbl" id="instLbl">Klang</span>
-      <div class="pop-panel down inst-panel"><div class="inst-groups" id="instGrid"></div><h4>Schlagzeug-Klang</h4><div class="kit-chips" id="kitChips"></div><p class="kit-note" id="kitNote" hidden></p><h4 class="kit"><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="16" cy="16" rx="6" ry="6"/><circle cx="16" cy="16" r="2"/><ellipse cx="7" cy="12" rx="4" ry="1.6"/><path d="M3 12v6c0 .9 1.8 1.6 4 1.6s4-.7 4-1.6v-6"/><ellipse cx="25" cy="13" rx="3.4" ry="1.4"/><path d="M21.6 13v4.5c0 .8 1.5 1.4 3.4 1.4s3.4-.6 3.4-1.4V13"/><path d="M2 5.5l7 1.4M5.5 6.2V11" opacity=".8"/><path d="M23 4.5l7 -1.2M26.5 3.9V11.5" opacity=".8"/><path d="M12 22l-1.5 1.5M20 22l1.5 1.5"/></svg>Rhythmus</h4><div class="drum-chips" id="drumChips"></div></div>
+      <div class="pop-panel down inst-panel"><div class="inst-groups" id="instGrid"></div><h4>Schlagzeug-Klang</h4><div class="kit-chips" id="kitChips"></div><p class="kit-note" id="kitNote" hidden></p></div>
+    </div>
+    <div class="pop-ctl inst-ctl rhy-ctl" id="rhyCtl">
+      <button class="pop-btn inst-btn" id="rhyBtn" title="Rhythmus zur Begleitung" aria-label="Rhythmus zur Begleitung" aria-expanded="false"><svg viewBox=" 0   0   449.5   449.5 " fill="currentColor" aria-hidden="true"><path d="M314.8 105.4c-3.5-14.5-6-29.1-7.5-43.4c6.3-3.1 9.3-6.8 9.3-11c0 0 0-15.1 0-15.6c0-4.8-3.2-9.2-9.6-13c-1.7-6.6-10.3-12-25.7-16.1C266.2 2.2 246.1 0 224.8 0c-21.3 0-41.4 2.2-56.6 6.3c-15.3 4.1-23.9 9.5-25.7 16.1c-6.4 3.8-9.6 8.1-9.6 13c0 0.6 0 15.6 0 15.6c0 4.2 3.1 7.9 9.3 11c-1.5 14.4-4 28.9-7.5 43.4c-6.8 28.6-10.3 59.5-10.3 91.7c0 42.4 6.1 83.1 17.7 117.7c13.5 40.3 22.9 80.3 28 118.8l0.3 2c0.2 1.4 1.1 2.6 2.4 3.1c16.5 7.2 34.3 10.8 52.1 10.8c17.8 0 35.5-3.6 52.1-10.8c1.3-0.6 2.2-1.7 2.4-3.1l0.3-2c5.1-38.5 14.5-78.4 27.9-118.8c11.6-34.6 17.7-75.3 17.7-117.7C325.1 164.9 321.6 134 314.8 105.4zM170.2 14C184.7 10.1 204.1 8 224.8 8s40 2.1 54.5 6c15.9 4.2 20 9 20 10.9s-4.2 6.7-20 10.9c-14.5 3.9-33.9 6-54.5 6s-40-2.1-54.5-6c-15.9-4.2-20-9-20-10.9S154.4 18.2 170.2 14zM144.1 30.9c3.4 5.1 11.5 9.3 24 12.6c15.2 4 35.3 6.3 56.6 6.3s41.4-2.2 56.6-6.3c12.6-3.3 20.6-7.6 24-12.6c2.1 1.6 3.2 3.2 3.2 4.5c0 2.5-4.8 7.9-22.8 12.6c-16.3 4.3-38 6.7-61.1 6.7s-44.8-2.4-61.1-6.7c-18-4.8-22.8-10.2-22.8-12.6C140.9 34.1 142.1 32.5 144.1 30.9zM140.9 51V47.2C156.1 57.4 190.6 62.7 224.8 62.7s68.7-5.3 83.9-15.5v3.7c0 0.7-2.5 4-14.6 7.5c-2.1 0.6-3.3 2.8-2.8 4.9c0.2 0.6 0.2 1.2 0.2 1.8c0 3.8-3.1 6.9-6.9 6.9c-3.4 0-6.4-2.6-6.9-6c-0.1-1.1-0.7-2-1.6-2.6c-0.9-0.6-1.9-0.9-3-0.8c-14.3 2.1-31.1 3.2-48.4 3.2s-34.1-1.1-48.4-3.2c-1.1-0.2-2.1 0.1-3 0.8c-0.9 0.6-1.4 1.6-1.6 2.6c-0.5 3.4-3.4 6-6.9 6c-3.8 0-6.9-3.1-6.9-6.9c0-0.6 0.1-1.2 0.2-1.8c0.6-2.1-0.7-4.3-2.8-4.9C143.4 55 140.9 51.7 140.9 51zM299.4 135.1l-5.7 10.8l-7.6-9.6l5.7-10.8L299.4 135.1zM157.7 125.5l5.7 10.8l-7.6 9.6l-5.7-10.8L157.7 125.5zM178 432.3c-0.4-3-0.8-6.1-1.3-9.1c15.5 5.4 31.8 8.1 48.1 8.1c16.3 0 32.6-2.7 48.1-8.1c-0.5 3-0.9 6.1-1.3 9.1C241.7 444.6 207.8 444.6 178 432.3zM299.8 312.2c-11.5 34.5-20.1 68.7-25.5 101.9c-31.6 12.2-67.4 12.2-99 0c-5.5-33.3-14.1-67.5-25.5-101.9c-11.3-33.8-17.2-73.6-17.2-115.2c0-31.6 3.4-61.8 10.1-89.8c3.4-14 7.5-42.1 7.5-42.1c0 0 0 0 0 0c0 5.7 3.2 10.7 8 13.2l-3.5 38.3l-12.3 15.4c-1 1.2-1.1 3-0.4 4.4l9.8 18.5c0.6 1.2 1.8 2 3.2 2.1c0.1 0 0.2 0 0.4 0c1.2 0 2.4-0.6 3.1-1.5l13-16.4c1-1.2 1.1-3 0.4-4.4l-9.3-17.4l3.4-37.4c5.6-0.4 10.6-3.9 12.8-8.9c13.9 1.8 29.7 2.8 46.1 2.8s32.2-1 46.1-2.8c2.2 5 7.1 8.6 12.8 8.9l3.4 37.4l-9.3 17.4c-0.7 1.4-0.6 3.1 0.4 4.4l13 16.4c0.8 1 1.9 1.5 3.1 1.5c0.1 0 0.2 0 0.4 0c1.3-0.1 2.5-0.9 3.2-2.1l9.8-18.5c0.7-1.4 0.6-3.1-0.4-4.4l-12.3-15.4l-3.5-38.3c4.7-2.5 8-7.5 8-13.2c0 0 0 0 0 0c0 0 4.2 28.1 7.5 42.1c6.7 28 10 58.2 10 89.8C317.1 238.6 311.1 278.4 299.8 312.2z"/></svg></button>
+      <span class="k-lbl" id="rhyLbl">Rhythmus</span>
+      <div class="pop-panel down inst-panel rhy-panel"><h4>Rhythmus zur Begleitung</h4><div class="drum-chips" id="drumChips"></div><p class="note">Der Rhythmus folgt Takt und Tempo des Liedes. Den Klang wählst du unter „Schlagzeug-Klang“ bei den Instrumenten.</p></div>
     </div>
     <div class="tempo-ctl" title="Tempo des Liedes (↑ ↓)"><span class="k-lbl">Tempo</span><button class="t-step" id="speedDown" aria-label="Langsamer">−</button><span class="t-track"><input type="range" id="speed" min="25" max="110" step="5" value="100" aria-label="Tempo des Liedes in Prozent"><span class="t-thumb" id="speedPct" aria-hidden="true">100</span></span><button class="t-step" id="speedUp" aria-label="Schneller">+</button></div>
     <div class="knobs" aria-label="Lautstärke">
@@ -688,6 +746,7 @@ header.bar.hide2 { display: none !important; }
       <button class="btn icon plug-btn" id="midiBtn" title="MIDI-Keyboard verbinden" aria-label="MIDI-Keyboard verbinden"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4"/><path d="M6.5 7h11v3.5a5.5 5.5 0 0 1-11 0z"/><path d="M12 16v2.5a2.5 2.5 0 0 0 2.5 2.5H17"/></svg><span class="chip-dot" id="midiDot"></span><span class="sr" id="midiTxt">Keyboard verbinden</span></button>
       <button class="btn" id="libBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><span class="txt">Songs</span></button>
       <button class="btn icon" id="fsBtn" title="Vollbild" aria-label="Vollbild" aria-pressed="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path class="fs-in" d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><path class="fs-out" d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+      <button class="btn icon" id="homeBtn" title="Start: Was möchtest du tun?" aria-label="Startauswahl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 9.5V20h12V9.5"/><path d="M10 20v-5h4v5"/></svg></button>
       <button class="btn icon" id="setBtn" title="Stimmen, Highscore und Einstellungen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="currentColor"/><circle cx="15" cy="12" r="2" fill="currentColor"/><circle cx="7" cy="18" r="2" fill="currentColor"/></svg></button>
     </div>
   </header>
@@ -875,6 +934,26 @@ header.bar.hide2 { display: none !important; }
   </footer>
 </div>
 
+<div class="overlay start-veil" id="startVeil" hidden>
+  <div class="card start-card" role="dialog" aria-modal="true" aria-labelledby="stH">
+    <h2 id="stH">Was möchtest du tun?</h2>
+    <div class="st-main">
+      <button type="button" data-st="play"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M7 6v7M12 6v7M17 6v7"/><path d="M5.5 6v5h3V6M15.5 6v5h3V6" fill="currentColor" opacity=".35"/></svg><b>Spielen</b><small>Einfach drauflos, die Band wartet hinter den Tasten</small></button>
+      <button type="button" data-st="rec"><span class="rec-dot" aria-hidden="true"></span><b>Aufnehmen</b><small>Ein eigenes Stück einspielen, Spur für Spur</small></button>
+      <button type="button" data-st="learn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg><b>Lied üben</b><small>Ein Lied wählen, es wartet auf dich</small></button>
+    </div>
+    <h3>Lieder nach Stil</h3>
+    <div class="st-styles" id="stStyles">
+      <button type="button" data-style="kids" aria-pressed="false">Kinderlieder</button>
+      <button type="button" data-style="classic" aria-pressed="false">Klassik</button>
+      <button type="button" data-style="jazz" aria-pressed="false">Jazz &amp; Ragtime</button>
+      <button type="button" data-style="web" aria-pressed="false">Im Internet suchen</button>
+      <button type="button" data-style="mine" class="mine" aria-pressed="false">Meine Songs</button>
+    </div>
+    <div class="st-list" id="stList" hidden></div>
+  </div>
+</div>
+
 <aside class="panel" id="panel" aria-label="Seitenleiste">
   <div class="panel-head"><h2 id="panelTitle">Bibliothek</h2><span class="panel-acts"><button class="btn icon" id="pdfBtn" title="Noten drucken oder als PDF speichern" aria-label="Noten als PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M8.5 17v-4h1.3a1.3 1.3 0 0 1 0 2.6H8.5M12.5 17v-4h1a2 2 0 0 1 0 4zM17 13h-1.6v4M15.4 15h1.4"/></svg></button><button class="btn icon" id="panelClose" title="Schließen">✕</button></span></div>
   <div class="tabs" role="tablist">
@@ -882,6 +961,7 @@ header.bar.hide2 { display: none !important; }
     <button role="tab" data-tab="tracks" aria-selected="false">Stimmen</button>
     <button role="tab" data-tab="scores" aria-selected="false">Highscore</button>
     <button role="tab" data-tab="settings" aria-selected="false">Einstellungen</button>
+    <button role="tab" data-tab="about" aria-selected="false">Über</button>
   </div>
   <div class="panel-body" id="tab-songs">
     <button class="btn primary new-song" id="newSongBtn" title="Ein leeres Stück anfangen: das Metronom zählt ein, du spielst die erste Spur, und du siehst dabei, was du aufnimmst"><span class="rec-dot"></span>Neuen Song einspielen</button>
@@ -947,6 +1027,40 @@ header.bar.hide2 { display: none !important; }
       <p class="note">Punkte gibt es im Modus Highscore: Perfekt 100, Gut 70, Okay 40, mal Kombo-Faktor (bis ×4) und mal Tempo. Gespeichert wird in diesem Browser.</p>
     </section>
   </div>
+  <div class="panel-body about" id="tab-about" hidden>
+    <section>
+      <h3>mmmusik</h3>
+      <p>Klavier spielen, üben und aufnehmen, im Browser. Diese Quellen stecken in der App, vielen Dank an alle, die sie frei teilen.</p>
+    </section>
+    <section>
+      <h3>Klänge</h3>
+      <ul>
+        <li><a href="https://github.com/Tonejs/audio" target="_blank" rel="noopener">Salamander Grand Piano</a> von Alexander Holm<small>Konzertflügel · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></small></li>
+        <li><a href="https://github.com/nbrosowsky/tonejs-instruments" target="_blank" rel="noopener">tonejs-instruments</a> von Nicholaus P. Brosowsky<small>Streicher, Bläser, Gitarren und E-Bass · <a href="https://creativecommons.org/licenses/by/3.0/" target="_blank" rel="noopener">CC BY 3.0</a></small></li>
+        <li><a href="https://github.com/smpldsnds/drum-machines" target="_blank" rel="noopener">drum-machines</a> von smpldsnds<small>LinnDrum LM-2, Roland TR-808 und CR-8000, Casio RZ-1 · gemeinfrei (Public Domain). Die Gerätenamen sind Marken ihrer Hersteller.</small></li>
+        <li>Alle anderen Instrumente erzeugt die App selbst<small>Synthesizer, Orgel, E-Pianos, Veena, Tabla, Nadaswaram und das synthetische Schlagzeug</small></li>
+      </ul>
+    </section>
+    <section>
+      <h3>Bilder</h3>
+      <ul>
+        <li>Instrument-Bilder aus der Sammlung <a href="https://www.svgrepo.com/collection/musical-instruments-gallery/" target="_blank" rel="noopener">Musical Instruments Gallery</a> von <a href="https://www.svgrepo.com/" target="_blank" rel="noopener">SVG Repo</a><small>Gitarren, Bässe, Streicher, Bläser, Sitar, Veena und Schlagzeug · <a href="https://www.svgrepo.com/page/licensing/" target="_blank" rel="noopener">SVG Repo License</a></small></li>
+        <li>Alle übrigen Bilder und Symbole sind für mmmusik gezeichnet</li>
+      </ul>
+    </section>
+    <section>
+      <h3>Noten und Lieder</h3>
+      <ul>
+        <li>Die eingebauten Lieder sind Volkslieder und gemeinfreie Kompositionen (Beethoven, Petzold, Satie, Joplin), dazu eigene Stücke</li>
+        <li>Die Suche findet frei lizenzierte MIDI-Dateien auf <a href="https://commons.wikimedia.org/wiki/Category:MIDI_files" target="_blank" rel="noopener">Wikimedia Commons</a><small>Die Lizenz steht bei jedem Treffer</small></li>
+        <li><a href="https://www.vexflow.com/" target="_blank" rel="noopener">VexFlow</a> setzt die Noten<small>MIT-Lizenz</small></li>
+      </ul>
+    </section>
+    <section>
+      <h3>Lizenz der App</h3>
+      <p>Frei für Schulen, Bildungseinrichtungen und das private Lernen. Die Bedingungen stehen in der <a href="https://github.com/lasjoh-toho/mmmusik/blob/main/LICENSE.md" target="_blank" rel="noopener">Lizenz</a>.</p>
+    </section>
+  </div>
   <div class="panel-body" id="tab-settings" hidden>
     <section class="field">
       <h3>MIDI-Keyboard</h3>
@@ -984,13 +1098,13 @@ header.bar.hide2 { display: none !important; }
         <optgroup label="Gitarre (echte Aufnahmen)"><option value="guitar">Konzertgitarre</option><option value="eguitar">E-Gitarre (clean)</option><option value="eguitardrive">E-Gitarre (verzerrt)</option></optgroup>
         <optgroup label="Bass"><option value="upright">Kontrabass gezupft (Upright)</option><option value="ebass">E-Bass (echte Aufnahmen)</option></optgroup>
         <optgroup label="Weitere"><option value="vibes">Vibraphon</option><option value="marimba">Marimba</option><option value="harp">Harfe</option><option value="musicbox">Spieluhr</option></optgroup>
-        <optgroup label="Aus aller Welt"><option value="kalimba">Kalimba (Daumenklavier)</option><option value="koto">Koto (Japan)</option><option value="sitar">Sitar (Indien)</option><option value="steelpan">Steeldrum (Karibik)</option><option value="gamelan">Gamelan-Glocken (Indonesien)</option><option value="panflute">Panflöte (Anden)</option></optgroup>
+        <optgroup label="Aus aller Welt"><option value="kalimba">Kalimba (Daumenklavier)</option><option value="koto">Koto (Japan)</option><option value="sitar">Sitar (Indien)</option><option value="veena">Veena (Südindien)</option><option value="tabla">Tabla (Indien)</option><option value="nadaswaram">Nadaswaram (Südindien)</option><option value="steelpan">Steeldrum (Karibik)</option><option value="gamelan">Gamelan-Glocken (Indonesien)</option><option value="panflute">Panflöte (Anden)</option></optgroup>
         <optgroup label="Schlagzeug"><option value="drumkit">Schlagzeug (und Percussion auf den Tasten)</option></optgroup>
       </select>
       <p class="note" id="soundNote" hidden></p>
       <button class="btn" id="pianoSave" hidden title="Die aus dem Internet geladenen Flügel-Aufnahmen in den Programmordner legen, damit sie ohne Internet klingen">Flügel-Aufnahmen im Programmordner speichern</button>
       <label for="drumSel">Schlagzeug zur Begleitung</label>
-      <select id="drumSel"><option value="off">Aus</option><option value="file">Nur aus der MIDI-Datei</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="swing">Swing (Besen-Ride)</option><option value="shuffle">Shuffle / Blues</option><option value="bossa">Bossa Nova</option><option value="waltz">Walzer</option><option value="latin">Percussion (Conga, Shaker, Cowbell)</option></select>
+      <select id="drumSel"><option value="off">Aus</option><option value="file">Nur aus der MIDI-Datei</option><option value="pop">Pop</option><option value="rock">Rock</option><option value="swing">Swing (Besen-Ride)</option><option value="shuffle">Shuffle / Blues</option><option value="bossa">Bossa Nova</option><option value="waltz">Walzer</option><option value="latin">Percussion (Conga, Shaker, Cowbell)</option><option value="hiphop">Hip-Hop</option><option value="trap">Trap</option><option value="dubstep">Dubstep</option><option value="house">House</option><option value="techno">Techno</option><option value="dnb">Drum &amp; Bass</option><option value="funk">Funk</option><option value="disco">Disco</option><option value="reggae">Reggae (One Drop)</option></select>
       <p class="note">Das Schlagzeug folgt Takt und Tempo des Liedes und läuft über den Regler „Begleitung“. Schlagzeugspuren aus MIDI-Dateien spielen immer mit, außer bei „Aus“. Beim Üben im Wartemodus pausiert es.</p>
       <label for="vol">Gesamtlautstärke</label>
       <input type="range" id="vol" min="0" max="100" value="70">
@@ -1247,16 +1361,17 @@ const synth = {
   pluck(kind, m) {
     const key = kind + m; if (this.plucks.has(key)) return this.plucks.get(key);
     const sr = this.ctx.sampleRate, f = 440 * Math.pow(2, (m - 69) / 12), N = Math.max(2, Math.round(sr / f));
-    const secs = kind === 'upright' ? 3.2 : kind === 'harp' ? Math.max(1.2, 5 - (m - 40) * 0.05) : kind === 'sitar' ? 3.5 : Math.max(0.8, 3 - (m - 48) * 0.03);
+    const secs = kind === 'upright' ? 3.2 : kind === 'harp' ? Math.max(1.2, 5 - (m - 40) * 0.05) : kind === 'sitar' ? 3.5 : kind === 'veena' ? Math.max(2.5, 5 - (m - 48) * 0.04) : Math.max(0.8, 3 - (m - 48) * 0.03);
     const len = Math.round(sr * secs), buf = this.ctx.createBuffer(1, len, sr), d = buf.getChannelData(0), ring = new Float32Array(N);
     // excitation: bright noise for koto and sitar, a soft plucked shape for the harp
     for (let i = 0; i < N; i++) ring[i] = kind === 'upright' ? (i < N * 0.22 ? i / (N * 0.22) : (N - i) / (N * 0.78)) * 0.9 + (Math.random() * 2 - 1) * 0.12 : kind === 'harp' ? Math.sin(Math.PI * i / N) * (0.6 + 0.4 * (Math.random() * 2 - 1)) : Math.random() * 2 - 1;
-    const damp = kind === 'upright' ? 0.998 : kind === 'harp' ? 0.996 : kind === 'koto' ? 0.994 : 0.998, mix = kind === 'harp' ? 0.5 : 0.5;
+    const damp = kind === 'upright' ? 0.998 : kind === 'harp' ? 0.996 : kind === 'koto' ? 0.994 : kind === 'veena' ? 0.9985 : 0.998, mix = kind === 'harp' ? 0.5 : 0.5;
     let prev = 0;
     for (let i = 0; i < len; i++) {
       const j = i % N, x = ring[j];
       let y = damp * (mix * x + (1 - mix) * prev);
       if (kind === 'sitar') y = Math.tanh(y * 1.6) / 1.6;           // a little nonlinearity for the buzz
+      else if (kind === 'veena') y = Math.tanh(y * 1.25) / 1.25;    // the veena buzzes too, but softer and rounder
       d[i] = x; ring[j] = y; prev = x;
     }
     const fade = Math.min(len, Math.round(sr * 0.05)); for (let i = 0; i < fade; i++) d[len - 1 - i] *= i / fade;
@@ -1482,6 +1597,44 @@ const synth = {
       } else if (sound === 'harp') src.connect(lp(Math.min(9000, f * 6))).connect(out); else src.connect(out);
       decay = src.buffer.duration; release = sound === 'harp' ? 0.4 : 0.15;
       out.gain.setValueAtTime(v * (sound === 'harp' ? 1.6 : 1.4), now);
+    } else if (sound === 'veena') {
+      // veena: a plucked string on a big wooden gourd; the note slides into place (gamaka), warm body, soft bridge buzz
+      const src = c.createBufferSource(); src.buffer = this.pluck('veena', m); oscs.push(src);
+      src.playbackRate.setValueAtTime(0.982, now); src.playbackRate.setTargetAtTime(1, now + 0.02, 0.05);
+      const pk = c.createBiquadFilter(); pk.type = 'peaking'; pk.Q.value = 3.5; pk.gain.value = 8;
+      pk.frequency.setValueAtTime(Math.min(8000, f * 6), now); pk.frequency.exponentialRampToValueAtTime(Math.min(6000, f * 3), now + 1.5);
+      const body = c.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 180; body.Q.value = 1.2; body.gain.value = 5;
+      src.connect(pk).connect(body).connect(lp(Math.min(9000, f * 14))).connect(out);
+      decay = src.buffer.duration; release = 0.2;
+      out.gain.setValueAtTime(v * 1.5, now);
+    } else if (sound === 'tabla') {
+      // tabla: below F3 the big bayan, whose pitch drops after the stroke; above it the tuned dayan with its harmonic ring
+      const vv = vel / 127;
+      if (m < 53) {
+        const o = osc('sine', f * 1.9); o.frequency.setValueAtTime(f * 1.9, now); o.frequency.exponentialRampToValueAtTime(f, now + 0.28);
+        const o2 = osc('sine', f * 3.8), g2 = gain(0); g2.gain.setValueAtTime(0.18, now); g2.gain.exponentialRampToValueAtTime(0.0001, now + 0.12); o2.connect(g2).connect(out);
+        o.connect(out); decay = 0.9 + vv * 0.5;
+      } else {
+        [[1, 1, 1], [2, 0.55, 0.7], [3, 0.34, 0.5], [4, 0.2, 0.35], [5.02, 0.12, 0.25]].forEach(([r, a, d]) => { const g = gain(0); g.gain.setValueAtTime(a, now); g.gain.exponentialRampToValueAtTime(0.0001, now + d * Math.max(0.25, 0.75 - (m - 60) * 0.01)); osc('sine', f * r).connect(g).connect(out); });
+        decay = Math.max(0.35, 0.8 - (m - 60) * 0.01);
+      }
+      // the finger on the skin
+      const nz = c.createBufferSource(); nz.buffer = this.noiseBuf(); oscs.push(nz); const nb = c.createBiquadFilter(); nb.type = 'bandpass'; nb.frequency.value = m < 53 ? 900 : 3200; nb.Q.value = 1.4;
+      const ng = gain(0); ng.gain.setValueAtTime(0.35 + vv * 0.5, now); ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.03); nz.connect(nb).connect(ng).connect(out);
+      release = 0.08;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 1.5, now + 0.002); out.gain.exponentialRampToValueAtTime(0.0001, now + decay);
+    } else if (sound === 'nadaswaram') {
+      // nadaswaram: a loud double reed with a wide bell, bright and nasal; the note bends up into place and sings with a slow vibrato
+      const o1 = osc('sawtooth', f), o2 = osc('square', f * 1.003);
+      [o1, o2].forEach(o => { o.detune.setValueAtTime(-45, now); o.detune.setTargetAtTime(0, now + 0.01, 0.06); });
+      const lfo = osc('sine', 5.3), lg = gain(0); lg.gain.setValueAtTime(0, now); lg.gain.linearRampToValueAtTime(f * 0.008, now + 0.6); lfo.connect(lg); lg.connect(o1.frequency); lg.connect(o2.frequency);
+      const mix = gain(1); o1.connect(mix); o2.connect(gain(0.45)).connect(mix);
+      const f1 = c.createBiquadFilter(); f1.type = 'peaking'; f1.frequency.value = 1250; f1.Q.value = 2.2; f1.gain.value = 10;
+      const f2 = c.createBiquadFilter(); f2.type = 'peaking'; f2.frequency.value = 2700; f2.Q.value = 2.5; f2.gain.value = 7;
+      const hp = c.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = Math.max(200, f * 0.9);
+      mix.connect(hp).connect(f1).connect(f2).connect(lp(Math.min(9000, 5200 + f))).connect(out);
+      decay = 40; release = 0.12;
+      out.gain.setValueAtTime(0, now); out.gain.linearRampToValueAtTime(v * 0.42, now + 0.05);
     } else if (sound === 'kalimba' || sound === 'musicbox') {
       // tines: a sine with one strong inharmonic partial that dies fast
       const box = sound === 'musicbox', fq = box ? f * 2 : f;
@@ -1659,6 +1812,25 @@ const GROOVES = {
   shuffle: (b) => [[0, 42, 85], [2 / 3, 42, 60], [0, b % 2 ? 38 : 36, b % 2 ? 105 : 110]],
   bossa: (b, n) => { const bar = [[[0, 36, 95], [0, 37, 80]], [[0.75, 36, 80], [0.5, 37, 75]], [[0, 36, 95]], [[0.75, 36, 80], [0, 37, 80], [0.5, 37, 70]]][b % 4]; return [...bar, [0, 70, 55], [0.25, 70, 35], [0.5, 70, 50], [0.75, 70, 35]]; },
   waltz: (b) => b === 0 ? [[0, 36, 105], [0, 42, 60]] : [[0, 38, 55], [0, 42, 75]],
+  // Hip-Hop: boom bap with lazy, swung hats
+  hiphop: (b) => [[0, 42, 80], [0.6, 42, 48], ...[[[0, 36, 118], [0.75, 36, 78]], [[0, 38, 112]], [[0.25, 36, 66], [0.5, 36, 108]], [[0, 38, 112], [0.85, 38, 34]]][b % 4]],
+  // Trap: half-time clap on 3, rolling hi-hats, an 808 that bounces
+  trap: (b) => [...(b % 4 === 3 ? [0, 1 / 6, 2 / 6, 3 / 6, 4 / 6, 5 / 6].map((f, i) => [f, 42, 50 + i * 9]) : [0, 0.25, 0.5, 0.75].map((f, i) => [f, 42, i % 2 ? 52 : 82])),
+    ...[[[0, 35, 120], [0.75, 35, 90]], [[0.5, 35, 96]], [[0, 39, 118], [0, 38, 70]], [[0.25, 35, 88]]][b % 4]],
+  // Dubstep: everything in half time, kick on 1, the big snare on 3
+  dubstep: (b) => [[0, 42, 70], [0.5, b % 2 ? 46 : 42, 60], ...[[[0, 36, 124]], [[0.75, 36, 92]], [[0, 38, 127], [0, 39, 90]], [[0.5, 36, 84], [0.75, 38, 40]]][b % 4]],
+  // House: four on the floor, clap on 2 and 4, the open hat between the beats
+  house: (b) => [[0, 36, 118], [0.5, 46, 72], [0.25, 42, 34], [0.75, 42, 40], ...(b % 2 ? [[0, 39, 100]] : [])],
+  // Techno: four on the floor, sixteenth hats, a rim shot that pushes
+  techno: (b) => [[0, 36, 124], [0.5, 46, 64], ...[0, 0.25, 0.5, 0.75].map((f, i) => [f, 42, i === 2 ? 70 : 38]), ...(b % 4 === 3 ? [[0.75, 37, 72]] : [])],
+  // Drum & Bass: the two-step break (fast songs feel right; slow songs turn into a half-time break)
+  dnb: (b) => [[0, 42, 70], [0.5, 42, 54], ...[[[0, 36, 120]], [[0, 38, 118]], [[0.5, 36, 104]], [[0, 38, 118], [0.75, 38, 36]]][b % 4]],
+  // Funk: sixteenth hats with accents, a syncopated kick, ghost notes on the snare
+  funk: (b) => [...[0, 0.25, 0.5, 0.75].map((f, i) => [f, 42, i % 2 ? 46 : 84]), ...[[[0, 36, 118], [0.75, 36, 86]], [[0, 38, 112], [0.75, 38, 30]], [[0.5, 36, 100], [0.25, 38, 28]], [[0, 38, 112], [0.5, 38, 30], [0.75, 36, 80]]][b % 4]],
+  // Disco: four on the floor, snare on 2 and 4, open hat on every off-beat
+  disco: (b) => [[0, 36, 112], [0, 42, 54], [0.5, 46, 84], ...(b % 2 ? [[0, 38, 104]] : [])],
+  // Reggae: the one drop, bass drum and cross-stick only on 3, swung hats
+  reggae: (b) => [[0, 42, 66], [2 / 3, 42, 46], ...(b % 4 === 2 ? [[0, 36, 108], [0, 37, 104]] : []), ...(b % 4 === 3 ? [[2 / 3, 37, 40]] : [])],
   latin: (b, n) => [[0, 64, b === 0 ? 100 : 70], [0.5, 63, 80], [0.75, 62, 60], [0, 70, 50], [0.25, 70, 30], [0.5, 70, 45], [0.75, 70, 30], ...(b % 2 === 0 ? [[0, 56, 70]] : [[0.5, 56, 55]])]
 };
 /* own drum patterns: a grid of sixteenths per beat, made in the pattern editor */
@@ -1673,7 +1845,7 @@ const KIT = {
   36: [36, 'kick', 1.15], 37: [35, 'kick', 1], 38: [38, 'snare', 1], 39: [37, 'rim', 1], 40: [40, 'snare', 0.92], 41: [39, 'clap', 1],
   42: [42, 'hhc', 1], 43: [41, 'floor', 1.2], 44: [44, 'hhp', 1], 45: [43, 'floor', 1.08], 46: [46, 'hho', 1], 47: [45, 'tom', 1.05],
   48: [47, 'tom', 0.95], 49: [49, 'crash', 1.1], 50: [48, 'tom', 0.86], 51: [51, 'ride', 1.3], 52: [50, 'tom', 0.76], 53: [53, 'bell', 1.15],
-  54: [55, 'splash', 0.75], 55: [54, 'tamb', 1], 56: [56, 'cowbell', 1], 57: [57, 'crash', 1.22], 58: [52, 'china', 1.1],
+  54: [55, 'splash', 0.95], 55: [54, 'tamb', 1], 56: [56, 'cowbell', 1], 57: [57, 'crash', 1.22], 58: [52, 'china', 1.1],
   60: [64, 'conga', 1.12], 61: [62, 'conga', 1.04, 1], 62: [63, 'conga', 0.96], 63: [61, 'bongo', 1.05], 64: [60, 'bongo', 0.92],
   65: [66, 'timbale', 1.05], 66: [65, 'timbale', 0.92], 67: [68, 'agogo', 1.05], 68: [67, 'agogo', 0.9], 69: [77, 'block', 1.05],
   70: [76, 'block', 0.9], 71: [75, 'claves', 1], 72: [70, 'shaker', 1], 73: [69, 'cabasa', 1], 74: [82, 'shaker', 0.85], 76: [100, 'gong', 1.25], 77: [101, 'timpani', 1.12], 79: [102, 'timpani', 1.02]
@@ -1691,9 +1863,16 @@ const kitName = () => (DRUMKITS[settings.drumKit] || DRUMKITS.synth).name;
 const KIT_COL = { kick: '#e08a5f', floor: '#e08a5f', tom: '#e89a63', snare: '#e7cf8f', rim: '#e7cf8f', clap: '#f0b3a3', hhc: '#e6c46a', hhp: '#e6c46a', hho: '#e6c46a',
   crash: '#e9c25e', ride: '#d8b25a', bell: '#d8b25a', splash: '#f0d27a', china: '#d9a64e', tamb: '#c9b2e8', cowbell: '#a9bcd6', conga: '#c98f5e', bongo: '#d39d68',
   timbale: '#b9c6d8', gong: '#c9954a', timpani: '#c98a4e', agogo: '#a9bcd6', block: '#c4935e', claves: '#c4935e', shaker: '#8fcca6', cabasa: '#9fd0b8' };
+// some instruments stand a little apart from their key: dy in units of the icon size (up is negative), front = drawn last
+const KIT_POS = { 54: { dy: -0.75 }, 74: { dy: 0.5, front: true } };
+// cymbals and hi-hats stand taller and wider than their black key, the way they tower over a real kit
+const KIT_CYM = { hhc: 1, hhp: 1, hho: 1, crash: 1, ride: 1, bell: 1, splash: 1, china: 1 };
+const kitOrder = () => Object.keys(KIT).map(Number).sort((a, b) => (KIT_POS[a] && KIT_POS[a].front ? 1 : 0) - (KIT_POS[b] && KIT_POS[b].front ? 1 : 0));
+// a hit lights the colour up towards white
+const kitLight = (hex, k) => { const n = parseInt(hex.slice(1), 16), ch = sh => { const v = (n >> sh) & 255; return Math.round(v + (255 - v) * k); }; return `rgb(${ch(16)},${ch(8)},${ch(0)})`; };
 // a small picture of each instrument, standing on y with its middle at x; u is the unit size
 function kitIcon(type, x, y, u, lit, muted, dark) {
-  const col = KIT_COL[type] || '#ccc', ink = dark ? 'rgba(28,32,44,.88)' : lit ? '#fff' : 'rgba(235,238,246,.85)';
+  const col = lit ? kitLight(KIT_COL[type] || '#cccccc', 0.4) : (KIT_COL[type] || '#ccc'), ink = dark ? 'rgba(28,32,44,.88)' : lit ? '#fff' : 'rgba(235,238,246,.85)';
   cx.save(); cx.translate(x, y); cx.lineWidth = Math.max(1, u * 0.09); cx.lineJoin = 'round'; cx.lineCap = 'round';
   cx.strokeStyle = ink; cx.fillStyle = col;
   if (lit) { cx.shadowColor = col; cx.shadowBlur = u * 0.9; }
@@ -1701,7 +1880,7 @@ function kitIcon(type, x, y, u, lit, muted, dark) {
   const shell = (w, h, tilt) => {           // a drum: body with top skin, seen a little from above
     const r = w / 2, e = r * (tilt || 0.32);
     cx.beginPath(); cx.moveTo(-r, -h); cx.lineTo(-r, 0); cx.ellipse(0, 0, r, e, 0, Math.PI, 0, true); cx.lineTo(r, -h); cx.closePath();
-    cx.globalAlpha = lit ? 1 : 0.8; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+    cx.fill(); cx.stroke();
     ell(0, -h, r, e); cx.fillStyle = lit ? '#fff' : 'rgba(240,242,248,.9)'; cx.fill(); cx.stroke(); cx.fillStyle = col;
   };
   const stand = (h) => { cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, -h); cx.moveTo(-u * 0.35, 0); cx.lineTo(0, -u * 0.3); cx.lineTo(u * 0.35, 0); cx.stroke(); };
@@ -1709,11 +1888,11 @@ function kitIcon(type, x, y, u, lit, muted, dark) {
     stand(hgt);
     cx.beginPath(); cx.moveTo(-w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2)); cx.quadraticCurveTo(0, -hgt - ry * 1.5, w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2));
     cx.quadraticCurveTo(0, -hgt + ry * 0.9, -w / 2, -hgt + (kind === 'china' ? -ry * 0.6 : ry * 0.2)); cx.closePath();
-    cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+    cx.fill(); cx.stroke();
     ell(0, -hgt - ry * 0.35, w * (kind === 'bell' ? 0.2 : 0.09), ry * (kind === 'bell' ? 0.45 : 0.3)); cx.fillStyle = kind === 'bell' ? '#fff3cf' : col; cx.fill(); cx.stroke();
   };
   switch (type) {
-    case 'kick': { const r = u * 0.95; ell(0, -r, r, r); cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke();
+    case 'kick': { const r = u * 0.95; ell(0, -r, r, r); cx.fill(); cx.stroke();
       ell(0, -r, r * 0.72, r * 0.72); cx.fillStyle = lit ? '#fff' : 'rgba(240,242,248,.92)'; cx.fill(); cx.stroke(); ell(0, -r, r * 0.22, r * 0.22); cx.fillStyle = col; cx.fill(); break; }
     case 'snare': case 'rim': shell(u * 1.5, u * 0.55);
       cx.beginPath(); for (let i = -2; i <= 2; i++) { cx.moveTo(i * u * 0.28, -u * 0.5); cx.lineTo(i * u * 0.28, -u * 0.08); } cx.globalAlpha = .5; cx.stroke(); cx.globalAlpha = 1;
@@ -1743,7 +1922,7 @@ function kitIcon(type, x, y, u, lit, muted, dark) {
       cx.beginPath(); cx.moveTo(-u * 0.15, -u * 1.6); cx.lineTo(-u * 0.15, -u * 1.85); cx.lineTo(u * 0.15, -u * 1.85); cx.lineTo(u * 0.15, -u * 1.6); cx.stroke(); break;
     case 'conga': { const h = u * 2.1, wt = u * 0.95, wb = u * 0.8;
       cx.beginPath(); cx.moveTo(-wt / 2, -h); cx.bezierCurveTo(-wt * 0.75, -h * 0.55, -wb * 0.7, -h * 0.2, -wb / 2, 0); cx.lineTo(wb / 2, 0); cx.bezierCurveTo(wb * 0.7, -h * 0.2, wt * 0.75, -h * 0.55, wt / 2, -h); cx.closePath();
-      cx.globalAlpha = lit ? 1 : 0.85; cx.fill(); cx.globalAlpha = 1; cx.stroke(); ell(0, -h, wt / 2, wt * 0.16); cx.fillStyle = '#f3ead8'; cx.fill(); cx.stroke();
+      cx.fill(); cx.stroke(); ell(0, -h, wt / 2, wt * 0.16); cx.fillStyle = '#f3ead8'; cx.fill(); cx.stroke();
       if (muted) { cx.fillStyle = 'rgba(30,30,40,.55)'; ell(u * 0.12, -h, wt * 0.22, wt * 0.09); cx.fill(); } break; }
     case 'bongo': cx.save(); cx.translate(0, 0); shell(u * 1.1, u * 0.9, 0.3); cx.restore(); cx.beginPath(); cx.moveTo(-u * 0.55, -u * 0.25); cx.lineTo(-u * 0.95, -u * 0.25); cx.stroke(); break;
     case 'timbale': shell(u * 1.35, u * 0.75, 0.3); cx.beginPath(); cx.moveTo(0, 0); cx.lineTo(0, u * 0.12); cx.stroke(); break;
@@ -1767,14 +1946,15 @@ function drawKitBand(now) {
     // flat keyboard (every view but the road): each instrument sits on its own key, small on the black ones
     // big instruments (bass drum, floor toms, crash, gong, timpani) get bigger than small ones; the white keys stand in front
     const kh = KB.h, uw = Math.max(6, Math.min(25, ww * 0.48, kh * 0.2)), ub = Math.max(5, Math.min(18, ww * 0.4, kh * 0.15));
-    for (const black of [true, false]) for (const m in KIT) {
+    const order = kitOrder();
+    for (const black of [true, false]) for (const m of order) {
       const k = KB.keys[m]; if (!k || k.black !== black) continue;
-      const [, type, sz, muted] = KIT[m], on = lit(+m), x = k.x + k.w / 2;
-      const y = black ? top + kh * 0.62 - ub * 0.9 : top + kh - Math.max(20, kh * 0.2);
-      cx.globalAlpha = on ? 1 : black ? 0.8 : 0.9;
-      kitIcon(type, x, y, (black ? ub : uw) * Math.pow(sz, 1.7) * (on ? 1.08 : 1), on, muted, !black);
+      const [, type, sz, muted] = KIT[m], on = lit(m), x = k.x + k.w / 2, pos = KIT_POS[m] || {};
+      const u = (black ? ub : uw) * Math.pow(sz, 1.7) * (KIT_CYM[type] ? 1.32 : 1);
+      const y = (black ? top + kh * 0.62 - ub * 0.9 : top + kh - Math.max(20, kh * 0.2)) + (pos.dy || 0) * u;
+      kitIcon(type, x, y, u * (on ? 1.08 : 1), on, muted, !black);
     }
-    cx.globalAlpha = 1; return;
+    return;
   }
   // road: the kit stands on the road in front of the keys and follows its perspective towards the middle
   const G = KEY3D.G, u0 = Math.max(5, Math.min(20, ww * 0.42)), back = u0 * 2.6;
@@ -1782,11 +1962,11 @@ function drawKitBand(now) {
   cx.fillStyle = fl; cx.fillRect(0, top - back - u0 * 3.6, W, back + u0 * 3.6);
   for (const black of [true, false]) {
     const off = 4 + (black ? back : 0), sc = G.scale(G.toD(off));
-    for (const m in KIT) {
+    for (const m of kitOrder()) {
       const k = KB.keys[m]; if (!k || k.black !== black) continue;
-      const [, type, sz, muted] = KIT[m], on = lit(+m), x = W / 2 + (k.x + k.w / 2 - W / 2) * sc;
-      const y = top - off - (on ? u0 * 0.12 : 0);
-      cx.globalAlpha = on ? 1 : 0.62; kitIcon(type, x, y, u0 * sc * sz * (on ? 1.06 : 1), on, muted);
+      const [, type, sz, muted] = KIT[m], on = lit(m), x = W / 2 + (k.x + k.w / 2 - W / 2) * sc, pos = KIT_POS[m] || {};
+      const u = u0 * sc * sz * (KIT_CYM[type] ? 1.25 : 1), y = top - off - (on ? u0 * 0.12 : 0) + (pos.dy || 0) * u * 0.6;
+      kitIcon(type, x, y, u * (on ? 1.06 : 1), on, muted);
     }
   }
   cx.globalAlpha = 1;
@@ -3316,7 +3496,8 @@ window.addEventListener('keydown', e => {
 window.addEventListener('keyup', e => { const m = downKeys.get(e.code); if (m !== undefined) { downKeys.delete(e.code); noteOff(m); } });
 
 // Pointer: tap keys, pinch to zoom
-const ptrs = new Map(); let pinch = null;
+const ptrs = new Map(); let pinch = null, tri = null;
+const ptrMidX = () => { let x = 0; ptrs.forEach(p => { x += p.x; }); return x / Math.max(1, ptrs.size); };
 function keyAt(x, y) {
   if (y < KB.top) return null;
   if (KEY3D) { const { G, L, y1, kh } = KEY3D, d = G.toD(y1 - y), sc = G.scale(d); x = W / 2 + (x - W / 2) / sc; y = y1 + (-d) / L * kh; }
@@ -3330,6 +3511,8 @@ stage.addEventListener('pointerdown', e => {
   if (edit.on && /^(sheet|score|page)$/.test(settings.view) && y < KB.top && song) { stage.setPointerCapture(e.pointerId); editDown(e, x, y); return; }
   ptrs.set(e.pointerId, { x, y, note: null });
   stage.setPointerCapture(e.pointerId);
+  // three fingers: drag the keyboard sideways to another octave
+  if (ptrs.size >= 3) { ptrs.forEach(p => { if (p.note != null) { noteOff(p.note - (settings.transp | 0)); p.note = null; } }); pinch = null; tri = { x: ptrMidX(), range: { ...range } }; return; }
   if (ptrs.size === 2) { ptrs.forEach(p => { if (p.note != null) { noteOff(p.note - (settings.transp | 0)); p.note = null; } }); const [p1, p2] = [...ptrs.values()]; pinch = { d: Math.hypot(p1.x - p2.x, p1.y - p2.y), range: { ...range } }; return; }
   const m = keyAt(x, y); if (m != null) { synth.ensure(); ptrs.get(e.pointerId).note = m + (settings.transp | 0); noteOn(m, 90); }
 });
@@ -3337,10 +3520,12 @@ stage.addEventListener('pointermove', e => {
   if (edit.drag && edit.drag.id === e.pointerId) { const r = stage.getBoundingClientRect(); editMove(e.clientX - r.left, e.clientY - r.top); return; }
   const p = ptrs.get(e.pointerId); if (!p) return;
   const r = stage.getBoundingClientRect(); p.x = e.clientX - r.left; p.y = e.clientY - r.top;
+  if (tri && ptrs.size >= 3) { const d = (ptrMidX() - tri.x) * (tri.range.b - tri.range.a) / Math.max(100, W); setRange(tri.range.a - d, tri.range.b - d); return; }
+  if (tri) return;
   if (pinch && ptrs.size === 2) { const [p1, p2] = [...ptrs.values()]; const d = Math.hypot(p1.x - p2.x, p1.y - p2.y); const f = pinch.d / Math.max(20, d); const span = (pinch.range.b - pinch.range.a) * f; const c = (pinch.range.a + pinch.range.b) / 2; setRange(c - span / 2, c + span / 2); return; }
   if (p.note != null) { const m = keyAt(p.x, p.y); const real = p.note - (settings.transp | 0); if (m !== real) { noteOff(real); p.note = null; if (m != null) { p.note = m + (settings.transp | 0); noteOn(m, 90); } } }
 });
-const endPtr = e => { if (edit.drag && edit.drag.id === e.pointerId) { edit.drag = null; editBar(); return; } const p = ptrs.get(e.pointerId); if (!p) return; if (p.note != null) noteOff(p.note - (settings.transp | 0)); ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; };
+const endPtr = e => { if (edit.drag && edit.drag.id === e.pointerId) { edit.drag = null; editBar(); return; } const p = ptrs.get(e.pointerId); if (!p) return; if (p.note != null) noteOff(p.note - (settings.transp | 0)); ptrs.delete(e.pointerId); if (ptrs.size < 2) pinch = null; if (!ptrs.size) tri = null; };
 stage.addEventListener('pointerup', endPtr); stage.addEventListener('pointercancel', endPtr);
 
 /* ---------- Transport ---------- */
@@ -4242,11 +4427,11 @@ renderRecs();
 
 /* ---------- Panel ---------- */
 const panel = $('#panel');
-const TAB_TITLES = { songs: 'Bibliothek', tracks: 'Stimmen', scores: 'Highscore', settings: 'Einstellungen' };
+const TAB_TITLES = { songs: 'Bibliothek', tracks: 'Stimmen', scores: 'Highscore', settings: 'Einstellungen', about: 'Über mmmusik' };
 function openPanel(tab) {
   panel.classList.add('open');
   document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === tab));
-  ['songs', 'tracks', 'scores', 'settings'].forEach(k => { $('#tab-' + k).hidden = k !== tab; });
+  ['songs', 'tracks', 'scores', 'settings', 'about'].forEach(k => { $('#tab-' + k).hidden = k !== tab; });
   $('#panelTitle').textContent = TAB_TITLES[tab];
   if (tab === 'scores') renderScores();
 }
@@ -4286,7 +4471,7 @@ function printScore() {
 }
 $('#pdfBtn').onclick = printScore;
 $('#soundSel').value = settings.sound; $('#soundSel').onchange = e => { settings.sound = e.target.value; saveSettings(); if (song && !song.blank) { const m = store.get('songSound', {}); m[songKey] = settings.sound; store.set('songSound', m); } if (settings.sound === 'concert') synth.loadPiano(); if (ORCH[settings.sound]) ORCH[settings.sound].layers.forEach(L => synth.loadOrch(L.dir)); soundNote(); syncInst(); if (autoRange) fitRange(); };
-$('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); };
+$('#drumSel').value = settings.drums; $('#drumSel').onchange = e => { settings.drums = e.target.value; saveSettings(); if (typeof syncInst === 'function') syncInst(); };
 soundNote();
 $('#colorSel').value = settings.color; $('#colorSel').onchange = e => { settings.color = e.target.value; saveSettings(); };
 $('#fingerChk').checked = settings.fingerKeys; $('#fingerChk').onchange = e => { settings.fingerKeys = e.target.checked; saveSettings(); };
@@ -4315,6 +4500,9 @@ function knobShow(id, v, min, max) { $('#' + id + 'Pct').textContent = v; $('#' 
 popToggle('#mBpmCtl', '#mBpmBtn');
 
 /* ---------- instrument picker in the header ---------- */
+const SVGR = {"bass-guitar":[" 0   0   612   612 ","<path d=\"M68.6 513.8l-16 16l-7.4-7.4l16-16L68.6 513.8zM71 516.1l-16 16l7.4 7.4l16-16L71 516.1zM80.7 525.8L64.6 541.8l7.4 7.4l16-16L80.7 525.8zM74.4 551.6l7.4 7.4l16.1-16l-7.4-7.4L74.4 551.6zM612 28.1c0 10.7-6.9 19.6-17.1 22.2l-2.9 0.7c-2.6 0.7-4.9 2.4-6.3 4.8l-34.1 60.4c-2.8 4.5-7.6 7.2-12.9 7.2c-2.3 0-4.6-0.5-6.7-1.5c-2.9-1.4-6.1-2.1-9.3-2.1c-5.8 0-11.2 2.3-15.3 6.3l-8 8L238.4 400.7c-3.3 7.4-2.8 13.4 1.5 17.7c6.2 6.2 17 5.7 33-1.6c0.6-0.3 1.5-0.7 2.7-1.3c5.1-2.5 10.4-2.4 14.9 0.3c5.4 3.2 8.9 9.7 9.3 17.1c0.4 8.9-2.9 16.5-10.5 24.1c-8.9 8.9-29.3 18.9-44.1 24.8c-14.6 5.8-25.3 18.3-28.8 33.5c-5.3 22.9-12.9 41.1-22.6 54c-3.2 5.4-7.1 10.4-11.6 14.9C168 598.3 149.1 606.1 129 606.1c0 0 0 0 0 0C108.9 606.1 90 598.3 75.8 584.1l-53.7-53.7C7.8 516.1 0 497.2 0 477.1c0-20.1 7.8-39 22-53.2c4.2-4.2 8.8-7.8 13.8-10.9l-0.2-0.2l6.9-3.5c5.3-2.6 10.9-4.5 16.6-5.7l32.6-11.2c21.9-7.5 38.9-24.3 46.5-45.9c10.1-28.6 23.3-48.2 40.4-59.8c0.3-0.2 0.8-0.6 1.5-1.1c32.1-24.5 54.4-30 66.1-16.3c1.8 2.1 2.6 4.8 2.3 7.7c-1.1 10-16 22.7-32.1 35c-1.4 1.1-2.6 2-3.1 2.4c-4 3.3-8.2 10.7-8.6 18.3c-0.2 5 1.2 9.2 4.4 12.3c2.8 2.8 6.5 4.2 11.3 4.3l248.7-241.8c2.3-2.2 4-5 5-8l1.6-5c1.7-5.4 5.2-9.9 10-12.9l5.1-4l-4.3-5.9c-1.7-2.3-1.2-5.6 1.2-7.3c2.3-1.7 5.6-1.2 7.3 1.2l4 5.6l15.7-12.4l-4.3-5.9c-1.7-2.3-1.2-5.6 1.2-7.3c2.3-1.7 5.6-1.2 7.3 1.2l4 5.6l15.7-12.4l-4.5-6.3c-1.7-2.3-1.2-5.6 1.2-7.3c2.3-1.7 5.6-1.2 7.3 1.2l4.3 5.9l15.7-12.4l-4.6-6.4c-1.7-2.3-1.2-5.6 1.2-7.3c2.3-1.7 5.6-1.2 7.3 1.2l4.4 6l3.9-3.1c4.5-3.7 9.8-5.7 15.2-5.7c1.9 0 3.8 0.2 5.7 0.7C605.6 9.1 612 17.6 612 28.1zM232.6 425.8c-3.6-3.6-5.7-7.8-6.5-12.5l-10.5 10.8l-35.5-35.5l31.1-30.3c-3.6-1.2-6.8-3.2-9.5-5.8c-5.2-5.2-7.8-12.2-7.4-20.2c0.4-9.7 5.4-20.1 12.3-25.8c0.7-0.6 1.9-1.5 3.5-2.7c25.5-19.5 28-26 28-27.7c-7.3-8.1-26.1-1.5-51.7 18c-0.9 0.7-1.6 1.2-2 1.5c-15 10.2-27.3 28.6-36.5 54.7c-8.7 24.7-28 43.7-53 52.3l-33.5 11.4c-4.7 1-9.3 2.5-13.7 4.6l-0.9 0.5c-6.5 3.2-12.4 7.4-17.5 12.5c-12.2 12.2-19 28.5-19 45.8c0 17.3 6.7 33.6 19 45.8l53.7 53.7c12.2 12.2 28.5 19 45.8 19c0 0 0 0 0 0c17.3 0 33.6-6.7 45.8-19c3.9-3.9 7.3-8.3 10.1-13.1l0.4-0.7l0.2-0.2c10.9-14.5 17.3-35.1 20.7-49.8c4.3-18.5 17.4-33.8 35.1-40.8c17.7-7 34.4-16.3 40.6-22.5c5.5-5.5 7.7-10.4 7.5-16.3c-0.2-3.9-1.8-7.2-4.1-8.6c-1.4-0.9-3.1-0.8-4.9 0.1c-1.4 0.7-2.4 1.2-3.1 1.5C269.8 429.7 246.9 440.1 232.6 425.8zM601.6 28c0-4.4-2.2-9.7-8.6-11.3c-4-1-8.1 0-11.8 3l-89.6 70.5l-0.3 0.2c-2.7 1.6-4.8 4.2-5.7 7.2l-1.6 5c-1.5 4.7-4.1 9-7.6 12.4L195 388.6l20.5 20.5L491.9 126.8l8-8c6.1-6.1 14.1-9.4 22.7-9.4c4.7 0 9.5 1.1 13.7 3.1c2.3 1.1 5 0.4 6.3-1.6l33.9-60.2c2.7-4.8 7.4-8.4 12.8-9.8l2.9-0.7C599.1 38.4 601.5 32.5 601.6 28zM151.1 503.4l-34.7-34.7l19.9-19.9L171 483.5L151.1 503.4zM151.1 488.7l5.1-5.1l-19.9-19.9l-5.1 5.1L151.1 488.7zM157.8 465.2l-34.7-34.7l19.9-19.9l34.7 34.7L157.8 465.2zM157.8 450.5l5.1-5.1l-19.9-19.9l-5.1 5.1L157.8 450.5zM184.4 545.1c0.9 8.1-4.9 15.4-13 16.3c-0.6 0.1-1.1 0.1-1.7 0.1c0 0 0 0 0 0c-7.5 0-13.8-5.6-14.7-13.1c-0.4-3.9 0.7-7.8 3.1-10.9c2.5-3.1 6-5 9.9-5.5c0.6-0.1 1.1-0.1 1.7-0.1C177.3 532 183.6 537.6 184.4 545.1zM174.1 546.3c-0.2-2.2-2.1-3.8-4.3-3.8c-0.2 0-0.3 0-0.5 0c-1.1 0.1-2.2 0.7-2.9 1.6c-0.7 0.9-1 2-0.9 3.2c0.2 2.2 2.1 3.8 4.3 3.8c0 0 0 0 0 0c0.2 0 0.3 0 0.5 0C172.6 550.8 174.3 548.6 174.1 546.3zM160 571.4c0.9 8.1-4.9 15.4-13 16.3c-0.6 0.1-1.1 0.1-1.7 0.1c0 0 0 0 0 0c-7.5 0-13.8-5.6-14.7-13.1c-0.4-3.9 0.7-7.8 3.1-10.9c2.5-3.1 6-5 9.9-5.5c0.6-0.1 1.1-0.1 1.7-0.1C152.9 558.3 159.2 563.9 160 571.4zM149.7 572.6c-0.2-2.2-2.1-3.8-4.3-3.8c-0.2 0-0.3 0-0.5 0c-1.1 0.1-2.2 0.7-2.9 1.6c-0.7 0.9-1 2-0.9 3.2c0.2 2.2 2.1 3.8 4.3 3.8c0.2 0 0.3 0 0.5 0C148.2 577.1 149.9 574.9 149.7 572.6z\"/>"],"flute":[" 0   0   512   512 ","<path d=\"M512 149.2c0-8.7-3.4-16.9-9.6-23.1L385.8 9.6C373.1-3.2 352.4-3.2 339.7 9.6l-1 1c-6.2 6.2-9.6 14.4-9.6 23.1c0 6 1.6 11.8 4.7 16.8c0.7 10 2.7 61.1-31 94.8L43.9 404.2c-7.2 7.2-10.1 17-8.8 26.3L1.8 476.8c-2.7 3.8-2.3 9.1 1 12.4l20 20c1.9 1.9 4.3 2.8 6.8 2.8c2 0 3.9-0.6 5.6-1.8l46.3-33.3c1.4 0.2 2.9 0.3 4.3 0.3c8 0 16-3 22-9.1L366.7 209.2c33.6-33.6 84.8-31.7 94.8-31c5 3 10.8 4.7 16.8 4.7c8.7 0 16.9-3.4 23.1-9.6l1-1h0C508.6 166.2 512 158 512 149.2zM30.6 489.8l-8.5-8.5l23-31.9l17.4 17.4L30.6 489.8zM353.2 195.6L94.3 454.5c-2.3 2.3-5.3 3.5-8.4 3.5c-3.2 0-6.2-1.2-8.4-3.5l-19.9-19.9c-4.7-4.7-4.7-12.2 0-16.9l258.9-258.9c27.7-27.7 35-64.1 36.6-87.9l88.1 88.1C417.2 160.6 380.8 167.9 353.2 195.6zM488.9 158.8l-1 1c-2.5 2.5-5.9 3.9-9.5 3.9c-3.6 0-7-1.4-9.5-3.9L352.3 43.1c-5.2-5.2-5.2-13.8 0-19l1-1c2.5-2.5 5.9-3.9 9.5-3.9c3.6 0 7 1.4 9.5 3.9l116.6 116.6c2.5 2.5 3.9 5.9 3.9 9.5C492.8 152.8 491.4 156.2 488.9 158.8z\"/><circle cx=\" 120.3 \" cy=\" 391.6 \" r=\" 9.6 \"/><circle cx=\" 293.7 \" cy=\" 218.2 \" r=\" 9.6 \"/><circle cx=\" 250.3 \" cy=\" 261.6 \" r=\" 9.6 \"/><circle cx=\" 207 \" cy=\" 304.9 \" r=\" 9.6 \"/><circle cx=\" 163.6 \" cy=\" 348.3 \" r=\" 9.6 \"/>"],"ukelele":[" 0   0   512   512 ","<path d=\"M232.1 279.9c-17.6-17.6-46.2-17.6-63.8 0c-17.6 17.6-17.6 46.2 0 63.8c8.8 8.8 20.3 13.2 31.9 13.2c11.6 0 23.1-4.4 31.9-13.2c8.5-8.5 13.2-19.8 13.2-31.9C245.3 299.8 240.6 288.4 232.1 279.9zM219.5 331.1c-10.6 10.6-28 10.6-38.6 0c-10.6-10.6-10.6-28 0-38.6c5.3-5.3 12.3-8 19.3-8s14 2.7 19.3 8c5.2 5.2 8 12 8 19.3C227.5 319.1 224.6 326 219.5 331.1z\"/><path d=\"M167.2 400.9l-56.1-56.1c-3.5-3.5-9.1-3.5-12.6 0l-20 20c-3.5 3.5-3.5 9.1 0 12.6l56.1 56.1c1.7 1.7 3.9 2.6 6.3 2.6c2.4 0 4.6-0.9 6.3-2.6l20-20C170.6 410 170.6 404.4 167.2 400.9zM140.9 414.6L97.4 371.1l7.4-7.4l43.5 43.5L140.9 414.6z\"/><path d=\"M506.7 68.2l2.3-2c2.9-2.5 3.8-6.6 2.4-10.2c-10.5-25.2-30.2-44.8-55.4-55.4c-3.5-1.5-7.6-0.5-10.2 2.4l-2 2.3l-0.4-0.4c-3.5-3.5-9.1-3.5-12.6 0c-3.5 3.5-3.5 9.1 0 12.6l1.2 1.2l-7.1 8.1l-0.4-0.4c-3.5-3.5-9.1-3.5-12.6 0c-3.5 3.5-3.5 9.1 0 12.6l1.2 1.2l-7.1 8.1l-0.1-0.1c-3.5-3.5-9.1-3.5-12.6 0c-3.5 3.5-3.5 9.1 0 12.6l1.9 1.9c-2.5 4.6-4.5 9.4-5.7 14.5L245 211.6c-31.1-17.7-60.7-16.8-80.4 2.8c-8.3 8.3-16.6 21.9-23.1 38.1c-5.7 14-17.9 24.2-32.7 27.3c-35.8 7.4-71.7 24.4-89.4 42.1C2 339.2-4 363.8 2.6 391c5.9 24.5 21.8 50.6 44.8 73.6c23 23 49.1 38.9 73.6 44.8c7.2 1.7 14.3 2.6 21 2.6c18.7 0 35.3-6.6 48.1-19.3c17.7-17.7 34.6-53.6 42.1-89.4c3.1-14.8 13.3-27 27.3-32.7c16.2-6.6 29.7-14.8 38.1-23.1c19.6-19.6 20.5-49.3 2.8-80.3l134.2-144.7c5.1-1.2 10-3.2 14.5-5.7l1.9 1.9c1.7 1.7 4 2.6 6.3 2.6c2.3 0 4.6-0.9 6.3-2.6c3.5-3.5 3.5-9.1 0-12.6l-0.1-0.1l8.1-7.1l1.2 1.2c1.7 1.7 4 2.6 6.3 2.6c2.3 0 4.6-0.9 6.3-2.6c3.5-3.5 3.5-9.1 0-12.6l-0.4-0.4l8.1-7.1l1.2 1.2c1.7 1.7 4 2.6 6.3 2.6c2.3 0 4.6-0.9 6.3-2.6c3.5-3.5 3.5-9.1 0-12.6L506.7 68.2zM285 334.8c-6.6 6.6-18.4 13.6-32.2 19.2c-19.5 7.9-33.8 25-38 45.6c-6.7 32.1-22 65.2-37.2 80.4c-16.4 16.4-37.5 15.6-52.3 12c-21.4-5.2-44.5-19.4-65.2-40.1c-20.7-20.7-34.9-43.8-40.1-65.2c-3.6-14.8-4.4-35.9 12-52.3c15.2-15.2 48.3-30.5 80.4-37.2c20.6-4.3 37.7-18.5 45.6-38c5.6-13.9 12.6-25.6 19.2-32.2c12.6-12.6 32.2-13.3 53.9-2.6l-8.2 7.6c-2.7 2.5-3.6 6.5-2.2 9.9c1.4 3.4 4.8 5.6 8.5 5.5c9.5-0.3 18.5 3.3 25.3 10c6.7 6.7 10.3 15.7 10 25.3c-0.1 3.7 2.1 7.1 5.5 8.5c1.1 0.4 2.2 0.7 3.4 0.7c2.4 0 4.8-1 6.5-2.9l7.6-8.2C298.3 302.6 297.5 322.2 285 334.8zM279.1 263.8c-2.6-7-6.7-13.5-12-18.9c-5.4-5.4-11.8-9.5-18.9-12L397.6 94.4l20.1 20.1L279.1 263.8zM447.7 96.1c-4.3 3.8-9.5 6.6-14.9 8.3l-25.1-25.1c1.7-5.5 4.5-10.6 8.3-14.9l38.9-44.5c16.2 8.2 29.2 21.2 37.4 37.4L447.7 96.1z\"/>"],"drum-set":[" 0   0   444.7   444.7 ","<path d=\"M443.3 369.6l-75.5-65.8V75c34.6-3.7 68.3-15.2 66.8-30.4c-0.6-6-6.2-10.6-16.8-13.7c-8.9-2.6-20.8-3.9-34.4-3.9c-5.1 0-10.3 0.2-15.7 0.6V17.3c0-2.2-1.8-4-4-4s-4 1.8-4 4v11c-34.6 3.7-68.3 15.2-66.8 30.4c0.6 6 6.2 10.6 16.8 13.7c8.9 2.6 20.7 3.9 34.4 3.9c0 0 0 0 0 0c5.1 0 10.3-0.2 15.7-0.6v228l-42.9 37.4c0.4-3.7 0.7-7.5 0.7-11.3c0-0.6 0-26.9 0-26.9c0-22.1-7.5-42.5-20-58.8v-30h55.9c2.2 0 4-1.8 4-4v-41.1c0-2.2-1.8-4-4-4h-34.2c0.6-1.3 0.7-2.7 0.3-4.2c0 0 0 0 0 0l0 0l-13.3-46.8c-1.7-5.8-10.2-6.1-16.5-5.7c-7.7 0.4-17.4 2.2-27.5 5.1c-6.8 1.9-40.3 12.1-37.1 23.6l3.3 11.7h-16.4l2.5-13.4c2.6-14-42.4-22.9-47.6-23.9s-50.4-9.1-53 4.9l-6 31.8c-9.1 0.3-17.4 0.9-24.3 1.7V92.5l11.4-11.3c1.5 0.3 2.9 0.5 4.4 0.7c14.1 2.3 28.3 3.5 40.9 3.5c13.4 0 24.9-1.3 33.3-3.9c10-3 15.6-7.6 16.5-13.7c1.4-8.4-6.8-17.1-23.6-25.1c-15.1-7.2-35.8-13.2-58.1-16.8c-0.2 0-0.3-0.1-0.5-0.1v-8.6c0-2.2-1.8-4-4-4s-4 1.8-4 4v7.4c-11.2-1.5-22.3-2.3-32.4-2.3c-13.4 0-24.9 1.3-33.3 3.9c-10 3-15.6 7.6-16.5 13.7c-1.4 8.4 6.8 17.1 23.6 25.1c11.9 5.7 27.3 10.6 44.2 14.2l-61.2 60.6c-1.6 1.6-1.6 4.1 0 5.7c0.8 0.8 1.8 1.2 2.8 1.2c1 0 2-0.4 2.8-1.2l45.7-45.2v50.4c-8.1 1.4-13 3.4-13 7.8v92.4c0 3.9 3.6 6.2 13 7.8v45.5L1.4 369.6c-1.7 1.5-1.8 4-0.4 5.6c0.8 0.9 1.9 1.4 3 1.4c0.9 0 1.9-0.3 2.6-1l50.5-44l19 10.2v10.3c0 2.2 1.8 4 4 4s4-1.8 4-4v-9.5l20.5-11l21.7 18.9c0 0 0 0 0 0l-23.3 75.7c-0.7 2.1 0.5 4.3 2.6 5c0.4 0.1 0.8 0.2 1.2 0.2c1.7 0 3.3-1.1 3.8-2.8l19.8-64.3c13.9 36.4 49.2 62.4 90.5 62.4c41.7 0 77.3-26.5 90.9-63.5l20.2 65.4c0.5 1.7 2.1 2.8 3.8 2.8c0.4 0 0.8-0.1 1.2-0.2c2.1-0.7 3.3-2.9 2.6-5l-22.9-74.2l23.4-20.4l19.7 10.6v10.6c0 2.2 1.8 4 4 4s4-1.8 4-4v-10.6l19.7-10.6l50.5 44c0.8 0.7 1.7 1 2.6 1c1.1 0 2.2-0.5 3-1.4C445.1 373.5 445 371 443.3 369.6zM45.3 58c-14.9-7.1-19.6-13.4-19.1-16.6c0.9-5.4 15.6-10.8 41.9-10.8c12.2 0 25.9 1.2 39.6 3.4c21.6 3.5 41.5 9.2 55.9 16.1c14.9 7.1 19.6 13.4 19.1 16.6c-0.9 5.4-15.6 10.8-41.9 10.8c-11.8 0-25-1.1-38.2-3.2l5.9-5.8V54c0-2.2-1.8-4-4-4s-4 1.8-4 4v11.1l-7.6 7.5C74.5 69.1 57.8 64 45.3 58zM76.1 332.7l-12.5-6.8l12.5-10.9V332.7zM76.1 250.8c-2.3-0.4-4-0.9-5-1.3v-84c1.5 0.4 3.2 0.8 5 1.1V250.8zM337.6 173.1h12v33.1h-12V173.1zM329.6 173.1v33.1H263.4v-17.5c5.9-0.9 12.5-2.3 19.2-4.2c10.1-2.9 19.3-6.4 26-10.1c0.7-0.4 1.5-0.8 2.2-1.3H329.6zM289.7 214.2v20.8c-8.6-8.7-18.9-15.8-30.3-20.8H289.7zM280.4 176.8c-10.9 3.1-21.3 4.9-28.5 4.9c-2.1 0-3.5-0.2-4.4-0.3c3.3-3 13.5-8.6 30.4-13.4c10.9-3.1 21.3-4.9 28.5-4.9c2.1 0 3.5 0.2 4.4 0.3C307.5 166.3 297.4 172 280.4 176.8zM255.4 189.5v16.7h-12v-17.7c3.1 1.2 6.8 1.2 8.5 1.2c0 0 0 0 0 0C253.1 189.6 254.2 189.6 255.4 189.5zM309.8 155.2c-1.4-0.1-2.6-0.1-3.4-0.1c-7.9 0-19.1 1.9-30.7 5.2c-4.7 1.3-22.3 6.6-31.6 13.6l-4.9-17.1h5.1c2.2 0 4-1.8 4-4s-1.8-4-4-4h-6.8c2.6-2.8 12.9-8.8 30.9-13.9c19.1-5.4 31.5-5.4 34.3-4.2L309.8 155.2zM298.9 116.9l1.5 5.1c-2.2-0.2-4.5-0.1-6.5 0c-1.9 0.1-3.9 0.3-6 0.5l-1.7-5.9C293 116 297.4 116.3 298.9 116.9zM264.7 121.1c5-1.4 9.5-2.5 13.6-3.2l1.7 5.9c-4.3 0.8-8.9 1.9-13.6 3.2c-5.1 1.5-10.1 3.1-14.6 4.9l-1.7-5.9C254.2 124.4 259.1 122.7 264.7 121.1zM242.7 129.3l1.6 5.6c0 0.1 0.1 0.1 0.1 0.2c-1.4 0.7-2.8 1.4-4.1 2.1c-1.8 1-3.8 2.1-5.5 3.5l-1.5-5.1C234.2 134.3 237.4 132 242.7 129.3zM224.8 156.7h6.2l4.4 15.7v34.9c-3.5-0.5-7-0.9-10.6-1V156.7zM308.5 288.9c-15.5-32.9-49-55.8-87.7-55.8c-38.7 0-72.2 22.9-87.7 55.8c6.8-42.3 43.5-74.7 87.7-74.7C265 214.1 301.7 246.6 308.5 288.9zM216.8 156.7v49.5c-12 0.5-23.4 3.2-33.8 7.6v-11.3c13-0.2 19.8-2.8 20.8-8.1c0 0 0 0 0 0l0 0l7.1-37.7H216.8zM202.8 131c2.3 1.3 3.7 2.5 4.2 3.3l-0.8 4.5c-1.4-1-3-1.8-4.4-2.5L202.8 131zM169.1 119.9c11.2 2.3 19.9 5 26.2 7.5l-1 5.5c-7.4-2.8-16.4-5.4-26.2-7.4L169.1 119.9zM134.1 116.1c6.6-0.2 15.7 0.4 27.2 2.3l-1.1 5.6c-9.9-1.6-19.3-2.5-27.1-2.4L134.1 116.1zM122.2 118.2c0.6-0.5 1.8-0.9 3.7-1.3l-1 5.1c-1.1 0.1-2.4 0.3-3.5 0.6L122.2 118.2zM119.6 131.6c2.6-2.1 17.9-3.8 43.7 1c25.8 4.9 39.4 12.1 41.1 15l-0.2 1h-8c-2.2 0-4 1.8-4 4s1.8 4 4 4h6.4l-5.2 27.6c-3.1-2.1-6.5-3.6-8.3-4.3c-8.6-3.7-20.4-7.1-33-9.5c-11.1-2.1-22.1-3.3-30.9-3.3c-5.1 0-9.3 0.4-12.6 1.1L119.6 131.6zM125.3 175.3c8.4 0 18.8 1.1 29.4 3.1c24.3 4.6 37.8 11.3 40.7 14.4c-1.6 0.7-5.6 1.7-13.7 1.7c-8.4 0-18.8-1.1-29.4-3.1c-24.3-4.6-37.8-11.3-40.7-14.4C113.1 176.3 117.2 175.3 125.3 175.3zM84.1 157.8c5.9-0.7 13.5-1.3 22.8-1.7l-1 5.2c-8.8-0.4-16.1-1-21.8-1.6V157.8zM84.1 167.7c2.5 0.3 5.1 0.5 8 0.8v5.6c0 2.2 1.8 4 4 4s4-1.8 4-4v-5c1.4 0.1 2.8 0.2 4.3 0.2l-1.2 6.2l0 0c0 0 0 0 0 0c-1.4 7.5 10.6 12.7 14.5 14.4c8.6 3.7 20.4 7.1 33 9.5c8.4 1.6 16.8 2.6 24.2 3.1v15.3c-15.5 8.4-28.5 20.9-37.5 36c-4.7 0.2-9.6 0.2-14.5 0.2c-16.3 0-29.7-0.9-38.9-2V167.7zM84.1 333.5v-19.8l14 12.2L84.1 333.5zM124 303c0 0 0 26.3 0 26.9c0 2.8 0.1 5.6 0.4 8.4l-40.3-35.1v-43c10.6 1.2 24.3 1.9 38.9 1.9c3.4 0 6.8 0 10.2-0.1C127.3 274.3 124 288.3 124 303zM220.8 418.7c-49 0-88.8-39.8-88.8-88.8s39.8-88.8 88.8-88.8c49 0 88.8 39.8 88.8 88.8S269.8 418.7 220.8 418.7zM359.8 333.1l-13.3-7.2l13.3-11.6V333.1zM363.8 47.7c-2.2 0-4 1.8-4 4v16c-5.3 0.4-10.6 0.6-15.7 0.6c0 0 0 0 0 0c-31.5 0-42.8-7.1-43.2-10.4c-0.6-6.2 23.5-18 61.3-21.8c7.2-0.7 14.4-1.1 21.2-1.1c31.5 0 42.9 7.1 43.2 10.4c0.6 6.1-22.5 17.5-58.8 21.5V51.7C367.8 49.5 366.1 47.7 363.8 47.7zM367.8 333.1v-18.7l13.3 11.6L367.8 333.1z\"/>"],"electric-guitar":[" 0   0   512   512 ","<path d=\"M511.3 11.9c-1.6-3.6-5.5-5.5-9.3-4.6L396.3 32.1c-4.2 1-6.9 5.1-6.1 9.4l2.4 12.5L280.1 214.8L3.5 405c-3 2.1-4.3 5.9-3.1 9.4c1.2 3.5 4.6 5.7 8.3 5.4l177.8-13.7l56.5 94.8c1.5 2.5 4.1 4 7 4c0.4 0 0.8 0 1.2-0.1c3.3-0.5 5.9-2.9 6.7-6.1l61.9-258.4L429.1 76.9l79.4-55C511.7 19.7 512.9 15.5 511.3 11.9zM246.8 475.4l-48.8-82c-1.6-2.7-4.5-4.2-7.6-3.9L37.6 401.3L253.6 252.8l-13.3 19c-1.2 1.8-1.7 4-1.3 6.1c0.4 2.1 1.6 4 3.4 5.2l26.6 18.4c1.4 0.9 3 1.4 4.6 1.4c0.5 0 1 0 1.5-0.1c2.1-0.4 4-1.7 5.2-3.5l13.5-20.2L246.8 475.4zM271.4 283.4l-13.1-9L403.1 67.2l8.9 6.1L271.4 283.4zM423.2 61.3L408.5 51.1l-0.9-5l56.6-13.3L423.2 61.3z\"/><path d=\"M223 367.9l-26.6-18.4c-3.7-2.5-8.8-1.6-11.3 2.1c-2.5 3.7-1.6 8.8 2.1 11.3l26.6 18.4c1.4 1 3 1.4 4.6 1.4c2.6 0 5.1-1.2 6.7-3.5C227.6 375.5 226.7 370.4 223 367.9z\"/><path d=\"M246.7 333.6l-26.6-18.4c-3.7-2.5-8.8-1.6-11.3 2.1c-2.5 3.7-1.6 8.8 2.1 11.3l26.6 18.4c1.4 1 3 1.4 4.6 1.4c2.6 0 5.1-1.2 6.7-3.5C251.4 341.2 250.4 336.1 246.7 333.6z\"/><circle cx=\" 237.4 \" cy=\" 416.8 \" r=\" 8.1 \"/><circle cx=\" 245 \" cy=\" 392.4 \" r=\" 8.1 \"/>"],"veena":[" 0   0   480.9   480.9 ","<path d=\"M120 289.9c4.1-0.6 6.9-4.4 6.3-8.5c-0.6-4.1-4.4-6.9-8.5-6.3l-5.6 0.8c-18.8 2.7-35.8 11.3-49.3 24.8c-19.7 19.7-28.9 48-24.7 75.7c0.6 3.7 3.8 6.4 7.4 6.4c0.4 0 0.8 0 1.1-0.1c4.1-0.6 6.9-4.5 6.3-8.6c-3.5-23 4.1-46.4 20.5-62.8c11.2-11.2 25.3-18.3 40.9-20.6L120 289.9z\"/><path d=\"M198.1 368l-0.8 5.6c-2.3 15.6-9.4 29.8-20.6 40.9c-16.3 16.3-39.8 24-62.8 20.5c-4.1-0.6-7.9 2.2-8.6 6.3c-0.6 4.1 2.2 7.9 6.3 8.6c4.4 0.7 8.9 1 13.4 1c23.2 0 45.8-9.2 62.3-25.7c13.5-13.5 22.1-30.6 24.8-49.4l0.8-5.6c0.6-4.1-2.2-7.9-6.3-8.5C202.5 361 198.7 363.9 198.1 368z\"/><path d=\"M146 406.1c1.9 0 3.8-0.7 5.3-2.2c2.9-2.9 2.9-7.7 0-10.6l-56.6-56.6c-2.9-2.9-7.7-2.9-10.6 0c-2.9 2.9-2.9 7.7 0 10.6l56.6 56.6C142.1 405.4 144 406.1 146 406.1z\"/><path d=\"M471.5 97.4c-2.9-2.9-7.7-2.9-10.6 0l-10.8-10.8l10.4-11.2c10.3-11 9.9-28.6-0.7-39.2l-7.1-7.1c-8.8-8.8-22.5-10.5-33.2-4.9l-11.5-11.5c2.9-2.9 2.9-7.7 0-10.6c-2.9-2.9-7.7-2.9-10.6 0l-5.3 5.3c0 0-5.3 5.3-5.3 5.3c-2.9 2.9-2.9 7.7 0 10.6c1.5 1.5 3.4 2.2 5.3 2.2s3.8-0.7 5.3-2.2l10.4 10.4l-21.9 20.5l-10.8-10.8c2.9-2.9 2.9-7.7 0-10.6c-2.9-2.9-7.7-2.9-10.6 0l-10.6 10.6c-2.9 2.9-2.9 7.7 0 10.6c1.5 1.5 3.4 2.2 5.3 2.2c1.9 0 3.8-0.7 5.3-2.2l10.4 10.4L259.1 172.7c-2.3-19.5 4.4-39.1 18.6-53.3c9.2-9.2 20.8-15.4 33.5-17.8c4.1-0.8 6.7-4.7 5.9-8.8c-0.8-4.1-4.7-6.7-8.8-5.9c-15.7 3-30 10.6-41.3 22c-20.1 20.1-27.9 48.8-21 76.1l-52.4 49l-85.8 12.4c-25.2 3.7-48.2 15.2-66.3 33.3c-42.8 42.8-45.8 110.7-8.8 157c0.1 0.1 0.1 0.1 0.2 0.2c2.7 3.3 5.5 6.5 8.6 9.6c3.1 3.1 6.4 6 9.8 8.7c0 0 0.1 0.1 0.1 0.1c20.8 16.6 46.5 25.7 73.5 25.7c31.5 0 61.1-12.3 83.4-34.5c18.1-18.1 29.6-41 33.3-66.3l12-83.2l50.4-54c6.5 1.6 13.1 2.4 19.6 2.4c20.9 0 41.2-8.2 56.5-23.5c11.5-11.5 19.1-26 22.1-41.9c0.8-4.1-1.9-8-6-8.7c-4.1-0.7-8 1.9-8.7 6c-2.4 12.9-8.6 24.7-17.9 34c-14.2 14.2-33.8 20.9-53.3 18.6l83.8-89.7c0.2-0.2 0.4-0.3 0.5-0.5c0.3-0.3 0.5-0.6 0.8-0.9l7.7-8.3l10.5 10.5c-2.9 2.9-2.9 7.7 0 10.6c1.5 1.5 3.4 2.2 5.3 2.2c1.9 0 3.8-0.7 5.3-2.2l5.3-5.3c0 0 5.3-5.3 5.3-5.3c2.9-2.9 2.9-7.7 0-10.6c-2.9-2.9-7.7-2.9-10.6 0c0 0-10.9-10.9-10.9-10.9l20.5-21.9l10.4 10.4c-2.9 2.9-2.9 7.7 0 10.6c1.5 1.5 3.4 2.2 5.3 2.2c1.9 0 3.8-0.7 5.3-2.2l10.6-10.6C474.4 105.1 474.4 100.3 471.5 97.4zM52.3 435.7c-1.3-1.3-2.6-2.6-3.8-4l34.5-43.1l16.4 16.4l-43.1 34.5C54.9 438.3 53.6 437 52.3 435.7zM241.2 288.4c0 0 0 0 0 0l-35.8 38.4c-2.8 3-2.7 7.8 0.4 10.6c1.4 1.4 3.3 2 5.1 2c2 0 4-0.8 5.5-2.4l19.6-21l-8.9 61.8c-3.2 22-13.3 42-29.1 57.8c-35.1 35.1-89.4 39.5-129.4 13.2l46.8-37.4c1.7-1.3 2.7-3.3 2.8-5.4c0.1-2.1-0.7-4.2-2.2-5.7L87.6 372.1c-1.5-1.5-3.6-2.3-5.7-2.2c-2.1 0.1-4.1 1.1-5.4 2.8l-37.4 46.8C12.8 379.5 17.2 325.2 52.3 290.1c15.8-15.8 35.8-25.8 57.8-29.1l64.4-9.3l-22.5 21c-3 2.8-3.2 7.6-0.4 10.6c2.8 3 7.6 3.2 10.6 0.4l96.3-89.9c0.9-0.6 1.7-1.3 2.3-2.2l93.7-87.5l30.3 30.3L241.2 288.4zM395.1 123.6l-29.6-29.6L423.8 39.5c5.1-4.7 13.5-4.6 18.3 0.3l7.1 7.1c4.9 4.9 5 13.3 0.3 18.3L395.1 123.6z\"/>"],"trumpet":[" 0   0   552.4   552.4 ","<path d=\"M500.5 161.8c-12.7 0-19.4 12.7-25.9 25c-4.1 7.8-8.4 15.9-14.1 21.6c-10.8 10.8-21.4 18.3-28.5 20.1c-23.4 5.9-60.6 9.4-116.9 11c-1.4-1.3-3.2-2.2-5.3-2.2h-3.6v-5h3.6c4.1 0 7.5-3.4 7.5-7.5s-3.4-7.5-7.5-7.5H287.6c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5h3.6v5h-3.6c-2.4 0-4.5 1.1-5.9 2.9c-3.2 0-7 0.1-10.5 0.1c-1.5 0-2.9 0-4.2 0c-1.4-1.8-3.5-3-6-3h-3.6v-5h3.6c4.1 0 7.5-3.4 7.5-7.5s-3.4-7.5-7.5-7.5h-22.2c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5h3.6v5h-3.6c-2.6 0-4.9 1.3-6.2 3.3c-4.4 0-9.9 0-14.2 0c-1.3-2-3.6-3.3-6.2-3.3h-3.6v-5h3.6c4.1 0 7.5-3.4 7.5-7.5s-3.4-7.5-7.5-7.5h-22.2c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5h3.6v5h-3.6c-2.6 0-4.9 1.3-6.2 3.3c-2.2 0-3.7 0-5.4-0.1c-1.8 0-3.9-0.1-7.6-0.1c-0.2 0-0.4 0-0.6 0c-27.9 0-52.5 17.6-61.7 43.5H90c-2.3 0-4.4 1.1-5.8 2.7H62.5c-1-1.2-2.4-2.2-4.1-2.5l-23.3-5.4c-0.7-3.4-3.7-5.9-7.3-5.9H7.5c-4.1 0-7.5 3.4-7.5 7.5v44.4c0 4.1 3.4 7.5 7.5 7.5h20.3c3.6 0 6.6-2.5 7.3-5.9l23.3-5.4c1.7-0.4 3.1-1.3 4.1-2.5h21.7c1.4 1.7 3.5 2.7 5.8 2.7h16.3c6.8 32.1 35.4 55.5 69.1 55.5h7.2v6.4c0 4.1 3.4 7.5 7.5 7.5h22.2c4.1 0 7.5-3.4 7.5-7.5v-6.4h11.6v6.4c0 4.1 3.4 7.5 7.5 7.5h22.2c4.1 0 7.5-3.4 7.5-7.5v-6.4h11.6v6.4c0 4.1 3.4 7.5 7.5 7.5h22.2c4.1 0 7.5-3.4 7.5-7.5v-6.4h44.7c25.6 0 46.4-20.8 46.4-46.4c0-12.4-4.8-24-13.6-32.8c-8.8-8.8-20.4-13.6-32.8-13.6h-44.7v-7.1c54.2 1.6 90.8 5.1 114.7 11c7.1 1.8 17.9 9.3 28.6 20c5.6 5.6 9.9 13.7 14 21.5c6.5 12.3 13.2 25.1 25.8 25.1c29.1 0 51.9-42.3 51.9-96.3C552.4 204.1 529.6 161.8 500.5 161.8zM317.3 321.2h44.7c5 0 9.2 4.1 9.2 9.2c0 2.4-1 4.7-2.7 6.5c-1.7 1.7-4 2.7-6.5 2.7h-44.7V321.2zM268.5 298.9h11.6v7.2h-11.6V298.9zM280.1 283.9h-11.6v-8c0.7 0 1.5 0 2.2 0c3.1 0 6.4 0 9.3 0.1V283.9zM268.5 321.2h11.6v18.3h-11.6V321.2zM271.3 255.3c2.9 0 6 0 8.8-0.1v5.9c-2.9 0-6.2 0-9.2-0.1c-0.8 0-1.6 0-2.3 0v-5.7C269.4 255.3 270.4 255.3 271.3 255.3zM231.3 283.9h-11.6v-8.2c3.7 0 7.9 0 11.6 0V283.9zM219.7 298.9h11.6v7.2h-11.6V298.9zM231.3 260.7c-3.7 0-7.9 0-11.6 0v-5.1c3.7 0 7.9 0 11.6 0V260.7zM219.7 321.2h11.6v18.3h-11.6V321.2zM182.5 283.9h-31.7c5.1-4.9 11.9-7.8 19.3-7.9c3.6 0 5.7-0.1 7.7-0.1c1.5 0 2.9-0.1 4.8-0.1V283.9zM182.5 339.5h-8.8c-12.6 0-22.8-6.8-28.1-18.3h36.9V339.5zM170.3 255.5c0.2 0 0.3 0 0.5 0c3.6 0 5.7 0.1 7.5 0.1c1.4 0 2.6 0 4.3 0.1v5.3c-2.1 0-3.5 0.1-5.1 0.1c-1.9 0-4 0.1-7.5 0.1c-16 0.2-30.3 9-37.8 22.9h-7.4C133.1 266.8 150.6 255.5 170.3 255.5zM15 287.8h5.3v29.4H15V287.8zM35.3 294.2l13.9 3.2v10.3l-13.9 3.2V294.2zM64.2 303.4v-1.7h18.3v1.7M97.5 298.9h16.4c0 0 0.1 0 0.1 0c0 0 0.1 0 0.1 0h22.7c0 0 0 0 0 0c0 0 0 0 0 0h45.6v7.2h-47.1c0 0-0.1 0-0.1 0h-22.7c0 0 0 0 0 0H97.5V298.9zM175.4 361.7c-25.4 0-47.1-16.9-53.6-40.5h7.8c6.5 20.4 23.2 33.3 44.1 33.3h8.8v7.2H175.4zM204.7 375.6h-7.2V252.3h7.2V375.6zM219.7 361.7v-7.2h11.6v7.2H219.7zM253.5 375.6h-7.2V252.3h7.2V375.6zM268.5 361.7v-7.2h11.6v7.2H268.5zM302.3 375.6h-7.2V252.3h7.2V375.6zM362 298.9c8.4 0 16.2 3.3 22.2 9.2c5.9 5.9 9.2 13.8 9.2 22.2c0 17.3-14.1 31.4-31.4 31.4h-44.7v-7.2h44.7c6.5 0 12.5-2.5 17.1-7.1c4.6-4.6 7.1-10.6 7.1-17.1c0-13.3-10.8-24.2-24.2-24.2h-44.7v-7.2H362zM525.2 317.6c-7 13.9-15.9 21.9-24.7 21.9c-3.6 0-8.5-9.5-12.5-17.1c-4.4-8.4-9.4-17.9-16.7-25.2c-7.5-7.5-22.2-20.7-35.6-24c-25.1-6.2-62.8-9.9-118.3-11.5v-7.4c56.4-1.7 94.1-5.3 118.4-11.4c13.3-3.4 27.9-16.5 35.4-24c7.3-7.3 12.3-16.8 16.8-25.2c4-7.6 9-17 12.6-17c8.7 0 17.7 8 24.7 21.9c7.9 15.8 12.2 36.9 12.2 59.5C537.4 280.7 533.1 301.8 525.2 317.6zM461.3 243.2c1.9 3.7 0.5 8.2-3.2 10.1c-4.7 2.4-9.2 4.2-13.5 5.3c-0.6 0.2-1.2 0.2-1.8 0.2c-3.4 0-6.4-2.3-7.3-5.7c-1-4 1.4-8.1 5.4-9.1c3.1-0.8 6.7-2.2 10.2-4C454.9 238.1 459.4 239.5 461.3 243.2zM509.9 190.9c-1.1 2.1-2.3 4.4-3.5 6.8c-5.8 11.5-12.9 25.9-26.4 39.4c-1.5 1.5-3.4 2.2-5.3 2.2s-3.8-0.7-5.3-2.2c-2.9-2.9-2.9-7.7 0-10.6c11.8-11.8 18.3-24.9 23.6-35.5c1.3-2.5 2.5-4.9 3.7-7.2c1.9-3.7 6.5-5 10.1-3.1C510.5 182.7 511.8 187.3 509.9 190.9z\"/>"],"contrabass":[" 0   0   792   792 ","<path d=\"M267.2 401.1l33.8 33.8l-7.8 7.8l-33.8-33.8L267.2 401.1zM699.6 34.3l-7.8 7.8l2.8 2.8c2.2 2.2 2.2 5.7 0 7.8c-1.1 1.1-2.5 1.6-3.9 1.6c-1.4 0-2.8-0.5-3.9-1.6l-2.8-2.8l-7.8 7.8c-1.6 1.5-3.6 2.4-5.8 2.4c-1.9 0-3.6-0.6-5.1-1.8l-4.3 4.3l4.2 4.2c2.2 2.2 2.2 5.7 0 7.8c-1.1 1.1-2.5 1.6-3.9 1.6c-1.4 0-2.8-0.5-3.9-1.6l-4.2-4.2l-6 6l4.2 4.2c2.2 2.2 2.2 5.7 0 7.8c-1.1 1.1-2.5 1.6-3.9 1.6c-1.4 0-2.8-0.5-3.9-1.6l-4.2-4.2l-9.8 9.8c-0.2 4.5-2 8.7-5.2 12L502.5 232.3l5.6 63.8c3 34.5-9.3 68.4-33.8 92.9l-21.3 21.3l-3.7-2.4c-7.9-5-25.4-0.7-41.1 15c-7.9 7.9-13.5 17-15.9 25.7c-2 7.5-1.2 13.7 2.2 17.1c0.1 0.1 2.1 1.8 2.1 1.8l0.2 2.2c3.5 37-15.2 75.5-57.3 117.5C323.2 603.6 301.4 612 276.4 612c-8.3 0-17-0.9-25.9-2.8c-32.6-6.9-66.4-26.1-95.7-54.2l-25.9 25.9c-1.1 1.1-2.5 1.6-3.9 1.6s-2.8-0.5-3.9-1.6c-2.2-2.2-2.2-5.7 0-7.8l25.9-25.9c-28.1-29.3-47.2-63.1-54.2-95.7c-7.6-35.7 0.2-67.3 21.9-89c42.1-42.1 80.5-60.8 117.6-57.3l2.2 0.2c0 0 1.7 1.9 1.9 2.1c8.6 8.6 29.4-0.3 42.8-13.7c15.7-15.7 20-33.2 15-41.1l-2.4-3.7l21.3-21.3c24.5-24.5 58.4-36.8 92.9-33.8l63.8 5.6L596 77.6c3.3-3.1 7.5-5 12-5.2l3.5-3.5l-4.1-4.1c-2.2-2.2-2.2-5.7 0-7.8c2.2-2.2 5.7-2.2 7.8 0l4.1 4.1l6-6l-4.1-4.1c-2.2-2.2-2.2-5.7 0-7.8s5.7-2.2 7.8 0l4.1 4.1l10.6-10.6c-1.1-1.4-1.8-3.2-1.8-5.1c0-2.2 0.9-4.3 2.4-5.8l7.8-7.8l-2.8-2.8c-2.2-2.2-2.2-5.7 0-7.8c2.2-2.2 5.7-2.2 7.8 0l2.8 2.8l7.8-7.8C669.2 0.9 671.3 0 673.5 0c2.2 0 4.3 0.9 5.8 2.4L699.6 22.7C702.8 25.9 702.8 31.1 699.6 34.3zM161.2 545.8l34.7-34.7l-5-5l-34.7 34.7c0.8 0.9 1.6 1.7 2.5 2.6C159.5 544.2 160.4 545 161.2 545.8zM497.1 297.1l-4.7-54.2l-123.4 127.8l-37.7-37.7l127.8-123.4l-54.2-4.7c-31.2-2.7-61.9 8.4-84.1 30.6l-15.4 15.4c5.1 13.8-2.1 34.3-18.6 50.7c-19.8 19.8-44.8 26-57.6 14.4c-32.9-2.4-67.9 15.4-106.7 54.2c-18.9 18.9-25.6 46.9-18.9 78.9c6 28.1 21.8 57.3 45 83.5l38-38l36.8-55.4l39.3 39.3l-55.4 36.8l-38 38c26.1 23.2 55.4 39 83.5 45c31.9 6.8 59.9 0.1 78.9-18.9c38.8-38.8 56.6-73.8 54.3-106.7c-5.8-6.4-7.3-15.9-4.3-27c2.8-10.5 9.5-21.4 18.7-30.6c16.5-16.4 36.9-23.7 50.7-18.6l15.4-15.4C488.7 359 499.8 328.3 497.1 297.1zM204.5 504l40.8-27.1l-20.2-20.2l-27.1 40.8L204.5 504zM618.5 94.1L607.9 83.5c-1.6 0.2-3.1 0.9-4.3 2L347.1 333.2l21.8 21.8L616.5 98.4C617.6 97.2 618.3 95.7 618.5 94.1zM657.5 50.5l-6-6l-33.5 33.5l6 6L657.5 50.5zM689.8 28.5L673.5 12.2l-19.3 19.3l16.3 16.3L689.8 28.5zM315.8 321.1c-6.9-6.9-18.1-6.9-25 0l-46.7 46.7c-1.3 1.3-2.9 1.9-4.7 1.9c-1.8 0-3.4-0.7-4.7-1.9c-1.2-1.2-1.9-2.9-1.9-4.7c0-1.8 0.7-3.4 1.9-4.7l2.6-2.6c2.2-2.2 2.2-5.7 0-7.8l-2.4-2.4c-2.2-2.2-5.7-2.2-7.8 0c-1.6 1.6-2 4.1-1.2 6.1c-2.7 3.2-4.2 7.2-4.2 11.4c0 4.7 1.8 9.2 5.2 12.5c3.3 3.3 7.8 5.2 12.5 5.2s9.2-1.8 12.5-5.2l46.7-46.7c2.6-2.6 6.8-2.6 9.4 0c2.6 2.6 2.6 6.8 0 9.3l-2.6 2.6c-2.2 2.2-2.2 5.7 0 7.8l2.4 2.4c2.2 2.2 5.7 2.2 7.8 0c1.6-1.6 2-4.1 1.2-6.1C322.6 338.1 322.3 327.7 315.8 321.1zM357 385.2c-2-0.9-4.4-0.5-6.1 1.2c-2.2 2.2-2.2 5.7 0 7.8l2.4 2.4c1 1 2.4 1.6 3.9 1.6c1.5 0 2.9-0.6 3.9-1.6l2.6-2.6c2.6-2.6 6.8-2.6 9.3 0c2.6 2.6 2.6 6.8 0 9.4l-46.7 46.7c-6.9 6.9-6.9 18.1 0 25c3.4 3.4 8 5.2 12.5 5.2c4.1 0 8.1-1.4 11.4-4.1c2 0.9 4.4 0.5 6.1-1.2c2.2-2.2 2.2-5.7 0-7.8l-2.4-2.4c-2.2-2.2-5.7-2.2-7.8 0l-2.6 2.6c-2.6 2.6-6.8 2.6-9.3 0c-2.6-2.6-2.6-6.8 0-9.4l46.7-46.7c6.9-6.9 6.9-18.1 0-25C374.3 379.7 363.9 379.4 357 385.2z\"/>"],"tuba":[" 0   0   470   470 ","<path d=\"M312.2 108.3c-45 0-81.6 36.2-82.5 80.9c-11.3-5.8-24-9.1-37.5-9.1h-7.5v-62.7c0-39.9-17.9-77.3-47.9-102.4h141.1c-30 25.1-47.9 62.5-47.9 102.4c0 4.1 3.4 7.5 7.5 7.5s7.5-3.4 7.5-7.5c0-42.2 22.6-81.3 59-102.4h28c4.1 0 7.5-3.4 7.5-7.5c0-4.1-3.4-7.5-7.5-7.5H82.8c-4.1 0-7.5 3.4-7.5 7.5c0 4.1 3.4 7.5 7.5 7.5h28c36.4 21.1 59 60.2 59 102.4v62.7H90.3v-2.5c0-4.1-3.4-7.5-7.5-7.5s-7.5 3.4-7.5 7.5v50c0 4.1 3.4 7.5 7.5 7.5s7.5-3.4 7.5-7.5v-2.5h79.5V357.5c0 62 50.5 112.5 112.5 112.5s112.5-50.5 112.5-112.5V190.8C394.7 145.3 357.7 108.3 312.2 108.3zM90.3 210.1v-15h102c37.2 0 67.5 30.3 67.5 67.5v38c0 20.7 16.8 37.5 37.5 37.5c20.7 0 37.5-16.8 37.5-37.5v-53c0-20.7-16.8-37.5-37.5-37.5c-8.4 0-16.2 2.8-22.5 7.5v-17.4c7-3.3 14.7-5.1 22.5-5.1c28.9 0 52.5 23.6 52.5 52.5v53c0 28.9-23.6 52.5-52.5 52.5c-28.9 0-52.5-23.6-52.5-52.5v-38c0-28.9-23.6-52.5-52.5-52.5h-15C177.2 210.1 90.3 210.1 90.3 210.1zM297.2 255.1h22.5v11.5h-22.5c-4.1 0-7.5 3.4-7.5 7.5c0 4.1 3.4 7.5 7.5 7.5h22.5v11.5h-22.5c-4.1 0-7.5 3.4-7.5 7.5c0 4.1 3.4 7.5 7.5 7.5h21.2c-3.1 8.7-11.4 15-21.2 15c-12.4 0-22.5-10.1-22.5-22.5v-53c0-12.4 10.1-22.5 22.5-22.5c9.8 0 18.1 6.3 21.2 15h-21.2c-4.1 0-7.5 3.4-7.5 7.5C289.7 251.8 293.1 255.1 297.2 255.1zM275.4 183.8c3.3-17.3 18.5-30.5 36.8-30.5c20.7 0 37.5 16.8 37.5 37.5v14.5c-12.4-15.3-31.3-25.1-52.5-25.1C289.8 180.1 282.4 181.4 275.4 183.8zM349.7 343V357.5c0 20.7-16.8 37.5-37.5 37.5c-18.3 0-33.6-13.2-36.8-30.5c6.9 2.4 14.2 3.6 21.8 3.6C318.4 368.1 337.4 358.3 349.7 343zM282.2 455c-53.8 0-97.5-43.7-97.5-97.5V225.1h7.5c20.7 0 37.5 16.8 37.5 37.5V357.5c0 45.5 37 82.5 82.5 82.5c10.6 0 20.6-2 29.9-5.6C325.6 447.3 304.8 455 282.2 455zM379.7 357.5c0 37.2-30.3 67.5-67.5 67.5c-37.2 0-67.5-30.3-67.5-67.5v-14.5c4.3 5.3 9.3 9.9 15 13.7v0.8c0 28.9 23.6 52.5 52.5 52.5s52.5-23.6 52.5-52.5V190.8c0-28.9-23.6-52.5-52.5-52.5c-28.9 0-52.5 23.6-52.5 52.5v24.5c-4.2-6-9.2-11.4-14.8-16.1l-0.2-8.5c0-37.2 30.3-67.4 67.5-67.4c37.2 0 67.5 30.3 67.5 67.5V357.5z\"/>"],"conga":[" 0   0   449.5   449.5 ","<path d=\"M314.8 105.4c-3.5-14.5-6-29.1-7.5-43.4c6.3-3.1 9.3-6.8 9.3-11c0 0 0-15.1 0-15.6c0-4.8-3.2-9.2-9.6-13c-1.7-6.6-10.3-12-25.7-16.1C266.2 2.2 246.1 0 224.8 0c-21.3 0-41.4 2.2-56.6 6.3c-15.3 4.1-23.9 9.5-25.7 16.1c-6.4 3.8-9.6 8.1-9.6 13c0 0.6 0 15.6 0 15.6c0 4.2 3.1 7.9 9.3 11c-1.5 14.4-4 28.9-7.5 43.4c-6.8 28.6-10.3 59.5-10.3 91.7c0 42.4 6.1 83.1 17.7 117.7c13.5 40.3 22.9 80.3 28 118.8l0.3 2c0.2 1.4 1.1 2.6 2.4 3.1c16.5 7.2 34.3 10.8 52.1 10.8c17.8 0 35.5-3.6 52.1-10.8c1.3-0.6 2.2-1.7 2.4-3.1l0.3-2c5.1-38.5 14.5-78.4 27.9-118.8c11.6-34.6 17.7-75.3 17.7-117.7C325.1 164.9 321.6 134 314.8 105.4zM170.2 14C184.7 10.1 204.1 8 224.8 8s40 2.1 54.5 6c15.9 4.2 20 9 20 10.9s-4.2 6.7-20 10.9c-14.5 3.9-33.9 6-54.5 6s-40-2.1-54.5-6c-15.9-4.2-20-9-20-10.9S154.4 18.2 170.2 14zM144.1 30.9c3.4 5.1 11.5 9.3 24 12.6c15.2 4 35.3 6.3 56.6 6.3s41.4-2.2 56.6-6.3c12.6-3.3 20.6-7.6 24-12.6c2.1 1.6 3.2 3.2 3.2 4.5c0 2.5-4.8 7.9-22.8 12.6c-16.3 4.3-38 6.7-61.1 6.7s-44.8-2.4-61.1-6.7c-18-4.8-22.8-10.2-22.8-12.6C140.9 34.1 142.1 32.5 144.1 30.9zM140.9 51V47.2C156.1 57.4 190.6 62.7 224.8 62.7s68.7-5.3 83.9-15.5v3.7c0 0.7-2.5 4-14.6 7.5c-2.1 0.6-3.3 2.8-2.8 4.9c0.2 0.6 0.2 1.2 0.2 1.8c0 3.8-3.1 6.9-6.9 6.9c-3.4 0-6.4-2.6-6.9-6c-0.1-1.1-0.7-2-1.6-2.6c-0.9-0.6-1.9-0.9-3-0.8c-14.3 2.1-31.1 3.2-48.4 3.2s-34.1-1.1-48.4-3.2c-1.1-0.2-2.1 0.1-3 0.8c-0.9 0.6-1.4 1.6-1.6 2.6c-0.5 3.4-3.4 6-6.9 6c-3.8 0-6.9-3.1-6.9-6.9c0-0.6 0.1-1.2 0.2-1.8c0.6-2.1-0.7-4.3-2.8-4.9C143.4 55 140.9 51.7 140.9 51zM299.4 135.1l-5.7 10.8l-7.6-9.6l5.7-10.8L299.4 135.1zM157.7 125.5l5.7 10.8l-7.6 9.6l-5.7-10.8L157.7 125.5zM178 432.3c-0.4-3-0.8-6.1-1.3-9.1c15.5 5.4 31.8 8.1 48.1 8.1c16.3 0 32.6-2.7 48.1-8.1c-0.5 3-0.9 6.1-1.3 9.1C241.7 444.6 207.8 444.6 178 432.3zM299.8 312.2c-11.5 34.5-20.1 68.7-25.5 101.9c-31.6 12.2-67.4 12.2-99 0c-5.5-33.3-14.1-67.5-25.5-101.9c-11.3-33.8-17.2-73.6-17.2-115.2c0-31.6 3.4-61.8 10.1-89.8c3.4-14 7.5-42.1 7.5-42.1c0 0 0 0 0 0c0 5.7 3.2 10.7 8 13.2l-3.5 38.3l-12.3 15.4c-1 1.2-1.1 3-0.4 4.4l9.8 18.5c0.6 1.2 1.8 2 3.2 2.1c0.1 0 0.2 0 0.4 0c1.2 0 2.4-0.6 3.1-1.5l13-16.4c1-1.2 1.1-3 0.4-4.4l-9.3-17.4l3.4-37.4c5.6-0.4 10.6-3.9 12.8-8.9c13.9 1.8 29.7 2.8 46.1 2.8s32.2-1 46.1-2.8c2.2 5 7.1 8.6 12.8 8.9l3.4 37.4l-9.3 17.4c-0.7 1.4-0.6 3.1 0.4 4.4l13 16.4c0.8 1 1.9 1.5 3.1 1.5c0.1 0 0.2 0 0.4 0c1.3-0.1 2.5-0.9 3.2-2.1l9.8-18.5c0.7-1.4 0.6-3.1-0.4-4.4l-12.3-15.4l-3.5-38.3c4.7-2.5 8-7.5 8-13.2c0 0 0 0 0 0c0 0 4.2 28.1 7.5 42.1c6.7 28 10 58.2 10 89.8C317.1 238.6 311.1 278.4 299.8 312.2z\"/>"],"clarinet":[" 0   0   550   550 ","<path d=\"M546.7 78.8c-5.1-15.3-15.7-31.5-29.9-45.7c-14.2-14.2-30.4-24.8-45.7-29.9c-17-5.7-31.2-4-40 4.8c-3 3-4.5 7.7-4.6 14.3c-0.2 33.1-13.2 65.1-36.7 90.1l-59.8 60.1c-3.1-1.6-6.5-2.5-10.1-2.5c-5.8 0-11.2 2.3-15.3 6.3c-4.1 4.1-6.3 9.5-6.4 15.3c0 3.6 0.9 7.1 2.6 10.3l-43 43.3l-5.5-5.5l4.8-4.8c2.9-2.9 2.9-7.7 0-10.6c-2.9-2.9-7.7-2.9-10.6 0L86 384.8c-2.9 2.9-2.9 7.7 0 10.6c1.5 1.5 3.4 2.2 5.3 2.2s3.8-0.7 5.3-2.2l14.7-14.7l5.8 5.8l-83.4 83.8c-0.2 0.2-0.4 0.4-0.5 0.6c-0.4 0.5-10.8 13.5-19.8 28.3c-14.2 23.3-17 37.9-8.9 46.1c3.1 3.1 7.1 4.7 12.1 4.7c8.4 0 19.6-4.3 34.3-12.9c15-8.8 28.2-19.1 28.8-19.5c0.2-0.2 0.5-0.4 0.7-0.6l239.2-238.4c3.2 1.8 6.9 2.8 10.7 2.8h0c5.8 0 11.2-2.3 15.3-6.3c4.1-4.1 6.3-9.5 6.3-15.3c0-3.8-1-7.4-2.8-10.6l28.1-28c3.2 1.8 6.8 2.8 10.6 2.8c0 0 0 0 0 0c5.8 0 11.2-2.3 15.3-6.3c4.1-4.1 6.3-9.5 6.3-15.3c0-3.7-1-7.3-2.7-10.5l31.6-31.5c24.6-23.6 56.2-36.6 89.1-36.8c4.2 0 10.2-0.5 14.3-4.5C550.6 110.1 552.4 95.9 546.7 78.8zM413.2 164.1l-26.9-26.9l9.4-9.5l26.9 26.9L413.2 164.1zM375.8 147.9l26.9 26.9l-7.2 7.1c-0.2-0.1-0.5-0.2-0.7-0.2c-0.2-0.1-0.3-0.1-0.5-0.2c-0.6-0.2-1.1-0.3-1.7-0.5c0 0 0 0 0 0c-0.6-0.1-1.2-0.2-1.8-0.3c-0.2 0-0.3 0-0.5-0.1c-0.4 0-0.9-0.1-1.3-0.1c-0.2 0-0.4 0-0.5 0c-0.5 0-0.9 0-1.4 0c-0.1 0-0.3 0-0.4 0c-0.6 0-1.2 0.1-1.8 0.2c-0.1 0-0.1 0-0.2 0c-0.5 0.1-1 0.2-1.5 0.3c-0.2 0-0.3 0.1-0.5 0.1c-0.4 0.1-0.8 0.2-1.2 0.4c-0.2 0.1-0.3 0.1-0.5 0.2c-0.5 0.2-0.9 0.3-1.4 0.5c-0.1 0-0.2 0.1-0.3 0.1c-0.1 0-0.1 0.1-0.2 0.1l9.6-9.6c2.9-2.9 2.9-7.7 0-10.6c-2.9-2.9-7.7-2.9-10.6 0l-38.2 38.2c0 0 0-0.1 0-0.1c0-0.1 0.1-0.2 0.1-0.3c0.2-0.5 0.4-1 0.5-1.4c0.1-0.2 0.1-0.3 0.2-0.5c0.1-0.4 0.3-0.9 0.4-1.4c0-0.1 0.1-0.3 0.1-0.4c0.3-1.2 0.4-2.5 0.5-3.7c0-0.1 0-0.1 0-0.2c0-0.6 0-1.1 0-1.7c0-0.1 0-0.2 0-0.3c0-0.6-0.1-1.2-0.2-1.8c0 0 0-0.1 0-0.1c-0.2-1.3-0.5-2.6-0.9-3.8c0-0.1 0-0.1-0.1-0.2c-0.1-0.3-0.2-0.6-0.3-0.9L375.8 147.9zM295.8 244.4c-2 2-2.6 4.8-1.9 7.3c-4.5-3.6-9.8-5.6-15.2-6.2l33.4-33.5c0.1 0 0.2 0.1 0.3 0.1c0.2 0.1 0.4 0.1 0.6 0.2c0.3 0.1 0.7 0.2 1 0.3c0.2 0.1 0.4 0.1 0.7 0.2c0.4 0.1 0.7 0.2 1.1 0.2c0.2 0 0.4 0.1 0.6 0.1c0.4 0.1 0.9 0.1 1.3 0.2c0.1 0 0.3 0 0.4 0c0.6 0 1.1 0.1 1.7 0.1c0 0 0.1 0 0.1 0c0.1 0 0.2 0 0.4 0c0.5 0 0.9 0 1.4-0.1c0.2 0 0.4 0 0.6-0.1c0.5-0.1 0.9-0.1 1.4-0.2c0.2 0 0.3 0 0.5-0.1c0.6-0.1 1.2-0.3 1.8-0.4c0.2 0 0.3-0.1 0.5-0.2c0.4-0.1 0.9-0.3 1.3-0.5c0.2-0.1 0.4-0.1 0.6-0.2c0.1 0 0.2-0.1 0.3-0.1L295.8 244.4zM133.4 443.1l-25.7-25.7l16.6-16.7c-1.1 6.7 0.8 13.8 6 19c4.2 4.2 9.8 6.3 15.3 6.3c1.9 0 3.8-0.3 5.6-0.7L133.4 443.1zM101.9 474.4l-25.6-25.6l20.7-20.8l25.6 25.6L101.9 474.4zM140.9 399.6c1.3-1.3 3-2 4.7-2c1.7 0 3.4 0.7 4.7 2c2.6 2.6 2.6 6.8 0 9.4c-2.6 2.6-6.8 2.6-9.4 0C138.3 406.5 138.3 402.2 140.9 399.6zM161 389c-5.2-5.2-12.4-7.2-19.1-6l22.8-22.9c-1.2 6.8 0.7 14 6 19.3c4.2 4.2 9.8 6.3 15.3 6.3c1.9 0 3.9-0.3 5.8-0.8l-25.2 25.1C168.5 402.7 166.6 394.7 161 389zM181.2 359.3c1.3-1.3 3-2 4.7-2c1.7 0 3.4 0.7 4.7 2c2.6 2.6 2.6 6.8 0 9.4c-2.6 2.6-6.8 2.6-9.4 0C178.6 366.1 178.6 361.9 181.2 359.3zM201.3 348.7c-5.3-5.3-12.6-7.2-19.4-6l20.4-20.5c0.7 6.3 3.4 12.4 8.2 17.2c5.1 5.1 11.7 7.9 18.4 8.3l-22.1 22.1C208.8 362.6 207 354.4 201.3 348.7zM217.4 316.3l8.1 8.1c1.5 1.5 3.4 2.2 5.3 2.2s3.8-0.7 5.3-2.2c2.9-2.9 2.9-7.7 0-10.6l-8.1-8.1c0.9-0.2 1.9-0.3 2.8-0.3c3.5 0 7 1.3 9.7 4c5.4 5.4 5.4 14.1 0 19.4c-5.4 5.4-14.1 5.4-19.4 0C217.7 325.5 216.5 320.7 217.4 316.3zM251.2 298.8L251.2 298.8c-4.8-4.8-11-7.6-17.3-8.2l13.5-13.6c0.6 6.4 3.4 12.5 8.3 17.4c5.2 5.2 11.8 7.9 18.6 8.3l-14.7 14.6C259.1 310.6 256.3 304 251.2 298.8zM262.5 271.2l8.1 8.1c1.5 1.5 3.4 2.2 5.3 2.2s3.8-0.7 5.3-2.2c2.9-2.9 2.9-7.7 0-10.6l-8.1-8.1c0.9-0.2 1.9-0.3 2.8-0.3c3.5 0 7 1.3 9.7 4c5.4 5.4 5.4 14.1 0 19.4c-5.4 5.4-14.1 5.4-19.4 0C262.8 280.4 261.6 275.6 262.5 271.2zM315.2 187c1.3-1.3 2.9-2 4.7-2c1.8 0 3.5 0.7 4.7 2c0 0 0 0 0 0c0.1 0.1 0.3 0.3 0.4 0.4c2.2 2.6 2.1 6.6-0.4 9.1c-2.4 2.4-6.4 2.6-9 0.4c0 0-0.1-0.1-0.1-0.1c-0.1-0.1-0.2-0.2-0.3-0.3c-1.3-1.3-2-2.9-2-4.7C313.2 189.9 313.9 188.3 315.2 187zM247.2 255.9l-34.4 34.6l-5.6-5.6l34.5-34.5L247.2 255.9zM122 370.1l74.6-74.6l5.6 5.6l-74.4 74.8L122 370.1zM70.2 506c-2.1 1.6-13.1 10-25.5 17.4c-22.2 13.3-28.7 11.7-29.5 11.5c-0.3-0.8-1.7-7.3 11.9-29.2c7.6-12.2 16.1-23.1 17.6-25l21-21.1l25.5 25.5L70.2 506zM304.6 272.4c-0.3-5.5-2.2-10.9-5.7-15.6c0.7 0.2 1.4 0.3 2.2 0.3c1.9 0 3.8-0.7 5.3-2.2l4.2-4.2c0 0 0 0.1 0 0.1c-0.1 0.1-0.1 0.2-0.1 0.4c-0.2 0.4-0.3 0.9-0.5 1.3c-0.1 0.2-0.1 0.4-0.2 0.6c-0.1 0.4-0.2 0.8-0.3 1.1c-0.1 0.2-0.1 0.4-0.1 0.6c-0.1 0.4-0.2 0.9-0.3 1.4c0 0.1 0 0.2-0.1 0.4c-0.1 0.6-0.1 1.1-0.2 1.7c0 0.2 0 0.4 0 0.6c0 0.4 0 0.8 0 1.2c0 0.2 0 0.4 0 0.7c0 0.4 0 0.8 0.1 1.1c0 0.2 0 0.4 0.1 0.6c0.1 0.6 0.2 1.1 0.3 1.7c0 0.1 0.1 0.2 0.1 0.3c0.1 0.5 0.2 0.9 0.3 1.4c0.1 0.2 0.1 0.4 0.2 0.6c0.1 0.2 0.1 0.4 0.2 0.6L304.6 272.4zM335.1 264.4c-2.6 2.6-6.8 2.6-9.4 0c-0.2-0.2-0.4-0.4-0.5-0.6c-2.1-2.6-1.8-6.4 0.6-8.8c0.3-0.3 0.6-0.5 0.9-0.7c0 0 0.1 0 0.1-0.1c0.3-0.2 0.6-0.4 0.9-0.5c0.1 0 0.1-0.1 0.2-0.1c0.3-0.1 0.6-0.2 1-0.3c0.1 0 0.1 0 0.2-0.1c0.3-0.1 0.6-0.1 1-0.1c0.1 0 0.2 0 0.3 0c0.2 0 0.4 0 0.6 0c0.2 0 0.4 0 0.6 0.1c0.1 0 0.3 0.1 0.4 0.1c0.2 0.1 0.5 0.1 0.7 0.2c0.1 0 0.3 0.1 0.4 0.2c0.2 0.1 0.5 0.2 0.7 0.3c0.2 0.1 0.4 0.2 0.6 0.4c0.1 0.1 0.3 0.2 0.4 0.3c0.2 0.1 0.3 0.3 0.6 0.5c0 0 0 0 0 0c1.3 1.3 2 2.9 2 4.7C337 261.5 336.3 263.2 335.1 264.4zM337.8 239.3c-0.2-0.1-0.4-0.1-0.7-0.2c-0.2-0.1-0.4-0.1-0.6-0.2c-0.5-0.2-1-0.3-1.5-0.4c-0.1 0-0.1 0-0.2 0c-0.6-0.1-1.1-0.2-1.7-0.3c-0.2 0-0.4 0-0.6-0.1c-0.4 0-0.8-0.1-1.2-0.1c-0.2 0-0.4 0-0.6 0c-0.4 0-0.8 0-1.2 0c-0.2 0-0.4 0-0.5 0c-0.6 0-1.1 0.1-1.7 0.2c-0.1 0-0.3 0-0.4 0.1c-0.4 0.1-0.9 0.2-1.3 0.3c-0.2 0-0.4 0.1-0.6 0.2c-0.4 0.1-0.8 0.2-1.1 0.3c-0.2 0.1-0.4 0.1-0.6 0.2c-0.4 0.1-0.8 0.3-1.3 0.5c-0.1 0.1-0.3 0.1-0.4 0.2c0 0-0.1 0-0.1 0l22.4-22.4c0.4-0.3 0.7-0.5 1-0.9c0.3-0.3 0.6-0.7 0.9-1l22.4-22.4c0 0.1 0 0.1-0.1 0.2c0 0.1-0.1 0.2-0.1 0.3c-0.2 0.5-0.4 0.9-0.5 1.4c-0.1 0.2-0.1 0.3-0.2 0.5c-0.1 0.4-0.3 0.9-0.4 1.3c0 0.2-0.1 0.3-0.1 0.5c-0.1 0.6-0.2 1.1-0.3 1.7c0 0 0 0 0 0c-0.1 0.6-0.1 1.2-0.2 1.9c0 0.1 0 0.2 0 0.2c0 0.5 0 1.1 0 1.6c0 0.1 0 0.2 0 0.3c0 0.6 0.1 1.1 0.1 1.7c0 0.1 0 0.1 0 0.2c0.2 1.3 0.4 2.5 0.8 3.7c0 0.1 0 0.1 0.1 0.2c0.1 0.3 0.2 0.6 0.3 0.9L337.8 239.3zM392.6 206.9c-1.3 1.3-2.9 1.9-4.7 1.9c0 0 0 0 0 0c-1.8 0-3.5-0.7-4.7-2c-0.2-0.2-0.4-0.4-0.5-0.6c-2.1-2.7-1.9-6.5 0.5-8.9c0.3-0.3 0.6-0.5 0.9-0.8c0 0 0.1 0 0.1-0.1c0.3-0.2 0.6-0.4 1-0.5c0 0 0.1 0 0.1-0.1c0.3-0.1 0.7-0.2 1-0.3c0.1 0 0.1 0 0.2 0c0.3-0.1 0.7-0.1 1-0.1c0.1 0 0.1 0 0.2 0c0.2 0 0.5 0 0.7 0c0.2 0 0.3 0 0.5 0c0.2 0 0.4 0.1 0.6 0.1c0.2 0 0.3 0.1 0.5 0.1c0.2 0.1 0.5 0.2 0.7 0.3c0.1 0.1 0.3 0.1 0.4 0.2c0.3 0.2 0.6 0.4 0.9 0.6c0 0 0 0 0.1 0c0.2 0.1 0.4 0.3 0.5 0.5c0 0 0 0 0 0c1.3 1.3 2 2.9 2 4.7S393.9 205.7 392.6 206.9zM531.5 108c-0.4 0.1-1.5 0.4-4 0.4c-34.3 0.1-67.4 12.8-94 35.9l-27.5-27.5c22.7-26.8 35.3-60 35.5-94.3c0-2.5 0.3-3.6 0.5-4c4.6-4.3 13.5-4.6 24.4-1c13.1 4.4 27.2 13.7 39.8 26.3c12.6 12.6 21.9 26.7 26.3 39.8C536.1 94.5 535.8 103.4 531.5 108zM444.3 95.5c-2 3.8-4.1 7.2-6.5 10c-1.5 1.7-3.6 2.6-5.7 2.6c-1.7 0-3.4-0.6-4.8-1.8c-3.2-2.7-3.5-7.4-0.9-10.6c1.6-1.9 3.2-4.3 4.6-7.1c1.9-3.7 6.4-5.2 10.1-3.3C444.7 87.3 446.2 91.8 444.3 95.5zM462 27c-0.1 1.9-0.2 3.9-0.3 6.1c-0.5 10.4-1.1 23.3-6.7 37.7c-1.2 3-2.6 6-4.2 8.9c-1.4 2.5-3.9 3.9-6.6 3.9c-1.2 0-2.5-0.3-3.6-0.9c-3.6-2-5-6.5-3-10.2c1.3-2.3 2.4-4.7 3.3-7.2c4.7-12.1 5.3-23.2 5.7-33c0.1-2.3 0.2-4.4 0.4-6.4c0.3-4.1 3.9-7.2 8-6.9C459.2 19.3 462.3 22.9 462 27zM77.9 491.7l-12.6 12.6c-1.4 1.4-3.3 2.2-5.3 2.2s-3.9-0.8-5.3-2.2l-8.2-8.2c-2.9-2.9-2.9-7.7 0-10.6l12.6-12.6c1.4-1.4 3.3-2.2 5.3-2.2c2 0 3.9 0.8 5.3 2.2l8.2 8.2C80.8 484 80.8 488.8 77.9 491.7z\"/>"],"saxophone":[" 0   0   512   512 ","<path d=\"M442.4 18.3c-24.4-24.4-64.1-24.4-88.5 0l-2.7 2.7l-9.7-9.7c-3.4-3.4-9-3.4-12.5 0c-3.4 3.4-3.4 9 0 12.5l16 16l12.7 12.7c10.4 10.4 27.3 10.4 37.7 0c1-1 2.3-1.5 3.7-1.5c1.4 0 2.7 0.5 3.7 1.5c1.4 1.4 1.6 3 1.5 3.9s-0.3 2.5-1.8 3.8L274.5 169.4l-12.7-12.7c-3.4-3.4-9-3.4-12.5 0c-3.4 3.4-3.4 9 0 12.5l11.7 11.7l-14.9 12.7l-5.9-5.9l0.9-0.9c3.4-3.4 3.4-9 0-12.5c-3.4-3.4-9-3.4-12.5 0l-15.3 15.3c-3.4 3.4-3.4 9 0 12.5c1.7 1.7 4 2.6 6.2 2.6s4.5-0.9 6.2-2.6l2-2l4.9 4.9L87.7 329c-26.9 23-40.2 57.7-35.5 92.8c4.7 35.1 26.6 65.1 58.7 80.2c14.2 6.7 29.3 9.9 44.2 9.9c29.8 0 59.1-12.8 79.3-36.5l3-3.5c18.1-21.3 47.2-30 73.9-22.7c2.6 10.9 12.4 19 24 19h2c13.6 0 24.7-11.1 24.7-24.7V298.9c0-13.6-11.1-24.7-24.7-24.7h-2c-11.6 0-21.4 8.1-24 18.9c-50.8 15.4-96 44.5-130.9 84.6c-3.2 3.6-6.3 7.4-9.2 11.1c-0.9 1.1-2.1 1.4-2.7 1.4c-0.7 0-1.9-0.1-3-1.2c-1.4-1.5-1.4-3.9 0-5.3l172.7-172.7l13.5 13.5c1.7 1.7 4 2.6 6.2 2.6s4.5-0.9 6.2-2.6c3.4-3.4 3.4-9 0-12.5l-13.5-13.5l11-11l8.4 8.4l-0.9 0.9c-3.4 3.4-3.4 9 0 12.5c1.7 1.7 4 2.6 6.2 2.6c2.3 0 4.5-0.9 6.2-2.6l15.3-15.3c3.4-3.4 3.4-9 0-12.5c-3.4-3.4-9-3.4-12.5 0l-1.9 1.9l-8.4-8.4l68.4-68.4C466.8 82.4 466.8 42.7 442.4 18.3zM328.2 298.9c0-3.9 3.2-7.1 7.1-7.1h2c3.9 0 7.1 3.2 7.1 7.1v144.7c0 3.9-3.2 7.1-7.1 7.1h-2c-3.9 0-7.1-3.2-7.1-7.1V298.9zM361.6 162.7l-6-6c-3.4-3.4-9-3.4-12.5 0c-3.4 3.4-3.4 9 0 12.5l6 6l-11 11l-6-6c-3.4-3.4-9-3.4-12.5 0c-3.4 3.4-3.4 9 0 12.5l6 6L153 371.3c-8.2 8.2-8.3 21.7-0.3 30.1c4.3 4.5 10.3 6.8 16.5 6.5c6.2-0.3 11.9-3.3 15.7-8.1c2.8-3.5 5.7-7.1 8.7-10.5c31.4-36 71.7-62.6 116.9-77.5v119.1c-31.7-6.6-65.3 4.6-86.6 29.6l-3 3.5c-25.2 29.6-67.4 38.7-102.5 22.1c-26.6-12.6-44.8-37.5-48.7-66.6s7.1-58 29.5-77.1l146.1-124.8l9.7 9.7c1.7 1.7 4 2.6 6.2 2.6c2.3 0 4.5-0.9 6.2-2.6c3.4-3.4 3.4-9 0-12.5l-8.7-8.7l14.9-12.7l7.7 7.7c1.7 1.7 4 2.6 6.2 2.6c2.3 0 4.5-0.9 6.2-2.6c3.4-3.4 3.4-9 0-12.5l-6.7-6.7L414 73.5c4.8-4.1 7.7-10.1 8-16.5c0.2-6.3-2.2-12.6-6.7-17.1c-4.3-4.3-10.1-6.7-16.2-6.7s-11.8 2.4-16.2 6.7c-1.7 1.7-4 2.6-6.4 2.6s-4.7-0.9-6.4-2.6l-6.5-6.5l2.7-2.7c17.5-17.5 46-17.5 63.5 0c8.5 8.5 13.2 19.8 13.2 31.8c0 12-4.7 23.3-13.2 31.8L361.6 162.7z\"/><circle cx=\" 191.2 \" cy=\" 298.5 \" r=\" 8.8 \"/><circle cx=\" 212.4 \" cy=\" 277.4 \" r=\" 8.8 \"/><circle cx=\" 234.9 \" cy=\" 254.9 \" r=\" 8.8 \"/>"],"cello":[" 0   0   561.8   561.8 ","<path d=\"M376.2 452c-0.2-11.6-4.5-22.3-8.6-32.5c-5.7-14.1-10.6-26.3-4.8-38.8l0.1-0.2c1.1-2.3 0.9-5.1-0.4-7.2c-1.4-2.2-3.8-3.5-6.3-3.5c-3.1 0-12.6 0-14.5-17.7l-0.5-5c-0.5-5.1 0.4-8.2 1.5-9.4c0.3-0.3 1-1.1 3.3-1.1h3.4c2.6 0 5-1.3 6.3-3.5c1.4-2.2 1.6-4.9 0.5-7.2c-2.8-5.9-3.9-12.5-3.4-19l4.1-31.5c0-0.3 0.1-0.6 0.1-1c0-31.6-22.3-57.7-54.9-65.3l-2.4-93c0 0 0 0 0 0c0 0 0 0 0 0l-0.2-6.7h6.2c4.1 0 7.5-3.4 7.5-7.5s-3.4-7.5-7.5-7.5h-6.8l-0.3-7.5h6.2c4.1 0 7.5-3.4 7.5-7.5s-3.4-7.5-7.5-7.5h-5.1c7.2-5.6 11.9-14.3 11.9-24.1V30.4C311.3 13.6 297.6 0 280.9 0s-30.4 13.6-30.4 30.4v17.3c0 10.5 5.4 19.8 13.5 25.2l-0.3 8h-6.8c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5h6.2l-0.3 7.5h-6.8c-4.1 0-7.5 3.4-7.5 7.5s3.4 7.5 7.5 7.5h6.2l-2.4 90.7c-32.6 7.7-54.9 33.8-54.9 65.3c0 0.3 0 0.6 0.1 1l4.1 31.5c0.5 6.5-0.7 13.1-3.4 19c-1.1 2.3-0.9 5 0.5 7.2c1.4 2.2 3.8 3.5 6.3 3.5h3.4c2.3 0 3 0.8 3.3 1.1c1.1 1.2 2.1 4.3 1.5 9.4l-0.5 5c-1.9 17.7-11.4 17.7-14.5 17.7c-2.6 0-5 1.3-6.3 3.5c-1.4 2.2-1.5 4.9-0.4 7.2l0.1 0.2c5.8 12.6 0.9 24.8-4.8 38.9c-4.1 10.3-8.4 20.9-8.6 32.5c-0.3 14.4 4.8 27 14.9 37.3c17.8 18.1 48 25.7 72.9 26.9v38.1c0 4.1 3.4 7.5 7.5 7.5s7.5-3.4 7.5-7.5v-38.1c24.8-1.3 55.1-8.8 72.9-26.9C371.4 479 376.4 466.4 376.2 452zM277.3 123.7h7.3l5.2 197.8h-17.7L277.3 123.7zM265.6 30.4c0-8.5 6.9-15.4 15.4-15.4s15.4 6.9 15.4 15.4v17.3c0 8.5-6.9 15.4-15.4 15.4s-15.4-6.9-15.4-15.4V30.4zM280.9 78c0.7 0 1.3 0 2-0.1l0 1.1c0 0.1 0 0.1 0 0.2c0 0.3 0 0.6 0.1 0.8l1.1 28.7h-6.3l0.7-19.8c0-0.2 0-0.4 0-0.5c0 0 0-0.1 0-0.1l0.4-10.4C279.6 77.9 280.2 78 280.9 78zM350.6 478.8c-12.7 13-34.5 19.4-53.9 21.7l1-21.9c0.2-4.1-3-7.6-7.1-7.8c-4.2-0.2-7.6 3-7.8 7.1l-1.1 23.5c-0.2 0-0.5 0-0.7 0c-0.2 0-0.4 0-0.6 0c-0.5-17.4-1.7-50.4-3-56c-2.4-10-6.7-31.2-9.1-43.3h25.4c-2.4 12.1-6.8 33.3-9.1 43.3c-0.3 1.4-0.7 3.7-0.8 11.4c-0.1 4.1 3.2 7.6 7.4 7.6c4.1 0 7.6-3.2 7.6-7.4c0.1-6.5 0.4-8 0.4-8.2c3.5-14.6 10.7-51.2 11-52.8c0.4-2.2-0.1-4.5-1.6-6.2c-1.4-1.7-3.6-2.7-5.8-2.7H259.1c-2.2 0-4.4 1-5.8 2.7c-1.4 1.7-2 4-1.6 6.2c0.3 1.6 7.6 38.2 11 52.7c0.8 3.5 1.8 27.7 2.6 51.7c-19.4-2.2-41.2-8.7-54-21.7c-7.3-7.5-10.8-16.1-10.6-26.6c0.2-8.9 3.7-17.8 7.5-27.2c5.1-12.7 10.8-26.8 7.4-42c10.8-3.8 17.9-14.2 19.5-29.5l0.5-5c0.9-8.9-0.9-16.2-5.3-21.1c-1.6-1.8-4-3.8-7.6-5c1.4-5.6 1.9-11.4 1.4-17.1c0-0.1 0-0.2 0-0.3l-4-31.2c0.2-23.3 15.7-42.2 39.5-49.3l-2.7 104.2c-0.1 2 0.7 4 2.1 5.4c1.4 1.4 3.3 2.3 5.4 2.3h33.1c2 0 4-0.8 5.4-2.3c1.4-1.4 2.2-3.4 2.1-5.4l-2.7-104.2c23.8 7 39.3 25.9 39.5 49.3l-4 31.2c0 0.1 0 0.2 0 0.3c-0.5 5.8 0 11.6 1.4 17.1c-3.5 1.2-6 3.2-7.6 5c-4.4 4.9-6.2 12.2-5.3 21.1l0.5 5c1.6 15.2 8.7 25.6 19.5 29.5c-3.4 15.2 2.3 29.3 7.4 42c3.8 9.4 7.4 18.3 7.5 27.2C361.4 462.7 357.9 471.4 350.6 478.8zM255.3 358.2c-0.6-0.2-1.1-0.6-1.6-0.9l-5.5 33c-0.7 4-3.1 7.3-6.6 9.3c-2 1.1-4.1 1.6-6.3 1.6c-1.7 0-3.4-0.3-5-1c-3.2-1.3-5.7-3.9-7-7.1c-1.3-3.2-1.3-6.8 0-10c1.6-3.8 6-5.6 9.8-4c0.6 0.2 1.1 0.6 1.6 0.9l5.5-33c0.7-3.9 3.1-7.3 6.6-9.3c3.5-1.9 7.6-2.2 11.3-0.6c3.2 1.3 5.7 3.9 7.1 7.1c1.3 3.2 1.3 6.8 0 10C263.6 357.9 259.2 359.8 255.3 358.2zM338.2 383.1c1.3 3.2 1.3 6.8 0 10c-1.3 3.2-3.8 5.7-7.1 7.1c-1.6 0.7-3.3 1-5 1c-2.2 0-4.3-0.5-6.3-1.6c-3.5-1.9-5.9-5.3-6.6-9.3l-5.5-33c-0.5 0.4-1 0.7-1.6 0.9c-3.8 1.6-8.2-0.2-9.8-4c-1.3-3.2-1.3-6.8 0-10c1.3-3.2 3.8-5.7 7-7.1c3.7-1.5 7.8-1.3 11.3 0.6c3.5 1.9 5.9 5.3 6.6 9.3l5.5 33c0.5-0.4 1-0.7 1.6-0.9C332.2 377.5 336.6 379.3 338.2 383.1zM299.3 361.9c0 4.1-3.4 7.5-7.5 7.5h-21.9c-4.1 0-7.5-3.4-7.5-7.5s3.4-7.5 7.5-7.5h21.9C296 354.4 299.3 357.7 299.3 361.9z\"/>"],"sitar":[" 0   0   512   512 ","<path d=\"M123.7 436.2l-53.4-53.4c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l53.4 53.4c1.6 1.6 3.8 2.5 5.9 2.5c2.1 0 4.3-0.8 5.9-2.5C126.9 444.8 126.9 439.5 123.7 436.2z\"/><path d=\"M152.8 407.1l-53.4-53.4c-3.3-3.3-8.6-3.3-11.9 0s-3.3 8.6 0 11.9l53.4 53.4c1.6 1.6 3.8 2.5 5.9 2.5s4.3-0.8 5.9-2.5C156.1 415.7 156.1 410.3 152.8 407.1z\"/><path d=\"M173.4 386.4l-53.4-53.4c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l53.4 53.4c1.6 1.6 3.8 2.5 5.9 2.5s4.3-0.8 5.9-2.5C176.7 395 176.7 389.7 173.4 386.4z\"/><path d=\"M509.5 55.5l-47.5-47.5c-1.6-1.6-3.7-2.5-5.9-2.5c-2.2 0-4.4 0.9-5.9 2.5L430.7 27.5l-4.9-5.1c-1.6-1.6-3.7-2.5-6-2.6c0 0-0.1 0-0.1 0c-2.2 0-4.4 0.9-5.9 2.5l-5 5L391.7 10.1c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1l-6.3 6.3l-17.1-17.1c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1l-30.6 30.6L331 70.8c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1l-37.9 37.9l-17.1-17.1c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1L265.6 170.4l-17.1-17.1c-3.3-3.3-8.6-3.3-11.9 0s-3.3 8.6 0 11.9l17.1 17.1l-8.7 8.7l-17.1-17.1c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1l-16 16l-17.1-17.1c-3.3-3.3-8.6-3.3-11.9 0c-3.3 3.3-3.3 8.6 0 11.9l17.1 17.1l-20.4 20.4c-22.4 22.4-53.4 33.3-85 29.8c-29.8-3.3-56.5 5.2-75.2 23.9c-37.2 37.2-31.3 104.3 12.3 152.7l-3.9 3.9c-3.3 3.3-3.3 8.6 0 11.9c1.6 1.6 3.8 2.5 5.9 2.5c2.1 0 4.3-0.8 5.9-2.5l3.9-3.9c27 24.2 59.7 36.8 89.8 36.8c24 0 46.4-8 62.9-24.5c18.7-18.7 27.2-45.5 23.9-75.2c-3.5-31.6 7.4-62.5 29.8-85L509.5 67.4c1.6-1.6 2.5-3.7 2.5-5.9C512 59.2 511.1 57.1 509.5 55.5zM208.7 408.5c2.7 24.6-4.1 46.5-19.1 61.5c-32.2 32.2-92.8 24.1-135-18.1c-42.2-42.2-50.3-102.8-18.1-135c12.9-12.9 30.7-19.7 51-19.7c3.4 0 6.9 0.2 10.5 0.6c33.9 3.7 67.1-6.7 92.6-28.9l47.1 47.1C215.4 341.4 204.9 374.7 208.7 408.5zM249.2 303.9l-46.7-46.7L419.6 40.2l45.8 47.5L249.2 303.9zM478.3 74.9l-35.6-35.6l13.4-13.4l35.6 35.6L478.3 74.9z\"/>"]};
+// instrument pictures from SVG Repo (SVG Repo License), drawn as filled outlines in the text colour
+const FI = (k, extra = '') => `<svg viewBox="${SVGR[k][0]}" fill="currentColor" aria-hidden="true">${SVGR[k][1]}${extra}</svg>`;
 const IC = (d) => `<svg viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
 const INSTS = [
   ['concert', 'Konzert&shy;flügel', IC('<path d="M6 27V9a6 6 0 0 1 12 0c0 4 2 5 5 7s3 6 3 8v3z"/><path d="M6 23h20M9 23v4M12 23v4M15 23v4M18 23v4M21 23v4"/><path d="M8 9c3-3 7-1 7 3" opacity=".55"/>')],
@@ -4352,13 +4540,20 @@ const INSTS = [
   ['musicbox', 'Spieluhr', IC('<rect x="4" y="13" width="24" height="13" rx="2"/><path d="M4 13l3-5h18l3 5"/><circle cx="16" cy="19.5" r="2.5"/><path d="M28 18h2.5v4"/>')],
   ['kalimba', 'Kalimba', IC('<path d="M6 27h20l-2-21H8z"/><circle cx="16" cy="22" r="2.2"/><path d="M10 6v9M13 6v12M16 6v8M19 6v12M22 6v9"/>')],
   ['koto', 'Koto', IC('<path d="M3 21c8-3 18-10 26-13v4C21 15 11 22 3 25z"/><path d="M8 15.5l2 4M13 13l2 4.5M18 10.5l2 4.5M23 8.5l1.5 4"/>')],
-  ['sitar', 'Sitar', IC('<circle cx="10" cy="22" r="6"/><path d="M14 18L27 5M24 4l4 4"/><path d="M17 15.5l2 2M20 12.5l2 2"/>')],
+  ['sitar', 'Sitar', FI('sitar')],
+  ['veena', 'Veena', FI('veena')],
+  ['tabla', 'Tabla', IC('<path d="M5 13c0-1.7 3-3 6.5-3s6.5 1.3 6.5 3c0 7-2 12-6.5 12S5 20 5 13z"/><ellipse cx="11.5" cy="13" rx="6.5" ry="2.6"/><ellipse cx="11.5" cy="13" rx="2.4" ry="1" fill="currentColor"/><path d="M20 9h7l-1 15c-.2 1.6-1.6 2.5-2.5 2.5s-2.3-.9-2.5-2.5z"/><ellipse cx="23.5" cy="9" rx="3.5" ry="1.4"/><circle cx="23.5" cy="9" r=".7" fill="currentColor"/><path d="M8 21l7-6M15 21l-7-6" opacity=".45"/>')],
+  ['nadaswaram', 'Nadaswaram', IC('<path d="M14.5 2h3"/><path d="M15 2.5v2.5h2V2.5"/><path d="M14.6 5h2.8l1.3 17h-5.4z"/><path d="M13.3 22c-3 1-5 3.2-5 6.5h15.4c0-3.3-2-5.5-5-6.5z"/><circle cx="16" cy="9" r=".8" fill="currentColor"/><circle cx="16" cy="12" r=".8" fill="currentColor"/><circle cx="16" cy="15" r=".8" fill="currentColor"/><circle cx="16" cy="18" r=".8" fill="currentColor"/>')],
   ['steelpan', 'Steeldrum', IC('<ellipse cx="16" cy="10" rx="12" ry="4"/><path d="M4 10v12c0 2.2 5.4 4 12 4s12-1.8 12-4V10"/><circle cx="12" cy="10" r="1.5"/><circle cx="19" cy="9.5" r="1.8"/>')],
   ['gamelan', 'Gamelan', IC('<path d="M3 24h26M6 24v4M26 24v4"/><path d="M3 16h26"/><circle cx="9" cy="13" r="3"/><circle cx="16" cy="13" r="3"/><circle cx="23" cy="13" r="3"/><path d="M9 10V9M16 10V9M23 10V9"/>')],
   ['panflute', 'Panflöte', IC('<path d="M4 6h4v20H4zM9 6h4v17H9zM14 6h4v14h-4zM19 6h4v11h-4zM24 6h4v8h-4z"/><path d="M3 11h26" opacity=".6"/>')]
 ];
-INSTS.push(['drumkit', 'Schlagzeug', IC('<ellipse cx="16" cy="20" rx="6" ry="6"/><circle cx="16" cy="20" r="2"/><ellipse cx="7" cy="15" rx="4" ry="1.6"/><path d="M3 15v6c0 .9 1.8 1.6 4 1.6s4-.7 4-1.6v-6"/><ellipse cx="25" cy="16" rx="3.4" ry="1.4"/><path d="M21.6 16v4.5c0 .8 1.5 1.4 3.4 1.4s3.4-.6 3.4-1.4V16"/><path d="M2 8.5l7 1.4M5.5 9.2V14" opacity=".8"/><path d="M23 7.5l7-1.2M26.5 6.9V14.5" opacity=".8"/>')]);
-const DRUMS = [['off', 'Aus'], ['file', 'Aus der Datei'], ['pop', 'Pop'], ['rock', 'Rock'], ['swing', 'Swing'], ['shuffle', 'Shuffle'], ['bossa', 'Bossa'], ['waltz', 'Walzer'], ['latin', 'Percussion']];
+// the pictures from SVG Repo replace the drawn ones for guitars, basses, strings, winds and the drum kit
+const BOLT = '<path d="M455 300l-60 85h55l-45 80" fill="none" stroke="currentColor" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>';
+Object.entries({ guitar: 'ukelele', eguitar: 'electric-guitar', eguitardrive: ['electric-guitar', BOLT], ebass: 'bass-guitar', upright: 'contrabass', contrabass: 'contrabass', cello: 'cello', trumpet: 'trumpet', tuba: 'tuba', flute: 'flute', clarinet: 'clarinet', sax: 'saxophone' })
+  .forEach(([v, k]) => { const it = INSTS.find(x => x[0] === v); if (it) it[2] = Array.isArray(k) ? FI(k[0], k[1]) : FI(k); });
+INSTS.push(['drumkit', 'Schlagzeug', FI('drum-set')]);
+const DRUMS = [['off', 'Aus'], ['file', 'Aus der Datei'], ['pop', 'Pop'], ['rock', 'Rock'], ['hiphop', 'Hip-Hop'], ['trap', 'Trap'], ['dubstep', 'Dubstep'], ['house', 'House'], ['techno', 'Techno'], ['dnb', 'Drum &amp; Bass'], ['funk', 'Funk'], ['disco', 'Disco'], ['reggae', 'Reggae'], ['swing', 'Swing'], ['shuffle', 'Shuffle'], ['bossa', 'Bossa'], ['waltz', 'Walzer'], ['latin', 'Percussion']];
 // grouped like the instrument list in the settings
 $('#instGrid').innerHTML = [...$('#soundSel').querySelectorAll('optgroup')].map(g => {
   const its = [...g.querySelectorAll('option')].map(o => INSTS.find(x => x[0] === o.value)).filter(Boolean);
@@ -4539,6 +4734,7 @@ function syncInst() {
   document.querySelectorAll('#instGrid button').forEach(b => b.setAttribute('aria-pressed', b.dataset.inst === settings.sound));
   document.querySelectorAll('#drumChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.drum === settings.drums));
   document.querySelectorAll('#kitChips button').forEach(b => b.setAttribute('aria-pressed', b.dataset.kit === settings.drumKit)); kitNote(); if (typeof syncBand === 'function') syncBand();
+  if (typeof syncRhythm === 'function' && $('#rhyCtl')) syncRhythm();
 }
 $('#instGrid').onclick = e => { const b = e.target.closest('button'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); if (synth.ensure()) { if (settings.sound === 'drumkit') { [[36, 0], [42, 0], [42, 140], [38, 280], [42, 280]].forEach(([m, d]) => setTimeout(() => synth.voice(m, 100), d)); return; } synth.noteOn(60, 88); synth.noteOn(64, 80); synth.noteOn(67, 80); setTimeout(() => [60, 64, 67].forEach(m => synth.noteOff(m)), 450); } };
 $('#kitChips').innerHTML = Object.entries(DRUMKITS).map(([id, k]) => `<button type="button" data-kit="${id}" aria-pressed="false">${k.name}<small>${k.sub}</small></button>`).join('');
@@ -4565,6 +4761,13 @@ $('#drumChips').onclick = e => {
   const s = $('#drumSel'); s.value = b.dataset.drum; s.dispatchEvent(new Event('change')); syncInst();
 };
 popToggle('#instCtl', '#instBtn');
+popToggle('#rhyCtl', '#rhyBtn');
+function syncRhythm() {
+  const v = settings.drums, d = DRUMS.find(x => x[0] === v), own = patOf(v), on = v !== 'off' && v !== 'file';
+  $('#rhyCtl').classList.toggle('on', on);
+  $('#rhyLbl').innerHTML = on ? (own ? esc(own.name) : d ? d[1] : 'Rhythmus') : 'Rhythmus';
+  $('#rhyBtn').title = 'Rhythmus zur Begleitung: ' + (own ? own.name : d ? d[1].replace('&amp;', '&') : v);
+}
 /* fullscreen */
 const fsEl = () => document.fullscreenElement || document.webkitFullscreenElement;
 function toggleFs() {
@@ -5075,11 +5278,67 @@ function frame() {
   }
   requestAnimationFrame(frame);
 }
-// open with a song ready so the first view shows what the app does
+/* ---------- start screen: what do you want to do? The band plays in the background ---------- */
+const songCat = def => def.cat || (/Volk/.test(def.source) ? 'kids' : 'classic');
+function setModeTo(m) {
+  drill.on = false; settings.mode = m; saveSettings();
+  document.querySelectorAll('#modeSeg button[data-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.mode === m));
+  syncFree(); syncPractice(); if (song) { seek(t); updateHud(); } fitFooter();
+}
+const startOn = () => !$('#startVeil').hidden;
+function startOpen() {
+  if (playing) togglePlay(); closePanel(); setModeTo('free'); stList(null);
+  $('#startVeil').hidden = false; setTimeout(() => $('#startVeil .st-main button').focus({ preventScroll: true }), 30);
+}
+function startClose() { $('#startVeil').hidden = true; }
+function stList(style) {
+  document.querySelectorAll('#stStyles button').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === style));
+  const el = $('#stList'); el.hidden = !style; el.innerHTML = ''; if (!style) return;
+  let items;
+  if (style === 'mine') {
+    items = store.get('recordings', []).map(r => [r.name, new Date(r.id).toLocaleDateString('de-DE', { day: 'numeric', month: 'short', year: 'numeric' }) + (r.parts && r.parts.length > 1 ? ' · ' + r.parts.length + ' Spuren' : ''), '', () => { loadRecording(r); setModeTo('watch'); restart(); }]);
+    if (!items.length) { el.innerHTML = '<p class="note">Noch keine eigenen Songs. Mit „Aufnehmen“ spielst du deinen ersten ein.</p>'; return; }
+  } else items = BUILTIN.filter(d => style === 'all' || songCat(d) === style).map(d => [d.title, d.source, d.level, () => { loadSong(builtin(d)); setModeTo('chord'); }]);
+  items.forEach(([title, sub, lvl, go]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.innerHTML = '<span></span><small></small><i></i>';
+    b.children[0].textContent = title; b.children[1].textContent = sub || ''; b.children[2].textContent = lvl || '';
+    b.onclick = () => { startClose(); go(); }; el.appendChild(b);
+  });
+}
+$('#startVeil').addEventListener('click', e => {
+  if (e.target === $('#startVeil')) { startClose(); return; }
+  const m = e.target.closest('[data-st]'), st = e.target.closest('[data-style]');
+  if (m) {
+    const w = m.dataset.st;
+    if (w === 'play') { startClose(); setModeTo('free'); synth.ensure(); }
+    else if (w === 'rec') { startClose(); synth.ensure(); $('#newSongBtn').click(); }
+    else { stList($('#stList').hidden || $('#stStyles [aria-pressed=true]') ? 'all' : null); }
+    return;
+  }
+  if (st) {
+    if (st.dataset.style === 'web') { startClose(); setModeTo('watch'); openPanel('songs'); setTimeout(() => $('#q').focus(), 50); return; }
+    stList(st.getAttribute('aria-pressed') === 'true' ? null : st.dataset.style);
+  }
+});
+window.addEventListener('keydown', e => { if (startOn() && e.code === 'Escape') { e.stopPropagation(); startClose(); } }, true);
+$('#homeBtn').onclick = startOpen;
+/* the footer: once it would need two rows, the labels go and the controls get narrower, step by step */
+const footEl = document.querySelector('footer.transport');
+function fitFooter() {
+  const f = footEl; if (!f) return; f.classList.remove('compact', 'tiny', 'tiny2');
+  const wraps = () => { const ks = [...f.children].filter(k => k.offsetWidth > 0); if (ks.length < 2) return false; const t0 = Math.min(...ks.map(k => k.offsetTop)); return ks.some(k => k.offsetTop > t0 + 24); };
+  for (const c of ['compact', 'tiny', 'tiny2']) { if (!wraps()) return; f.classList.add(c); }
+}
+let fitRaf = 0; const fitSoon = () => { cancelAnimationFrame(fitRaf); fitRaf = requestAnimationFrame(fitFooter); };
+window.addEventListener('resize', fitSoon);
+if (window.ResizeObserver && footEl) new ResizeObserver(fitSoon).observe(footEl);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitSoon);
+// a song is loaded underneath, but the app opens with the question what you want to do
 loadSong(builtin(BUILTIN.find(b => b.title === 'Flohwalzer') || BUILTIN[0]));
 updateRangeLabel();
 lastNow = performance.now(); requestAnimationFrame(frame);
 syncTracksView(); syncFree();
+startOpen(); fitFooter();
 window.mmm = { edit, hits: () => sheetHits, get metro() { return metro; }, get rec() { return rec; }, saveRecording, get song() { return song; }, get t() { return t; }, seek, noteOn, noteOff, sc, settings, togglePlay, parseMidi, eventsToNotes, midiFile };
 })();
 </script>
