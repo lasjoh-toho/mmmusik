@@ -1446,7 +1446,7 @@ const synth = {
     return set;
   },
   orchVoice(kind, m, vel, gainMul, bus) {
-    const c = this.ctx, now = c.currentTime, k = ORCH[kind];
+    const c = this.ctx, now = Math.max(c.currentTime, this.when || 0), k = ORCH[kind];
     // ensembles play several instruments at once, each in its own register
     const layers = k.layers.filter(L => m >= (L.lo ?? 0) && m <= (L.hi ?? 127));
     const sets = layers.map(L => this.loadOrch(L.dir));
@@ -1484,7 +1484,7 @@ const synth = {
     const rel = k.rel || 0.25;
     const glided = this._glide !== null && this._glide !== undefined && bus === 'live';
     if (glided) { out.gain.cancelScheduledValues(now); out.gain.setValueAtTime(vv * (k.g || 1) * gainMul * 0.6, now); out.gain.linearRampToValueAtTime(vv * (k.g || 1) * gainMul, now + 0.08); }
-    return { t0: now, bend(cents) { srcs.forEach(x => { if (x.detune) x.detune.setTargetAtTime(cents, c.currentTime, 0.02); }); }, stop(at) { const t0 = Math.max(at || c.currentTime, c.currentTime); out.gain.cancelScheduledValues(t0); out.gain.setValueAtTime(out.gain.value, t0); out.gain.setTargetAtTime(0, t0, rel / 3); srcs.forEach(x => { try { x.stop(t0 + rel * 2.5); } catch (e) {} }); } };
+    return { t0: now, bend(cents) { srcs.forEach(x => { if (x.detune) x.detune.setTargetAtTime(cents, c.currentTime, 0.02); }); }, stop(at) { const t0 = Math.max(at || c.currentTime, c.currentTime); holdAt(out.gain, t0); out.gain.setTargetAtTime(0, t0, rel / 3); srcs.forEach(x => { try { x.stop(t0 + rel * 2.5); } catch (e) {} }); } };
   },
   // a soft, slightly sour toot for a note outside the scale: hearable, never loud
   toot(m) {
@@ -1516,13 +1516,13 @@ const synth = {
   },
   noiseBuf() { if (!this._nb) { const b = this.ctx.createBuffer(1, this.ctx.sampleRate, this.ctx.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; this._nb = b; } return this._nb; },
   sampleVoice(m, vel, gainMul, bus) {
-    const c = this.ctx, now = c.currentTime;
+    const c = this.ctx, now = Math.max(c.currentTime, this.when || 0);
     let s = 21; this.piano.buf.forEach((_, k) => { if (Math.abs(k - m) < Math.abs(s - m)) s = k; });
     const src = c.createBufferSource(); src.buffer = this.piano.buf.get(s); src.playbackRate.value = Math.pow(2, (m - s) / 12);
     const tone = c.createBiquadFilter(); tone.type = 'lowpass'; tone.frequency.value = 1200 + Math.pow(vel / 127, 1.5) * 9000;
     const out = c.createGain(); out.gain.value = Math.pow(vel / 127, 1.6) * 1.15 * gainMul;
     src.connect(tone).connect(out).connect(this.bus[bus] || this.master); src.start(now);
-    return { stop(at) { const t0 = Math.max(at || c.currentTime, c.currentTime); out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, 0.18); try { src.stop(t0 + 1.6); } catch (e) {} } };
+    return { stop(at) { const t0 = Math.max(at || c.currentTime, c.currentTime); holdAt(out.gain, t0); out.gain.setTargetAtTime(0, t0, 0.18); try { src.stop(t0 + 1.6); } catch (e) {} } };
   },
   // recorded drum machines, loaded on first use; until they are ready the synthesised kit plays
   kits: new Map(),
@@ -1631,11 +1631,11 @@ const synth = {
   },
   voice(m, vel, gainMul = 1, bus = 'live', snd) {
     if (!this.ensure()) return null;
-    const c = this.ctx, now = c.currentTime, f = 440 * Math.pow(2, (m - 69) / 12);
+    const c = this.ctx, now = Math.max(c.currentTime, this.when || 0), f = 440 * Math.pow(2, (m - 69) / 12);
     const v = Math.pow(vel / 127, 1.4) * 0.32 * gainMul;
     let sound = snd || settings.sound;
     // the drum kit on the keys: every key has its own drum or percussion sound (see KIT)
-    if (sound === 'drumkit') { const g = KIT[m]; if (g) this.drum(g[0], vel, 0, { bus }); return null; }
+    if (sound === 'drumkit') { const g = KIT[m]; if (g) this.drum(g[0], vel, this.when || 0, { bus }); return null; }
     if (sound === 'concert') { if (this.piano.state === 'ready') return this.sampleVoice(m, vel, gainMul, bus); this.loadPiano(); sound = 'grand'; }
     if (ORCH[sound]) { if (snd) ORCH[sound].layers.forEach(L => this.loadOrch(L.dir)); const v = this.orchVoice(sound, m, vel, gainMul, bus); if (v) return v; sound = ORCH[sound].stand; }
     const out = c.createGain(); out.gain.value = 0; out.connect(this.bus[bus] || this.master);
@@ -1836,7 +1836,7 @@ const synth = {
       bend(cents) { if (sound === 'theremin') oscs.forEach(o => { if (o.detune && o.frequency.value > 20) o.detune.setTargetAtTime(cents, c.currentTime, 0.02); }); },
       stop(at) {
         const t0 = Math.max(at || c.currentTime, c.currentTime);
-        out.gain.cancelScheduledValues(t0); out.gain.setTargetAtTime(0, t0, release);
+        holdAt(out.gain, t0); out.gain.setTargetAtTime(0, t0, release);
         oscs.forEach(o => { try { o.stop(t0 + release * 8 + 0.1); } catch (e) {} });
       }
     };
@@ -1869,7 +1869,9 @@ const synth = {
     v.stop(); this.live.delete(m);
   },
   setPedal(on) { this.pedal = on; if (!on) { this.held.forEach(m => this.noteOff(m, true)); this.held.clear(); } },
-  playAuto(m, vel, dur, mul, bus, snd) { const v = this.voice(m, vel, mul, bus, snd); if (!v) return; v.stop(this.ctx.currentTime + dur); this.auto.add(v); setTimeout(() => this.auto.delete(v), dur * 1000 + 800); },
+  playAuto(m, vel, dur, mul, bus, snd) { const v = this.voice(m, vel, mul, bus, snd); if (!v) return; const at = Math.max(this.ctx.currentTime, this.when || 0); v.stop(at + dur); this.auto.add(v); setTimeout(() => this.auto.delete(v), (at - this.ctx.currentTime + dur) * 1000 + 800); },
+  // plays fn's notes at the given audio time instead of right now
+  at(time, fn) { this.when = time; try { fn(); } finally { this.when = 0; } },
   stopAuto() { this.auto.forEach(v => v.stop()); this.auto.clear(); }
 };
 
@@ -2130,7 +2132,9 @@ function grooveOf(style) {
   // b = beat counted from the first bar of the song, so two-bar patterns stay in step
   return (b, n, abs) => patHits(p, abs % p.beats);
 }
-function grooveHits(b0, b1, speed) {
+// end an envelope at t0 from wherever it is, without the jump a cancelled ramp would cause (a click)
+function holdAt(p, t0) { if (p.cancelAndHoldAtTime) { try { p.cancelAndHoldAtTime(t0); return; } catch (e) {} } p.cancelScheduledValues(t0); p.setValueAtTime(p.value, t0); }
+function grooveHits(b0, b1, speed, at0) {
   // all drum hits of the groove for the beat that starts at b0 (seconds in the song), as audio times
   const style = settings.drums, G = grooveOf(style); if (!G || !song || !synth.ctx) return;
   const i = song.beats.indexOf(b0);
@@ -2138,7 +2142,7 @@ function grooveHits(b0, b1, speed) {
   const first = song.beats.findIndex(b => b.bar), abs = Math.max(0, i - Math.max(0, first));
   const len = (b1 ? b1.time : b0.time + 0.5) - b0.time, n = b0.n || 4;
   synth._spb = len / (speed / 100);
-  G(pos, n, abs).forEach(([fr, note, vel, fx]) => { if (vel > 0) synth.drum(note, vel, synth.ctx.currentTime + (b0.time + fr * len - t) / (speed / 100), fx); });
+  G(pos, n, abs).forEach(([fr, note, vel, fx]) => { if (vel > 0) synth.drum(note, vel, at0 + fr * len / (speed / 100), fx); });
 }
 
 /* ---------- MIDI file parser ---------- */
@@ -2349,7 +2353,9 @@ BUILTIN.unshift(
 /* ---------- State ---------- */
 let song = null, songKey = '';
 let t = 0, playing = false, lastNow = 0, waiting = false;
-let autoIdx = 0, youIdx = 0, youNotes = [];
+let autoIdx = 0, audIdx = 0, youIdx = 0, youNotes = [];
+const LOOKAHEAD = 0.2;   // seconds of the song whose sound is planned ahead
+let lastAhead = null;     // how far the previous frame planned, so no beat is planned twice
 let range = { a: 0, b: WHITES.length - 1 }, autoRange = true;
 const pressed = new Map();
 const lastPress = new Map();      // midi -> time of the last key press, for the hit flash      // midi -> {by:'you'|'auto', good:bool, t}
@@ -3460,7 +3466,7 @@ function seek(nt, keepScore) {
   if (!song) return;
   t = Math.max(Math.min(song.firstStart, 0) - 6, Math.min(Math.max(song.duration, rec && rec.overdub ? nt : 0), nt));
   song.all.forEach(n => { n.state = n.start < t - 0.001 ? 3 : 0; });
-  autoIdx = lb(song.all, t, 'start'); youIdx = lb(youNotes, t - tol(), 'start');
+  autoIdx = audIdx = lb(song.all, t, 'start'); lastAhead = null; youIdx = lb(youNotes, t - tol(), 'start');
   synth.stopAuto(); autoOn.clear(); waiting = false;
   if (!keepScore) resetScore();
 }
@@ -3471,21 +3477,31 @@ function advance(dt) {
     const g = nextGroupStart();
     if (g !== null && nt >= g) { if (waiting && playing && !rec) barStat(g).wait += dt / (settings.speed / 100); nt = Math.max(t, g); waiting = true; } else waiting = false;
   }
+  // everything that sounds by itself is planned a little ahead on the audio clock, so a slow frame never makes it stutter;
+  // in the waiting modes the song may stop at any note, so there it plays right when it is reached
+  const sp = settings.speed / 100, ahead = waitish() || !playing || !synth.ctx ? 0 : LOOKAHEAD * sp, a0 = synth.ctx ? synth.ctx.currentTime : 0;
+  const lo = t + (lastAhead === null ? 0 : lastAhead), hi = nt + ahead; lastAhead = ahead;
+  const audioAt = time => a0 + Math.max(0, time - nt) / sp;
   // the metronome only sounds while you record; it is never part of the recording
-  if (((rec && rec.overdub && settings.metroClick === 'on') || (song.jam && playing && !rec)) && synth.ctx && nt > t) { let pos = 0; const B = song.beats; for (let i = 0; i < B.length; i++) { const b = B[i]; pos = b.bar ? 0 : pos + 1; if (b.time >= t && b.time < nt) { const spb = (B[i + 1] ? B[i + 1].time - b.time : 0.5) / (settings.speed / 100); metroBeat(synth.ctx.currentTime + 0.005, pos, b.n || 4, spb, false); } if (b.time >= nt) break; } }
+  if (((rec && rec.overdub && settings.metroClick === 'on') || (song.jam && playing && !rec)) && synth.ctx && hi > lo) { let pos = 0; const B = song.beats; for (let i = 0; i < B.length; i++) { const b = B[i]; pos = b.bar ? 0 : pos + 1; if (b.time >= lo && b.time < hi) { const spb = (B[i + 1] ? B[i + 1].time - b.time : 0.5) / sp; metroBeat(audioAt(b.time) + 0.005, pos, b.n || 4, spb, false); } if (b.time >= hi) break; } }
   // drum groove: when a beat starts, schedule its hits
-  if (grooveOf(settings.drums) && !waitish() && synth.ctx && nt > t) { const B = song.beats; for (let i = lb(B, t, 'time'); i < B.length && B[i].time < nt; i++) if (B[i].time >= t) grooveHits(B[i], B[i + 1], settings.speed); }
-  // auto-played notes
+  if (grooveOf(settings.drums) && !waitish() && synth.ctx && hi > lo) { const B = song.beats; for (let i = lb(B, lo, 'time'); i < B.length && B[i].time < hi; i++) if (B[i].time >= lo) grooveHits(B[i], B[i + 1], settings.speed, audioAt(B[i].time)); }
+  // auto-played notes: the sound is planned a little ahead on the audio clock, so a slow frame never makes it stutter;
+  // in the waiting modes the song may stop at any note, so there it plays right when it is reached
+  if (audIdx < autoIdx) audIdx = autoIdx;
+  while (audIdx < song.all.length && song.all[audIdx].start < nt + ahead) {
+    const n = song.all[audIdx++];
+    if (n.start < t - 0.05) continue;
+    const role = rn(n), when = audioAt(n.start);
+    if (role === 'M') { if (settings.drums !== 'off' && !waitish() && n.part.drum && n.part.vol !== 0) synth.drum(n.midi, Math.round(n.vel * (n.part.vol ?? 100) / 100), when); continue; }
+    const dur = (n.end - n.start) / sp;
+    const bus = (handRole(role) && (settings.mode === 'watch' || youRole(role))) ? 'guide' : 'acc';
+    if ((bus === 'acc' || settings.volGuide > 0) && n.part.vol !== 0) synth.at(when, () => synth.playAuto(n.midi, n.vel, dur, (n.part.vol ?? 100) / 100, bus, n.part.sound));
+  }
   while (autoIdx < song.all.length && song.all[autoIdx].start < nt) {
     const n = song.all[autoIdx++];
-    if (n.start < t - 0.05) continue;
-    const role = rn(n);
-    if (role === 'M') { if (settings.drums !== 'off' && !waitish() && n.part.drum && n.part.vol !== 0) synth.drum(n.midi, Math.round(n.vel * (n.part.vol ?? 100) / 100)); continue; }
-    const you = isYou(n);
-    const dur = (n.end - n.start) / (settings.speed / 100);
-    const bus = (handRole(role) && (settings.mode === 'watch' || youRole(role))) ? 'guide' : 'acc';
-    if ((bus === 'acc' || settings.volGuide > 0) && n.part.vol !== 0) synth.playAuto(n.midi, n.vel, dur, (n.part.vol ?? 100) / 100, bus, n.part.sound);
-    if (!you) autoOn.set(n.midi, { until: n.end, c: colorOf(n) });
+    if (n.start < t - 0.05 || rn(n) === 'M') continue;
+    if (!isYou(n)) autoOn.set(n.midi, { until: n.end, c: colorOf(n) });
   }
   autoOn.forEach((v, m) => { if (v.until <= nt) autoOn.delete(m); });
   // misses
@@ -3739,6 +3755,7 @@ function setPlaying(p) {
   if (playing) peekEnd();
   playIco.innerHTML = playing ? '<path d="M6 4h4v16H6zM14 4h4v16h-4z"/>' : '<path d="M7 4.5v15l13-7.5z"/>';
   if (!playing) { synth.stopAuto(); autoOn.clear(); }
+  audIdx = autoIdx; lastAhead = null;   // what was planned ahead and not yet heard is planned again
   lastNow = performance.now();
 }
 function togglePlay() {
