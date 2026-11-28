@@ -81,6 +81,9 @@ header.bar {
 .brand-home:focus-visible { outline: 2px solid rgba(220,185,120,.6); outline-offset: 3px; }
 .brand .dot { width: 9px; height: 9px; border-radius: 50%; background: conic-gradient(#ff8a7a, #ffc46b, #9be07a, #5fd4d0, #7d9bff, #c48bff, #ff8a7a); align-self: center; }
 .song-meta { flex: 1 1 220px; min-width: 0; }
+.song-title.named { cursor: text; border-radius: 6px; }
+.song-title.named:hover { box-shadow: 0 0 0 1px rgba(220,185,120,.35); }
+.song-title[contenteditable=true] { cursor: text; outline: none; box-shadow: 0 0 0 1.5px var(--gold); padding: 0 4px; text-overflow: clip; }
 .song-title { font-family: var(--f-display); font-weight: 600; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .song-sub { color: var(--muted); font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .head-actions { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -130,14 +133,16 @@ header.bar {
 .metro .m-cfg .seg button { padding: 5px 9px; font-size: 12px; }
 .metro[data-mode]:not([data-mode=sound]) .m-snd { display: none; }
 /* while recording, a small metronome stays in the bottom right corner */
-.metro-mini { position: absolute; right: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 8; display: flex; gap: 10px; align-items: center; padding: 8px 14px 8px 8px; border-radius: 16px; border: 1px solid var(--line); background: rgba(12,15,24,.84); backdrop-filter: blur(6px); pointer-events: none; transition: box-shadow .08s, border-color .08s; }
+.metro-mini { position: absolute; right: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 11; display: flex; gap: 14px; align-items: center; padding: 10px 20px 10px 12px; border-radius: 20px; border: 1px solid var(--line); background: rgba(12,15,24,.88); backdrop-filter: blur(6px); cursor: pointer; transition: box-shadow .08s, border-color .08s; }
+.metro-mini:hover { border-color: rgba(220,185,120,.45); }
+.metro-mini.muted #mmSub::after { content: ' · stumm'; }
 .metro-mini[hidden] { display: none; }
-.metro-mini .m-svg { width: 34px; }
-.metro-mini .mm-info { display: grid; gap: 3px; min-width: 70px; }
-.metro-mini b { font: 500 26px/1 var(--f-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
-.metro-mini span { font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
+.metro-mini .m-svg { width: 54px; }
+.metro-mini .mm-info { display: grid; gap: 5px; min-width: 92px; }
+.metro-mini b { font: 500 40px/1 var(--f-mono); color: var(--fg); font-variant-numeric: tabular-nums; }
+.metro-mini span { font-size: 12px; color: var(--muted); letter-spacing: .04em; }
 .metro-mini .mm-beats { display: flex; gap: 5px; }
-.metro-mini .mm-beats i { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.14); }
+.metro-mini .mm-beats i { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,.14); }
 .metro-mini .mm-beats i.on { background: var(--gold); box-shadow: 0 0 10px rgba(220,185,120,.7); }
 .metro-mini.count b { color: var(--gold); }
 .metro-mini.hit { border-color: rgba(220,185,120,.6); }
@@ -173,7 +178,11 @@ header.bar {
 .m-beats i.on { background: var(--gold); transform: scale(1.15); box-shadow: 0 0 18px rgba(220,185,120,.6); }
 .metro[data-phase=rec] .m-beats i.on { background: #ff8a96; box-shadow: 0 0 18px rgba(255,93,108,.55); }
 .m-cfg { display: flex; flex-wrap: wrap; gap: 10px 18px; justify-content: center; align-items: center; }
-.metro:not([data-phase=ready]) .m-cfg { display: none; }
+.metro:not([data-phase=ready]) .m-cfg, .metro:not(.more) .m-cfg { display: none; }
+.m-more { border: 0; background: none; color: var(--muted); font: 500 12px Inter, system-ui, sans-serif; cursor: pointer; padding: 2px 8px; }
+.m-more:hover { color: var(--gold); }
+.metro.more .m-more span { display: inline-block; transform: rotate(180deg); }
+.metro:not([data-phase=ready]) .m-more { display: none; }
 .m-vol { display: flex; align-items: center; gap: 8px; height: 30px; }
 .m-vol input { width: 120px; }
 .m-vol b { font-family: var(--f-mono); font-weight: 400; font-size: 11px; color: var(--fg); min-width: 3ch; text-align: right; letter-spacing: 0; }
@@ -522,6 +531,7 @@ a.btn { text-decoration: none; color: inherit; }
 .feather-btn:hover { transform: translateY(-1px); background: rgba(30,34,48,.95); }
 .feather-btn[aria-pressed=true] { background: var(--gold); color: var(--gold-ink); }
 .feather-btn[hidden] { display: none; }
+#stage.mm-on .feather-btn { right: calc(var(--mmw, 190px) + 24px); }
 .tracks-drawer {
   position: absolute; left: 0; top: 0; bottom: var(--kbh, 120px); width: min(210px, 70vw); z-index: 9; /* ends above the keys */
   display: flex; flex-direction: column; gap: 8px; padding: 10px; overflow-y: auto;
@@ -556,7 +566,7 @@ body.tv .td-list .track { height: 76px; }
 .pr-d.today span { color: var(--gold); font-weight: 600; }
 .td-card .tr-ic { width: 36px; height: 36px; display: grid; place-items: center; color: var(--gold); }
 .td-card .tr-ic svg { width: 30px; height: 30px; }
-.rec-bar { position: fixed; top: 82px; left: 50%; transform: translateX(-50%); z-index: 65; display: flex; align-items: center; gap: 6px; padding: 5px 6px 5px 14px; border-radius: 999px; border: 1px solid rgba(255,93,108,.45); background: rgba(16,20,31,.94); box-shadow: 0 12px 32px rgba(0,0,0,.45); backdrop-filter: blur(8px); font: 500 12.5px Inter, system-ui, sans-serif; color: var(--fg); }
+.rec-bar { position: absolute; left: 14px; bottom: calc(var(--kbh, 120px) + 14px); z-index: 12; display: flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px; border: 1px solid rgba(255,93,108,.45); background: rgba(16,20,31,.94); box-shadow: 0 12px 32px rgba(0,0,0,.45); backdrop-filter: blur(8px); font: 500 12.5px Inter, system-ui, sans-serif; color: var(--fg); max-width: calc(100% - 28px); }
 .rec-bar[hidden] { display: none; }
 .cut-bar { position: fixed; z-index: 64; transform: translateX(-50%); display: flex; align-items: center; gap: 4px; padding: 4px 4px 4px 12px; border-radius: 999px; border: 1px solid rgba(220,185,120,.5); background: rgba(16,20,31,.95); box-shadow: 0 10px 28px rgba(0,0,0,.45); font: 500 12px Inter, system-ui, sans-serif; color: var(--muted); white-space: nowrap; }
 .cut-bar[hidden] { display: none; }
@@ -567,10 +577,18 @@ body.tv .td-list .track { height: 76px; }
 .cut-bar .cx { width: 28px; padding: 0; color: var(--muted); }
 #cutDel { color: #ff8a96; }
 #metro:not([data-phase="ready"]) .m-acts { display: none; }
-.rb-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5d6c; box-shadow: 0 0 10px #ff5d6c; animation: rbPulse 1.2s ease-in-out infinite; }
-.rec-bar.paused .rb-dot { animation: none; background: var(--muted); box-shadow: none; }
-@keyframes rbPulse { 50% { opacity: .35; } }
-.rb-txt { min-width: 120px; font-variant-numeric: tabular-nums; }
+.rec-bar .rb-rec { width: 34px; height: 34px; padding: 0; justify-content: center; border-radius: 50%; border: 0; background: #ff5d6c; box-shadow: 0 0 0 3px rgba(255,93,108,.22), 0 0 16px rgba(255,93,108,.55); animation: rbPulse 1.4s ease-in-out infinite; }
+.rec-bar .rb-rec i { width: 12px; height: 12px; border-radius: 3px; background: #fff; }
+.rec-bar.paused .rb-rec { animation: none; background: rgba(255,93,108,.16); box-shadow: inset 0 0 0 2px #ff5d6c; }
+.rec-bar.paused .rb-rec i { border-radius: 50%; background: #ff5d6c; width: 14px; height: 14px; }
+.rec-bar .rb-ic { width: 34px; padding: 0; justify-content: center; border-radius: 50%; }
+.rec-bar .rb-ic:disabled { opacity: .35; cursor: default; }
+.rec-bar .rb-sep { width: 1px; height: 20px; background: var(--line); margin: 0 2px; }
+.rec-bar .rb-group { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+.rec-bar .rb-group button { border: 0; border-radius: 0; background: transparent; }
+.rec-bar .rb-group button + button { border-left: 1px solid var(--line); }
+@keyframes rbPulse { 50% { box-shadow: 0 0 0 6px rgba(255,93,108,.08), 0 0 22px rgba(255,93,108,.35); } }
+.rb-txt { min-width: 104px; padding: 0 4px; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .rec-bar button { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 13px 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: 600 12.5px Inter, system-ui, sans-serif; cursor: pointer; }
 .rec-bar button:hover { border-color: rgba(220,185,120,.6); }
 .rec-bar button svg { width: 15px; height: 15px; fill: currentColor; }
@@ -578,20 +596,18 @@ body.tv .td-list .track { height: 76px; }
 .rec-bar button span { white-space: nowrap; }
 .rec-bar #rbAdd { border-color: rgba(220,185,120,.55); color: var(--gold); }
 .rec-bar #rbAdd[hidden] { display: none; }
-.rec-bar .go, .rec-bar.paused .pz { display: none; } .rec-bar.paused .go { display: inline; }
-#rbStop { background: #ff5d6c; border-color: #ff5d6c; color: #fff; }
 .rec-bar .rb-x { color: var(--muted); padding: 0 12px; font-weight: 500; }
 @media (max-width: 640px) { .rec-bar #rbAdd span, .rec-bar #rbErase span { display: none; } }
-@media (max-width: 640px) { .rec-bar { top: auto; bottom: 150px; } .rb-txt { min-width: 0; } .rec-bar .rb-x { display: none; } }
+@media (max-width: 640px) { .rb-txt, .rec-bar .rb-sep { display: none; } .rec-bar #rbDiscard { padding: 0 10px; } }
 .band { --bw: 74px; --bf: 12px; display: none; position: absolute; left: 0; right: 0; top: 0; bottom: var(--kbh, 120px); z-index: 7; pointer-events: none; }
 body.free .band { display: block; }
 body.free #viewChip { display: none; }
 @media (max-width: 900px) { .band { --bw: 52px; --bf: 10px; } }
 @media (max-width: 640px) { .band { --bw: 30px; --bf: 0px; } .band button span { display: none; } .band .row { flex-wrap: wrap; padding: 0 8px; } }
-.band .row { position: absolute; left: 0; right: 0; display: flex; justify-content: center; }
-.band button { pointer-events: auto; display: grid; justify-items: center; gap: 3px; padding: 4px 2px; border: 0; background: transparent; color: rgba(236,239,246,.78); font: 500 11px Inter, system-ui, sans-serif; cursor: pointer; border-radius: 10px; transition: color .15s, transform .15s; }
+.band .row { position: absolute; left: 0; right: 0; display: flex; justify-content: center; align-items: flex-end; }
+.band button { pointer-events: auto; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; flex: none; padding: 4px 2px; border: 0; background: transparent; color: rgba(236,239,246,.78); font: 500 11px Inter, system-ui, sans-serif; cursor: pointer; border-radius: 10px; transition: color .15s, transform .15s; }
 .band button svg { width: 100%; height: auto; filter: drop-shadow(0 0 6px rgba(255,255,255,.08)); }
-.band button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 128%; letter-spacing: .01em; }
+.band button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 118%; letter-spacing: .01em; line-height: 1.25; }
 .band button:hover { color: #fff; transform: translateY(-2px); }
 .band button[aria-pressed=true] { color: var(--gold); }
 .band button[aria-pressed=true] svg { filter: drop-shadow(0 0 10px rgba(220,185,120,.55)); }
@@ -624,8 +640,10 @@ body.free #viewChip { display: none; }
 .td-list .del:hover { color: #ff8a96; border-color: rgba(255,138,150,.5); }
 .tr-loop { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
 .tr-loop select { padding: 4px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font-size: 12px; }
-.tr-loop .tr-fill { display: inline-flex; align-items: center; gap: 5px; }
-.tr-loop[hidden], .tr-loop .tr-fill[hidden] { display: none; }
+.tr-loop .tr-fill, .tr-loop .tr-on, .tr-loop .tr-ab { display: inline-flex; align-items: center; gap: 5px; }
+.tr-loop .tr-on { color: var(--fg); font-weight: 600; cursor: pointer; }
+.tr-loop input[type=number] { width: 46px; padding: 3px 4px; border-radius: 8px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: 500 12px var(--f-mono); text-align: center; }
+.tr-loop[hidden], .tr-loop .tr-fill[hidden], .tr-loop .tr-ab[hidden] { display: none; }
 #trRec { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
 #trRec .rec-dot { width: 10px; height: 10px; border-radius: 50%; background: #ff5a6e; display: inline-block; }
 #trRec.on { background: #ff5a6e; border-color: #ff5a6e; color: #fff; }
@@ -633,6 +651,13 @@ body.free #viewChip { display: none; }
 #trBtn[aria-pressed=true] { color: var(--gold); border-color: rgba(220,185,120,.5); }
 #trBtn svg { width: 18px; height: 18px; }
 .track { display: grid; grid-template-columns: 14px 1fr auto; gap: 10px; align-items: center; padding: 9px 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--glass); }
+.tr-join { position: relative; height: 0; display: flex; justify-content: center; z-index: 2; }
+.tr-join .tj-plus { position: absolute; top: -12px; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 1px solid rgba(220,185,120,.55); background: #141926; color: var(--gold); font: 600 15px/1 Inter, system-ui, sans-serif; cursor: pointer; box-shadow: 0 3px 8px rgba(0,0,0,.4); }
+.tr-join .tj-plus:hover { background: var(--gold); color: var(--gold-ink); }
+.tr-join .tj-ask { display: none; position: absolute; top: -16px; align-items: center; gap: 5px; padding: 3px 3px 3px 9px; border-radius: 999px; border: 1px solid rgba(220,185,120,.55); background: #141926; color: var(--fg); font: 500 12px Inter, system-ui, sans-serif; white-space: nowrap; box-shadow: 0 8px 20px rgba(0,0,0,.5); }
+.tr-join.ask .tj-plus { display: none; } .tr-join.ask .tj-ask { display: inline-flex; }
+.tr-join .tj-ask button { height: 24px; padding: 0 10px; border-radius: 999px; border: 1px solid var(--line); background: var(--glass); color: var(--fg); font: 600 11.5px Inter, system-ui, sans-serif; cursor: pointer; }
+.tr-join .tj-ask .tj-yes { background: var(--gold); color: var(--gold-ink); border-color: var(--gold); }
 .track .sw { width: 14px; height: 14px; border-radius: 4px; }
 .track .tn { min-width: 0; overflow-wrap: anywhere; }
 .track .tn small { display: block; color: var(--muted); font-size: 11px; }
@@ -715,13 +740,16 @@ table.scores tr.me td { color: var(--gold); }
 .st-tile { position: relative; overflow: hidden; display: grid; align-content: end; justify-items: center; gap: 6px; min-height: 158px; padding: 12px 10px 14px; border-radius: 20px; cursor: pointer; transition: transform .16s, box-shadow .16s; }
 .st-tile:hover, .st-tile:focus-visible { transform: translateY(-4px); outline: none; box-shadow: inset 0 1px 0 rgba(255,255,255,.1), inset 0 -1px 0 rgba(0,0,0,.45), 0 18px 34px rgba(0,0,0,.5), 0 4px 8px rgba(0,0,0,.3), 0 0 0 1px rgba(220,185,120,.25); }
 .st-tile:active { transform: translateY(1px); box-shadow: inset 0 2px 6px rgba(0,0,0,.5), 0 2px 4px rgba(0,0,0,.3); }
-.st-tile small { position: relative; color: var(--muted); font-size: 11.5px; line-height: 1.3; text-align: center; }
+.st-tile small { position: relative; color: var(--muted); font-size: 11.5px; line-height: 1.3; text-align: center; min-height: 2.6em; }
 /* the word written several times in different hands, one of them clear in front */
-.calli { position: relative; display: grid; place-items: center; width: 100%; height: 96px; }
+.calli { position: relative; display: grid; place-items: center; width: 100%; height: 84px; }
 .calli i { position: absolute; left: 50%; top: 50%; font-style: normal; white-space: nowrap; pointer-events: none; color: var(--c, #dcb978); opacity: var(--o, .2); font-size: var(--s, 34px); transform: translate(calc(-50% + var(--x, 0px)), calc(-50% + var(--y, 0px))) rotate(var(--r, 0deg)); transition: transform .3s; }
 .st-tile:hover .calli i { transform: translate(calc(-50% + var(--x, 0px) * 1.25), calc(-50% + var(--y, 0px) * 1.25)) rotate(calc(var(--r, 0deg) * 1.3)); }
-.calli b { position: relative; font: italic 700 30px/1 "Playfair Display", Georgia, serif; color: #f6efe0; text-shadow: 0 2px 10px rgba(0,0,0,.6), 0 0 1px rgba(0,0,0,.8); letter-spacing: .01em; }
-.st-tiles.two .calli b { font-size: 34px; }
+.calli b { position: relative; white-space: nowrap; font: italic 700 clamp(20px, 2.15vw, 30px)/1 "Playfair Display", Georgia, serif; color: #f6efe0; text-shadow: 0 2px 10px rgba(0,0,0,.6), 0 0 1px rgba(0,0,0,.8); letter-spacing: .01em; }
+.st-tiles.two .calli b { font-size: 38px; }
+.st-styles.big { gap: 10px; }
+.st-styles.big button { padding: 12px 20px; font-size: 21px; border-radius: 16px; }
+.st-search .st-list:empty { display: none; }
 .start-card h3 { margin: 6px 0 -2px; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
 .st-styles, .st-roots { display: flex; flex-wrap: wrap; gap: 8px; }
 .st-styles button, .st-roots button, .st-chip { padding: 8px 14px; border-radius: 999px; font-size: 14px; cursor: pointer; transition: transform .12s, box-shadow .12s, color .12s; }
@@ -760,6 +788,7 @@ table.scores tr.me td { color: var(--gold); }
 .bpm-box button:hover { background: var(--glass-2); }
 .bpm-box b { font: 500 13px var(--f-mono); min-width: 3ch; text-align: center; }
 .bpm-box small { font-size: 9.5px; color: var(--muted); margin-right: 4px; }
+.rhy-panel[data-mode=off] .m-show { display: none; }
 .rhy-panel[data-mode]:not([data-mode=sound]) .m-snd2 { display: none; }
 .rhy-panel .m-vol input { width: 140px; height: auto; margin: 0; transform: none; display: inline-block; }
 /* the about tab: sources and licences */
@@ -780,7 +809,7 @@ header.bar.hide2 { display: none !important; }
   <header class="bar">
     <div class="brand"><button class="tape-btn" id="tapeBtn" title="Spuren öffnen" aria-label="Spuren öffnen" aria-pressed="false"><svg viewBox="0 0 32 22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="29" height="19" rx="3"/><rect x="6" y="5" width="20" height="8" rx="4"/><circle class="reel" cx="10" cy="9" r="2.4"/><circle class="reel" cx="22" cy="9" r="2.4"/><path d="M12.4 9h7.2"/><path d="M8 20.5l2-4h12l2 4"/></svg></button><button type="button" class="brand-home" id="homeBtn" title="Start: Was möchtest du tun?"><span class="dot"></span>mmmusik</button></div>
     <div class="song-meta">
-      <div class="song-title" id="songTitle">Kein Song geladen</div>
+      <div class="song-title" id="songTitle" spellcheck="false">Kein Song geladen</div>
       <div class="song-sub" id="songSub">Öffne die Bibliothek und wähle ein Lied</div>
     </div>
     <div class="pop-ctl inst-ctl" id="instCtl">
@@ -794,9 +823,10 @@ header.bar.hide2 { display: none !important; }
       <div class="pop-panel down inst-panel rhy-panel">
         <div class="rhy-top"><div class="rf"><h4>Takt</h4><span class="seg" id="rSigSeg"><button data-metro-sig="2/4">2/4</button><button data-metro-sig="3/4">3/4</button><button data-metro-sig="4/4">4/4</button><button data-metro-sig="6/8">6/8</button></span></div>
           <div class="rf"><h4>Tempo</h4><span class="bpm-box"><button type="button" id="rBpmDown" aria-label="Langsamer">−</button><b id="rBpm">90</b><small>BPM</small><button type="button" id="rBpmUp" aria-label="Schneller">+</button></span></div></div>
-        <div class="rhy-top"><div class="rf"><h4>Metronom</h4><span class="seg" id="rModeSeg"><button data-metro-mode="sound" title="Holzklick wie ein echtes Pendel-Metronom, dazu das kleine Metronom unten rechts">Klang</button><button data-metro-mode="visual" title="Kein Ton, nur das kleine Metronom unten rechts zeigt den Schlag">Nur Licht</button><button data-metro-mode="off" title="Kein Metronom">Aus</button></span></div>
+        <div class="rhy-top"><div class="rf"><h4>Metronom</h4><span class="seg" id="rModeSeg"><button data-metro-mode="sound" title="Holzklick wie ein echtes Pendel-Metronom, dazu das kleine Metronom unten rechts">Klang</button><button data-metro-mode="visual" title="Kein Ton, nur das kleine Metronom unten rechts zeigt den Schlag">Lautlos</button><button data-metro-mode="off" title="Kein Metronom">Aus</button></span></div>
           <div class="rf m-snd2"><h4>Klang</h4><span class="seg" id="rSoundSeg"><button data-metro-sound="wood" title="Wie ein echtes Pendel-Metronom: Holzklick, auf der Eins die Glocke">Holz</button><button data-metro-sound="beep" title="Ein heller, elektronischer Klick">Elektronisch</button><button data-metro-sound="drums" title="Ein einfacher Schlagzeug-Beat">Schlagzeug</button></span></div>
-          <div class="rf m-snd2"><h4>Lautstärke</h4><span class="m-vol"><input type="range" id="mVol" min="0" max="100" step="1" aria-label="Lautstärke des Metronoms"><b id="mVolPct">70</b></span></div></div>
+          <div class="rf m-snd2"><h4>Lautstärke</h4><span class="m-vol"><input type="range" id="mVol" min="0" max="100" step="1" aria-label="Lautstärke des Metronoms"><b id="mVolPct">70</b></span></div>
+          <div class="rf m-show"><h4>Anzeige</h4><span class="seg" id="rShowSeg"><button data-metro-show="swing" title="Das Pendel schwingt im Takt">Pendel</button><button data-metro-show="light" title="Bei jedem Schlag leuchtet das Metronom kurz auf">Lichtimpuls</button></span></div></div>
         <p class="note">Das Metronom läuft beim Aufnehmen und beim freien Spielen mit ▶. Takt und Tempo gelten fürs freie Spielen und für neue Stücke.</p>
         <h4>Rhythmus zur Begleitung</h4><div class="drum-chips" id="drumChips"></div><p class="note">Der Rhythmus folgt Takt und Tempo des Liedes. Den Schlagzeug-Klang wählst du bei den Instrumenten.</p></div>
     </div>
@@ -834,28 +864,29 @@ header.bar.hide2 { display: none !important; }
     <button type="button" id="cutDup" title="Bereich direkt dahinter wiederholen (Strg+D)">Wiederholen</button>
     <button type="button" class="cx" id="cutX" aria-label="Markierung aufheben">✕</button>
   </div>
-  <div class="rec-bar" id="recBar" hidden role="group" aria-label="Aufnahme">
-    <span class="rb-dot"></span><span class="rb-txt" id="rbTxt">Aufnahme</span>
-    <button type="button" id="rbPause" title="Aufnahme anhalten (Leertaste)"><svg viewBox="0 0 24 24" aria-hidden="true"><rect class="pz" x="6" y="5" width="4" height="14" rx="1"/><rect class="pz" x="14" y="5" width="4" height="14" rx="1"/><path class="go" d="M7 5l12 7-12 7z"/></svg><span id="rbPauseTxt">Pause</span></button>
-    <button type="button" id="rbAdd" title="Das bisher Eingespielte als neue Spur behalten. Vorher ist es nur vorläufig."><svg class="st" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 15h6M11 19h10M17 5h4M19 3v4"/><path d="M11 12a4.16 4.16 0 0 1-5.62 3.89A3.78 3.78 0 0 1 3 12.5a3.42 3.42 0 0 1 2.34-3.38l3.79-1.42A2.89 2.89 0 0 0 11 5a2 2 0 0 0-2-2 2 2 0 0 0-2 2v14a2 2 0 0 1-2 2 2 2 0 0 1-2-2"/></svg><span>Spur hinzufügen</span></button>
-    <button type="button" id="rbErase" title="Alles bisher Eingespielte löschen, die Aufnahme läuft weiter"><svg viewBox="-1117 883 256 256" aria-hidden="true"><path d="M-1016.4,1091.3l113.9-113.9c13.5-13.5,13.5-35.3,0-48.8l-32.5-32.5c-13.5-13.5-35.3-13.5-48.8,0l-113.9,113.9 c-13.5,13.5-13.5,35.3,0,48.8l32.5,32.5C-1051.7,1104.8-1029.9,1104.8-1016.4,1091.3z M-1057.1,1083.2l-32.5-32.5 c-9-9-9-23.6,0-32.5l67.6-68.1l65.1,65.1l-67.6,68.1c-4.3,4.3-10.1,6.7-16.3,6.7C-1046.9,1089.9-1052.7,1087.6-1057.1,1083.2z M-954.3,1129.7c0,3.5-2.8,6.3-6.3,6.3h-89.3c-3.5,0-6.3-2.8-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3h89.3 C-957.1,1123.4-954.3,1126.2-954.3,1129.7z M-882.3,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-885.2,1123.4-882.3,1126.2-882.3,1129.7z M-907.5,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-910.4,1123.4-907.5,1126.2-907.5,1129.7z M-932.7,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-935.6,1123.4-932.7,1126.2-932.7,1129.7z M-944.5,1107.9c0,3.5-2.8,6.3-6.3,6.3h-51.1c-3.5,0-6.3-2.8-6.3-6.3 c0-3.5,2.8-6.3,6.3-6.3h51.1C-947.4,1101.6-944.5,1104.4-944.5,1107.9z M-894.9,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-897.8,1101.6-894.9,1104.4-894.9,1107.9z M-920.1,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-923,1101.6-920.1,1104.4-920.1,1107.9z M-869.6,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-872.6,1101.6-869.6,1104.4-869.6,1107.9z"/></svg><span>Löschen</span></button>
-    <button type="button" id="rbStop" title="Aufnahme beenden und speichern"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span>Stopp</span></button>
-    <button type="button" class="rb-x" id="rbDiscard" title="Aufnahme verwerfen, nichts speichern">Verwerfen</button>
-  </div>
   <main id="stage">
     <aside class="tracks-drawer" id="trDrawer" hidden aria-label="Spuren">
       <div class="td-head"><b>Spuren</b><button class="btn icon" id="trClose" title="Schließen" aria-label="Spuren schließen">✕</button></div>
       <div class="td-list" id="trList"></div>
-      <div class="tr-loop" id="trLoopRow" title="Loop: die gewählten Takte wiederholen sich beim Aufnehmen, jede Runde kommt dazu. Gut für Schlagzeug und Begleitmuster.">
-        <label for="trLoop">Loop</label><select id="trLoop"><option value="0">aus</option><option value="1">1 Takt</option><option value="2">2 Takte</option><option value="4">4 Takte</option><option value="8">8 Takte</option></select>
+      <div class="tr-loop" id="trLoopRow" title="Loop: die gewählten Takte wiederholen sich beim Abspielen und beim Aufnehmen, jede Runde kommt dazu. Gut für Schlagzeug und Begleitmuster.">
+        <label class="tr-on"><input type="checkbox" id="trLoop"> Loop</label><span class="tr-ab" id="trAB">von Takt <input type="number" id="trLoopA" min="1" max="999" inputmode="numeric" aria-label="Loop ab Takt"> bis <input type="number" id="trLoopB" min="1" max="999" inputmode="numeric" aria-label="Loop bis Takt"></span>
         <label class="tr-fill" id="trFillL"><input type="checkbox" id="trFill"> danach übers ganze Stück</label>
       </div>
       <button class="btn primary" id="trRec"><span class="rec-dot"></span><span id="trRecTxt">Neue Spur aufnehmen</span></button>
       <button class="btn" id="trUndo" hidden title="Die zuletzt eingespielte Runde wieder entfernen">↶ Letzte Runde verwerfen</button>
       <button class="btn" id="trNew" title="Ein leeres Stück im Tempo des Metronoms anfangen und die erste Spur aufnehmen">＋ Neues Stück aufnehmen</button>
-      <p class="note" id="trNote">Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Spur fertig“ oder am Ende des Lieds wird sie gespeichert.</p>
+      <p class="note" id="trNote">Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Als Spur hinzufügen“ oder am Ende des Lieds wird sie gespeichert.</p>
     </aside>
     <canvas id="cv"></canvas>
+    <div class="rec-bar" id="recBar" hidden role="group" aria-label="Aufnahme">
+      <button type="button" class="rb-ic" id="rbBack" title="Zurück zum Anfang: das Stück springt an den Start, ein Takt wird eingezählt, das Eingespielte bleibt" aria-label="Zurück zum Anfang"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="2.6" height="14" rx="1"/><path d="M19 5.5v13L9 12z"/></svg></button>
+      <button type="button" class="rb-rec" id="rbPause" title="Aufnahme anhalten (Leertaste)" aria-label="Aufnahme anhalten"><i></i></button>
+      <span class="rb-txt" id="rbTxt">Aufnahme</span>
+      <span class="rb-sep"></span>
+      <button type="button" id="rbAdd" title="Das bisher Eingespielte als neue Spur anlegen. Vorher ist es nur vorläufig."><svg class="st" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 15h6M11 19h10M17 5h4M19 3v4"/><path d="M11 12a4.16 4.16 0 0 1-5.62 3.89A3.78 3.78 0 0 1 3 12.5a3.42 3.42 0 0 1 2.34-3.38l3.79-1.42A2.89 2.89 0 0 0 11 5a2 2 0 0 0-2-2 2 2 0 0 0-2 2v14a2 2 0 0 1-2 2 2 2 0 0 1-2-2"/></svg><span>Als Spur hinzufügen</span></button>
+      <span class="rb-sep"></span>
+      <span class="rb-group"><button type="button" id="rbErase" title="Alles bisher Eingespielte löschen, die Aufnahme läuft weiter"><svg viewBox="-1117 883 256 256" aria-hidden="true"><path d="M-1016.4,1091.3l113.9-113.9c13.5-13.5,13.5-35.3,0-48.8l-32.5-32.5c-13.5-13.5-35.3-13.5-48.8,0l-113.9,113.9 c-13.5,13.5-13.5,35.3,0,48.8l32.5,32.5C-1051.7,1104.8-1029.9,1104.8-1016.4,1091.3z M-1057.1,1083.2l-32.5-32.5 c-9-9-9-23.6,0-32.5l67.6-68.1l65.1,65.1l-67.6,68.1c-4.3,4.3-10.1,6.7-16.3,6.7C-1046.9,1089.9-1052.7,1087.6-1057.1,1083.2z M-954.3,1129.7c0,3.5-2.8,6.3-6.3,6.3h-89.3c-3.5,0-6.3-2.8-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3h89.3 C-957.1,1123.4-954.3,1126.2-954.3,1129.7z M-882.3,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-885.2,1123.4-882.3,1126.2-882.3,1129.7z M-907.5,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-910.4,1123.4-907.5,1126.2-907.5,1129.7z M-932.7,1129.7c0,3.4-2.9,6.3-6.3,6.3c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3 C-935.6,1123.4-932.7,1126.2-932.7,1129.7z M-944.5,1107.9c0,3.5-2.8,6.3-6.3,6.3h-51.1c-3.5,0-6.3-2.8-6.3-6.3 c0-3.5,2.8-6.3,6.3-6.3h51.1C-947.4,1101.6-944.5,1104.4-944.5,1107.9z M-894.9,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-897.8,1101.6-894.9,1104.4-894.9,1107.9z M-920.1,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-923,1101.6-920.1,1104.4-920.1,1107.9z M-869.6,1107.9c0,3.4-2.9,6.3-6.3,6.3 c-3.5,0-6.3-2.9-6.3-6.3c0-3.5,2.8-6.3,6.3-6.3C-872.6,1101.6-869.6,1104.4-869.6,1107.9z"/></svg><span>Löschen</span></button><button type="button" class="rb-x" id="rbDiscard" title="Aufnahme beenden und nichts behalten">Verwerfen</button></span>
+    </div>
     <div class="band" id="band" aria-label="Band: Instrument wählen"></div>
     <canvas id="seqCv" hidden aria-label="Spuren als Sequenzer: klicken springt an diese Stelle"></canvas>
     <div class="view-chip" id="viewChip" role="group" aria-label="Ansicht einstellen">
@@ -881,7 +912,7 @@ header.bar.hide2 { display: none !important; }
       <div class="eb-keys"><span><kbd>←</kbd><kbd>→</kbd><kbd>↑</kbd><kbd>↓</kbd> Note wählen</span><span><kbd>⇧</kbd>+Pfeile oder ziehen: Note verschieben</span><span>rechte Maustaste ziehen oder <kbd>1</kbd><kbd>2</kbd><kbd>4</kbd><kbd>8</kbd><kbd>6</kbd>: Dauer, <kbd>.</kbd> punktiert</span><span><kbd>+</kbd> dann Buchstaben: Noten einfügen · <kbd>−</kbd> Pause</span><span><kbd>F</kbd> dann <kbd>1</kbd>–<kbd>5</kbd>: Fingersatz · <kbd>H</kbd> Note auf die andere Hand legen</span><span><kbd>S</kbd> gebundene Note teilen · <kbd>V</kbd> mit der nächsten gleichen Note verbinden</span><span><kbd>Alt</kbd>+<kbd>←</kbd><kbd>→</kbd> diese Note und alles danach verschieben, mit <kbd>⇧</kbd> um einen ganzen Takt (Platz einfügen)</span><span><kbd>Entf</kbd> löschen · <kbd>Strg</kbd><kbd>Z</kbd> zurück</span></div>
     </div>
     <div class="theory-chip" id="theoryChip" hidden><button type="button" id="thEdit" title="Tonleiter ändern"><b>Theorie</b><span id="thTxt">C-Dur</span></button><button type="button" id="thOff" title="Theorie beenden" aria-label="Theorie beenden">✕</button></div>
-    <div class="metro-mini" id="metroMini" hidden aria-hidden="true">
+    <div class="metro-mini" id="metroMini" hidden role="button" tabindex="0" title="Tippen: Takt anhalten">
       <svg class="m-svg" viewBox="0 0 120 184"><defs><linearGradient id="mmBody" x1="0" x2="1"><stop offset="0" stop-color="#2a3145"/><stop offset=".5" stop-color="#1b2131"/><stop offset="1" stop-color="#131826"/></linearGradient></defs>
         <path d="M42 6 H78 L112 164 V180 H8 V164 Z" fill="url(#mmBody)" stroke="rgba(255,255,255,.14)" stroke-linejoin="round"/><path class="face" d="M47 18 H73 L96 138 H24 Z"/>
         <g id="mmArm"><line class="arm" x1="60" y1="140" x2="60" y2="22"/><rect class="weight" id="mmWeight" x="52" y="60" width="16" height="12" rx="3"/></g><circle class="pivot" cx="60" cy="140" r="4"/></svg>
@@ -908,6 +939,7 @@ header.bar.hide2 { display: none !important; }
           <div class="m-num"><b id="mNum">4/4</b><span id="mSub">Takt</span></div>
         </div>
         <div class="m-beats" id="mBeats"></div>
+        <button type="button" class="m-more" id="mMore" aria-expanded="false">Einstellungen <span aria-hidden="true">▾</span></button>
         <div class="m-cfg">
           <div class="m-f">Hände<span class="seg" id="mHandSeg"><button data-rec-hand="P" title="Eine Spur für beide Hände; die Noten teilt die Trennlinie auf">Beide</button><button data-rec-hand="R">Rechte</button><button data-rec-hand="L">Linke</button><button data-rec-hand="A">Begleitung</button></span></div>
           <div class="m-f">Instrument<button class="btn mini" id="mInst" title="Instrument wählen">Flügel</button></div>
@@ -1020,24 +1052,26 @@ header.bar.hide2 { display: none !important; }
   <div class="card start-card" role="dialog" aria-modal="true" aria-labelledby="stH" data-view="home">
     <div class="st-head"><button type="button" class="st-back" id="stBack">‹ Zurück</button><h2 id="stH">Was möchtest du tun?</h2></div>
     <div class="st-view" data-v="home"><div class="st-tiles">
-      <button type="button" class="st-tile" data-go="play" aria-label="Spielen"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Spielen</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Spielen</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Spielen</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Spielen</i><b>Spielen</b></span><small>Einfach drauflos, mit Rhythmus und Band</small></button>
-      <button type="button" class="st-tile" data-go="learn" aria-label="Üben"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Üben</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Üben</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Üben</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Üben</i><b>Üben</b></span><small>Ein Lied lernen, es wartet auf dich</small></button>
-      <button type="button" class="st-tile" data-go="rec" aria-label="Aufnehmen"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Aufnehmen</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Aufnehmen</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Aufnehmen</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Aufnehmen</i><b>Aufnehmen</b></span><small>Neu einspielen oder bearbeiten</small></button>
-      <button type="button" class="st-tile" data-go="theory" aria-label="Theorie"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Theorie</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Theorie</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Theorie</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Theorie</i><b>Theorie</b></span><small>Tonleitern greifen und hören</small></button>
+      <button type="button" class="st-tile" data-go="play" aria-label="Spielen"><span class="calli" aria-hidden="true"><b>Spielen</b></span><small>Einfach drauflos, mit Rhythmus und Band</small></button>
+      <button type="button" class="st-tile" data-go="learn" aria-label="Üben"><span class="calli" aria-hidden="true"><b>Üben</b></span><small>Ein Lied lernen, es wartet auf dich</small></button>
+      <button type="button" class="st-tile" data-go="rec" aria-label="Aufnehmen"><span class="calli" aria-hidden="true"><b>Aufnehmen</b></span><small>Neu einspielen oder bearbeiten</small></button>
+      <button type="button" class="st-tile" data-go="theory" aria-label="Theorie"><span class="calli" aria-hidden="true"><b>Theorie</b></span><small>Tonleitern greifen und hören</small></button>
     </div></div>
     <div class="st-view" data-v="rec"><div class="st-tiles two">
-      <button type="button" class="st-tile" data-go="recnew" aria-label="Neu"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Neu</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Neu</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Neu</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Neu</i><b>Neu</b></span><small>Ein leeres Stück, Spur für Spur einspielen</small></button>
-      <button type="button" class="st-tile" data-go="edit" aria-label="Bearbeiten"><span class="calli" aria-hidden="true"><i style="font-family:'Great Vibes',cursive;--x:-14px;--y:-26px;--r:-7deg;--s:40px;--o:.32;--c:#dcb978">Bearbeiten</i><i style="font-family:'UnifrakturMaguntia',serif;--x:18px;--y:22px;--r:5deg;--s:30px;--o:.18;--c:#9fb4ff">Bearbeiten</i><i style="font-family:'Pinyon Script',cursive;--x:22px;--y:-6px;--r:-3deg;--s:34px;--o:.22;--c:#f0a8b8">Bearbeiten</i><i style="font-family:'Caveat',cursive;--x:-24px;--y:18px;--r:8deg;--s:28px;--o:.2;--c:#9be0c0">Bearbeiten</i><b>Bearbeiten</b></span><small>Eigene Songs, MIDI-Dateien und Fundstücke</small></button>
+      <button type="button" class="st-tile" data-go="recnew" aria-label="Neu"><span class="calli" aria-hidden="true"><b>Neu</b></span><small>Ein leeres Stück, Spur für Spur einspielen</small></button>
+      <button type="button" class="st-tile" data-go="edit" aria-label="Bearbeiten"><span class="calli" aria-hidden="true"><b>Bearbeiten</b></span><small>Eigene Songs, MIDI-Dateien und Fundstücke</small></button>
     </div></div>
     <div class="st-view" data-v="edit">
       <h3>Meine Songs</h3><div class="st-list" id="stMine"></div><p class="st-note" id="stMineNote" hidden>Noch keine eigenen Songs. Mit „Neu“ spielst du deinen ersten ein.</p>
-      <h3>MIDI importieren</h3><div class="st-drop" id="stDrop"><span><b>.mid-Datei</b> hierher ziehen</span><button type="button" class="st-chip" id="stFile">Datei öffnen</button></div>
+      <h3>MIDI importieren</h3><div class="st-drop" id="stDrop"><span><b>.mid-Datei</b> hierher ziehen</span><button type="button" class="st-chip st-file" id="stFile">Datei öffnen</button></div>
       <h3>Im Internet suchen</h3><div class="st-search" data-for="edit"></div>
     </div>
     <div class="st-view" data-v="learn">
       <h3>Meine begonnenen Lieder</h3><div class="st-list" id="stStarted"></div><p class="st-note" id="stStartedNote" hidden>Noch nichts begonnen. Wähl unten ein Lied aus.</p>
-      <h3>Musikstile</h3><div class="st-styles" id="stStyles"></div><div class="st-list" id="stStyleList"></div>
+      <h3>Musikstile</h3><div class="st-styles big" id="stStyles"></div><div class="st-list" id="stStyleList"></div>
+      <h3>Komponisten</h3><div class="st-styles" id="stComposers"></div>
       <h3>Im Internet suchen</h3><div class="st-search" data-for="learn"></div>
+      <h3>MIDI importieren</h3><div class="st-drop"><span><b>.mid-Datei</b> hierher ziehen</span><button type="button" class="st-chip st-file">Datei öffnen</button></div>
     </div>
     <div class="st-view" data-v="theory">
       <p class="st-note">Die Töne der Tonleiter leuchten farbig auf den Tasten. So hörst und siehst du, welche Töne zusammenpassen.</p>
@@ -2427,7 +2461,10 @@ function drawSeq() {
   sx.setTransform(DPR, 0, 0, DPR, 0, 0); sx.clearRect(0, 0, w, h);
   sx.fillStyle = 'rgba(9,11,18,.9)'; sx.fillRect(0, 0, w, h);
   if (!song) { seqGeo = null; return; }
-  const pad = 14, span = seqSpan(), t0 = Math.min(0, song.firstStart), xOf = tm => pad + (tm - t0) / (span - t0) * (w - pad * 2);
+  const full0 = Math.min(0, song.firstStart), full1 = seqSpan();
+  // the mouse wheel zooms into a part of the time line; it follows the playhead
+  if (seqView) { const wv = seqView.b - seqView.a; if (wv >= full1 - full0 - 0.01) seqView = null; else if (playing && (t > seqView.b - wv * 0.05 || t < seqView.a)) { seqView.a = Math.max(full0, t - wv * 0.1); seqView.b = seqView.a + wv; } }
+  const pad = 14, span = seqView ? seqView.b : full1, t0 = seqView ? seqView.a : full0, xOf = tm => pad + (tm - t0) / (span - t0) * (w - pad * 2);
   seqGeo = { pad, span, t0, w };
   // bars
   sx.font = '10px "JetBrains Mono", ui-monospace, monospace'; sx.textBaseline = 'top'; sx.textAlign = 'left';
@@ -2438,6 +2475,8 @@ function drawSeq() {
     if (b.bar) { bar++; sx.fillStyle = 'rgba(255,255,255,.09)'; sx.fillRect(x, 0, 1, h); if (bar % 4 === 1) { sx.fillStyle = 'rgba(255,255,255,.35)'; sx.fillText(bar, x + 3, 4); } }
     else if ((xOf(b.time + 1) - xOf(b.time)) > 30) { sx.fillStyle = 'rgba(255,255,255,.035)'; sx.fillRect(x, 0, 1, h); }
   }
+  const LS = rec && rec.loop ? rec.loop : loopSpan();
+  if (LS) { const x1 = xOf(LS.a), x2 = xOf(LS.b); sx.fillStyle = 'rgba(220,185,120,.07)'; sx.fillRect(x1, 0, x2 - x1, h); sx.fillStyle = 'rgba(220,185,120,.7)'; sx.fillRect(Math.round(x1), 0, 2, h); sx.fillRect(Math.round(x2) - 2, 0, 2, h); }
   // one lane per row of the menu
   const rows = rowsAll, dTop = dTop0;
   const lane = (row, notes, col, live) => {
@@ -2470,7 +2509,15 @@ function drawSeq() {
 }
 function rr2(x, y, w, h, r) { r = Math.max(0, Math.min(r, w / 2, h / 2)); sx.beginPath(); sx.moveTo(x + r, y); sx.arcTo(x + w, y, x + w, y + h, r); sx.arcTo(x + w, y + h, x, y + h, r); sx.arcTo(x, y + h, x, y, r); sx.arcTo(x, y, x + w, y, r); sx.closePath(); }
 // cutting: drag across a lane to mark bars of that track, then delete, copy, paste or repeat them
-let seqSel = null, seqDrag = null, seqClip = null;
+let seqSel = null, seqDrag = null, seqClip = null, seqView = null;
+seqCv.addEventListener('wheel', e => {
+  e.preventDefault(); e.stopPropagation(); if (!song || !seqGeo) return;
+  const full0 = Math.min(0, song.firstStart), full1 = seqSpan(), g = seqGeo, tm = seqTime(e), f = (tm - g.t0) / Math.max(0.01, g.span - g.t0);
+  if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { if (!seqView) return; const wv = seqView.b - seqView.a, d = (e.shiftKey ? e.deltaY : e.deltaX) / 400 * wv; seqView.a = Math.max(full0, Math.min(full1 - wv, seqView.a + d)); seqView.b = seqView.a + wv; return; }
+  const wv = Math.max(2, Math.min(full1 - full0, (g.span - g.t0) * (e.deltaY > 0 ? 1.18 : 1 / 1.18)));
+  if (wv >= full1 - full0 - 0.01) { seqView = null; return; }
+  let a = tm - f * wv; a = Math.max(full0, Math.min(full1 - wv, a)); seqView = { a, b: a + wv };
+}, { passive: false });
 const seqTime = e => { const r = seqCv.getBoundingClientRect(), g = seqGeo, f = (e.clientX - r.left - g.pad) / (g.w - g.pad * 2); return g.t0 + Math.max(0, Math.min(1, f)) * (g.span - g.t0); };
 const seqLane = e => { const rows = [...document.querySelectorAll('#trList .track')]; for (let i = 0; i < Math.min(rows.length, song.parts.length); i++) { const r = rows[i].getBoundingClientRect(); if (e.clientY >= r.top && e.clientY <= r.bottom) return i; } return -1; };
 // to the nearest beat, so cuts stay in time
@@ -2601,22 +2648,35 @@ var freeTrails = [];
 // the band behind the keys in free play: every instrument where it would stand on a stage, far ones smaller; a click picks it
 const BAND_ROWS = [['Streicher', 'Bläser'], ['Synthesizer', 'Weitere', 'Aus aller Welt'], ['Klavier', 'Elektrisch'], ['Gitarre', 'Bass', 'Schlagzeug']];
 // big instruments stand bigger on the stage
-const BAND_BIG = { violin: 0.9, cello: 1.45, contrabass: 2.1, upright: 2.1, tuba: 1.15, harp: 1.15 };
+const BAND_BIG = { violin: 0.9, cello: 1.7, contrabass: 2.1, upright: 1.35, tuba: 1.15, harp: 1.15, concert: 1.45 };
+// each row stands on its own line (the labels in one line), the whole band is scaled to fit the space above the keys
+const BAND_BASE = [24, 49, 73, 97];
 function buildBand() {
   const el = $('#band'); if (el.childElementCount) return;
   const groups = {}; [...$('#soundSel').querySelectorAll('optgroup')].forEach(g => { groups[g.label.replace(/ \(.*\)$/, '')] = [...g.querySelectorAll('option')].map(o => o.value); });
   el.innerHTML = '<div class="floor"></div>' + BAND_ROWS.map((names, r) => {
     const sc = 0.55 + r * 0.17, ids = names.flatMap(n => groups[n] || []);
     const items = ids.map(v => INSTS.find(x => x[0] === v)).filter(Boolean);
-    return `<div class="row" style="top:${6 + r * 21}%;gap:${Math.round(4 + r * 6)}px">` + items.map(([v, n, ic]) => `<button type="button" data-inst="${v}" aria-pressed="false" title="${esc($('#soundSel').querySelector(`option[value="${v}"]`).textContent)}" style="width:calc(var(--bw) * ${(sc * (BAND_BIG[v] || 1)).toFixed(2)});font-size:calc(var(--bf) * ${(0.8 + r * 0.1).toFixed(2)})">${ic}<span>${n.replace('&shy;', '')}</span></button>`).join('') + '</div>';
+    return `<div class="row" style="bottom:${100 - BAND_BASE[r]}%;gap:calc(var(--bw) * ${(0.06 + r * 0.08).toFixed(2)})">` + items.map(([v, n, ic]) => `<button type="button" data-inst="${v}" aria-pressed="false" title="${esc($('#soundSel').querySelector(`option[value="${v}"]`).textContent)}" style="width:calc(var(--bw) * ${(sc * (BAND_BIG[v] || 1)).toFixed(2)});font-size:calc(var(--bf) * ${(0.8 + r * 0.1).toFixed(2)})">${ic}<span>${n.replace('&shy;', '')}</span></button>`).join('') + '</div>';
   }).join('');
   el.onclick = e => { const b = e.target.closest('button[data-inst]'); if (!b) return; const s = $('#soundSel'); s.value = b.dataset.inst; s.dispatchEvent(new Event('change')); syncBand();
     if (synth.ensure()) { if (settings.sound === 'drumkit') [[36, 0], [42, 0], [38, 280], [42, 280]].forEach(([m, d]) => setTimeout(() => synth.voice(m, 100), d)); else { synth.playAuto(60, 88, 0.6, 1, 'live'); synth.playAuto(64, 80, 0.6, 1, 'live'); synth.playAuto(67, 80, 0.6, 1, 'live'); } } };
 }
+function fitBand() {
+  const el = $('#band'); if (!el.childElementCount || !document.body.classList.contains('free') || innerWidth <= 640) { el.style.removeProperty('--bw'); el.style.removeProperty('--bf'); return; }
+  const h = el.clientHeight, w = el.clientWidth; if (!h || !w) return;
+  // the tallest normal icon of a row may take most of the space up to the line above
+  let bw = Math.max(26, Math.min(96, h * 0.24 / 1.06 * 0.86));
+  el.style.setProperty('--bw', bw + 'px'); el.style.setProperty('--bf', Math.max(9, Math.min(13, bw / 6.2)) + 'px');
+  // and every row has to fit in the width
+  let worst = 1; el.querySelectorAll('.row').forEach(r => { const kids = [...r.children], gap = parseFloat(getComputedStyle(r).columnGap) || 0, need = kids.reduce((a, k) => a + k.offsetWidth, 0) + gap * Math.max(0, kids.length - 1); if (need > w * 0.97) worst = Math.min(worst, w * 0.97 / need); });
+  if (worst < 1) { bw *= worst; el.style.setProperty('--bw', bw + 'px'); el.style.setProperty('--bf', Math.max(9, Math.min(13, bw / 6.2)) + 'px'); }
+}
+addEventListener('resize', () => requestAnimationFrame(fitBand));
 function syncBand() { document.querySelectorAll('#band button').forEach(b => b.setAttribute('aria-pressed', b.dataset.inst === settings.sound)); }
 function syncFree() {
   const on = settings.mode === 'free'; document.body.classList.toggle('free', on);
-  if (on) { buildBand(); syncBand(); }
+  if (on) { buildBand(); syncBand(); requestAnimationFrame(fitBand); }
   if (on) { flashes.length = 0; }
 }
 function drawFree(y0, y1, now) {
@@ -2627,10 +2687,12 @@ function drawFree(y0, y1, now) {
     const f = freeTrails[i], k = KB.keys[f.m]; if (!k) continue;
     const top = y1 - (now - f.t0) * sp, bot = f.t1 ? y1 - (now - f.t1) * sp : y1;
     if (bot < y0 - 10) { freeTrails.splice(i, 1); continue; }
-    const c = PITCH[f.m % 12], w = Math.max(3, (k.black ? k.w : k.w * 0.72)), x = k.x + k.w / 2 - w / 2, a = 0.35 + 0.65 * Math.min(1, f.v / 110);
-    const g = cx.createLinearGradient(0, Math.max(y0, top), 0, bot);
-    g.addColorStop(0, c.replace(/[\d.]+\)$/, '0)')); g.addColorStop(Math.min(1, 40 / Math.max(1, bot - top)), c.replace(/[\d.]+\)$/, (a * 0.8) + ')')); g.addColorStop(1, c.replace(/[\d.]+\)$/, a + ')'));
-    cx.save(); cx.shadowColor = c; cx.shadowBlur = f.t1 ? 6 : 16; cx.fillStyle = g; rr(x, Math.max(y0, top), w, bot - Math.max(y0, top), Math.min(6, w / 2)); cx.fill(); cx.restore();
+    const c = PITCH[f.m % 12], w = Math.max(3, (k.black ? k.w : k.w * 0.72)), x = k.x + k.w / 2 - w / 2, vv = Math.min(1, f.v / 120), a = 0.14 + 0.86 * Math.pow(vv, 1.4);
+    // like a struck string: the head is the attack, the light behind it dies away (fast for a hard note)
+    const held = ((f.t1 || now) - f.t0) / 1000, tail = a * Math.max(0.12, Math.exp(-held * (0.6 + 1.6 * vv)));
+    const g = cx.createLinearGradient(0, top, 0, bot), hd = Math.min(1, 6 / Math.max(1, bot - top));
+    g.addColorStop(0, c.replace(/[\d.]+\)$/, (a * 0.6) + ')')); g.addColorStop(hd, c.replace(/[\d.]+\)$/, a + ')')); g.addColorStop(Math.min(1, Math.max(hd, 60 / Math.max(1, bot - top))), c.replace(/[\d.]+\)$/, (a * 0.8 + tail * 0.2) + ')')); g.addColorStop(1, c.replace(/[\d.]+\)$/, tail + ')'));
+    cx.save(); cx.shadowColor = c; cx.shadowBlur = (f.t1 ? 4 : 8) + 14 * vv * vv; cx.fillStyle = g; rr(x, Math.max(y0, top), w, bot - Math.max(y0, top), Math.min(6, w / 2)); cx.fill(); cx.restore();
   }
   // a soft glow above every key held right now
   pressed.forEach((p, m) => { const k = KB.keys[m]; if (!k) return; const c = PITCH[m % 12], gx = k.x + k.w / 2, r = Math.max(30, k.w * 2.2);
@@ -3357,6 +3419,10 @@ $('#zFull').onclick = () => setRange(0, WHITES.length - 1);
 stage.addEventListener('wheel', e => {
   e.preventDefault();
   const r = stage.getBoundingClientRect(), frac = (e.clientX - r.left) / r.width;
+  // over the notes (the falling notes or the sheet music) the wheel zooms the view; over the keys it zooms the keyboard
+  if (settings.mode !== 'free' && !e.shiftKey && Math.abs(e.deltaY) >= Math.abs(e.deltaX) && (e.target.closest('#score') || e.clientY - r.top < KB.top)) {
+    wheelZoom += e.deltaY / 100; if (Math.abs(wheelZoom) >= 1) { setViewZoom(wheelZoom > 0 ? 1 / 1.12 : 1.12); wheelZoom = 0; } return;
+  }
   if (e.shiftKey || Math.abs(e.deltaX) > Math.abs(e.deltaY)) { const d = (e.shiftKey ? e.deltaY : e.deltaX); wheelPan += d / 40; const s = Math.trunc(wheelPan); if (s) { pan(s); wheelPan -= s; } }
   else { wheelZoom += e.deltaY / 100; if (Math.abs(wheelZoom) >= 1) { zoom(wheelZoom > 0 ? 1.15 : 0.87, frac); wheelZoom = 0; } }
 }, { passive: false });
@@ -3433,6 +3499,10 @@ function advance(dt) {
   if (rec && rec.overdub && song.beats.length > 1) { const B = song.beats, sp = B[B.length - 1].time - B[B.length - 2].time; let since = 0; for (let j = B.length - 1; j >= 0 && !B[j].bar; j--) since++; while (B[B.length - 1].time < t + 8) { const l = B[B.length - 1]; since++; const bar = since % (l.n || 4) === 0; if (bar) since = 0; B.push({ time: l.time + sp, bar, n: l.n, d: l.d }); } }
   if (drill.on) drillTick();
   if (song.jam && t >= song.duration) seek(0);
+  else if (!rec && settings.loopOn && drawerOpen()) { const L = loopSpan(); if (L && L.b > L.a && t >= L.b && t < L.b + 1) seek(L.a + (t - L.b), true); }
+  // free play: the rhythm goes on until eight bars pass without a key, then it rests until ▶ again
+  if (song.jam && playing && !rec) { const B = song.beats, spb = B.length > 1 ? (B[1].time - B[0].time) / (settings.speed / 100) : 0.5, n = (B[0] && B[0].n) || 4;
+    if ((performance.now() - Math.max(lastKeyAt || 0, jamSince)) / 1000 > 8 * n * spb) setPlaying(false); }
   else if (t >= song.duration + 0.6 && !(rec && rec.overdub && (song.blank || song.metro || !song.parts.length))) finish();
 }
 function chordGroup() {
@@ -3660,7 +3730,9 @@ stage.addEventListener('pointerup', endPtr); stage.addEventListener('pointercanc
 
 /* ---------- Transport ---------- */
 const playIco = $('#playIco');
+var jamSince = 0;
 function setPlaying(p) {
+  if (p && !playing) jamSince = performance.now();
   if (p && rec && rec.overdub && rec.paused) { rec.paused = false; rec.lastIn = performance.now(); }
   playing = p && !!song;
   headRows();
@@ -3920,7 +3992,7 @@ function loadSong(s, meta = {}) {
   // every song starts with its own instrument (or the grand piano); a choice made for a song is remembered for that song only
   { const snd = (!s.blank && store.get('songSound', {})[songKey]) || s.sound || (s.parts.find(p => p.sound) || {}).sound || 'concert';
     if (snd !== settings.sound) { settings.sound = snd; const ss = document.getElementById('soundSel'); if (ss) ss.value = snd; saveSettings(); if (snd === 'concert') synth.loadPiano(); if (typeof ORCH !== 'undefined' && ORCH[snd]) ORCH[snd].layers.forEach(L => synth.loadOrch(L.dir)); if (typeof syncInst === 'function') syncInst(); } }
-  $('#songTitle').textContent = s.title;
+  $('#songTitle').textContent = s.title; syncTitleEdit();
   const you = s.parts.filter(p => youRole(p.role)).length;
   $('#songSub').textContent = [meta.source || s.source, fmt(s.duration), s.parts.length + (s.parts.length === 1 ? ' Stimme' : ' Stimmen')].filter(Boolean).join(' · ');
   $('#tEnd').textContent = fmt(s.duration);
@@ -3946,7 +4018,7 @@ function syncTracksView() {
 function renderDrawer() {
   if (!drawerOpen()) return;
   const el = $('#trList'); el.innerHTML = '';
-  $('#trNote').textContent = song && song.parts.length ? 'Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Spur fertig“ wird sie gespeichert.' : 'Ein neues Stück: Das Metronom zählt einen Takt ein, dann nimmst du die erste Spur auf. Rechts siehst du, was du spielst. Mit „Spur fertig“ wird sie gespeichert.';
+  $('#trNote').textContent = song && song.parts.length ? 'Das Lied spielt mit, und du spielst die neue Spur dazu. Vorher wird ein Takt eingezählt. Mit „Als Spur hinzufügen“ wird sie gespeichert.' : 'Ein neues Stück: Das Metronom zählt einen Takt ein, dann nimmst du die erste Spur auf. Rechts siehst du, was du spielst. Mit „Als Spur hinzufügen“ wird sie gespeichert.';
   if (!song) { el.innerHTML = '<p class="note">Noch keine Spur. Leg mit „Neue Spur aufnehmen“ eine an.</p>'; }
   else song.parts.forEach((p, i) => {
     // compact: the instrument, the name and a volume slider; everything else in a dialog on a double click
@@ -3966,12 +4038,22 @@ function renderDrawer() {
     row.classList.toggle('mute', p.vol === 0);
     nm.append(b, vol); row.append(ic, nm, mu);
     row.ondblclick = e => { if (e.target === vol || e.target.closest('.tr-mute')) return; tdOpen(i); };
+    // between two tracks of the same instrument: a small plus joins them, after asking once
+    const prev = song.parts[i - 1];
+    if (prev && !rec && trInstName(prev) === trInstName(p)) {
+      const j = document.createElement('div'); j.className = 'tr-join';
+      j.innerHTML = '<button type="button" class="tj-plus" title="Spuren zusammenlegen" aria-label="Spuren zusammenlegen">+</button><span class="tj-ask">Zusammenlegen?<button type="button" class="tj-yes">Ja</button><button type="button" class="tj-no">Nein</button></span>';
+      j.querySelector('.tj-plus').onclick = () => j.classList.add('ask');
+      j.querySelector('.tj-no').onclick = () => j.classList.remove('ask');
+      j.querySelector('.tj-yes').onclick = () => mergeParts(i - 1, i);
+      el.appendChild(j);
+    }
     el.appendChild(row);
   });
   if (rec && rec.overdub) { const row = document.createElement('div'); row.className = 'track rec'; row.innerHTML = '<span class="sw" style="background:#ff5d6c"></span><div class="tn"><b>Aufnahme läuft</b><small>' + (rec.loop ? 'Loop, Runde ' + (rec.loop.pass + 1) : 'neue Spur') + '</small></div>'; el.appendChild(row); }
   $('#trNew').hidden = !!rec;
   $('#trUndo').hidden = !(rec && rec.loop && rec.loop.hits.some(h => h.pass < rec.loop.pass)); $('#trLoopRow').hidden = !!rec;
-  $('#trRec').classList.toggle('on', !!(rec && rec.overdub)); $('#trRecTxt').textContent = rec && rec.overdub ? 'Spur fertig' : 'Neue Spur aufnehmen';
+  $('#trRec').classList.toggle('on', !!(rec && rec.overdub)); $('#trRecTxt').textContent = rec && rec.overdub ? 'Als Spur hinzufügen' : 'Neue Spur aufnehmen';
 }
 const trSound = p => p.drum ? 'drumkit' : (p.sound || settings.sound);
 const trInstName = p => p.drum ? 'Schlagzeug · ' + kitName() : instName(trSound(p));
@@ -3999,20 +4081,23 @@ $('#tdRole').onchange = () => { const p = song.parts[tdIdx]; if (!p) return; p.r
 $('#tdInst').onchange = () => { const p = song.parts[tdIdx]; if (!p) return; p.sound = $('#tdInst').value || undefined; $('#tdIc').innerHTML = trIcon(p); tracksSave(); renderDrawer(); if (p.sound && synth.ensure()) { synth.playAuto(60, 90, 0.5, 1, 'guide', p.sound); synth.playAuto(64, 80, 0.5, 1, 'guide', p.sound); } };
 $('#tdSheet').onclick = () => { const i = tdIdx, solo = song.scorePart === i; song.scorePart = solo ? null : i; score = null; page = null; if (!solo) setView('page'); tdClose(); renderDrawer(); };
 $('#tdDel').onclick = () => { const b = $('#tdDel'); if (!b.dataset.armed) { b.dataset.armed = 1; b.textContent = 'Wirklich löschen?'; return; } const i = tdIdx; tdClose(); song.scorePart = null; tracksRebuild(song.parts.filter((_, j) => j !== i)); };
-$('#tdMergeGo').onclick = () => {
-  const i = tdIdx, j = +$('#tdMerge').value, a = song.parts[i], b = song.parts[j]; if (!a || !b) return;
+function mergeParts(i, j) {
+  const a = song.parts[i], b = song.parts[j]; if (!a || !b) return;
   const m = { ...a, notes: [...a.notes, ...b.notes].sort((x, y) => x.start - y.start || x.midi - y.midi), vol: Math.max(a.vol ?? 100, b.vol ?? 100) };
-  tdClose(); song.scorePart = null; tracksRebuild(song.parts.map((q, k) => k === i ? m : q).filter((_, k) => k !== j));
-};
+  song.scorePart = null; tracksRebuild(song.parts.map((q, k) => k === i ? m : q).filter((_, k) => k !== j));
+}
+$('#tdMergeGo').onclick = () => { const i = tdIdx, j = +$('#tdMerge').value; tdClose(); mergeParts(i, j); };
 // a second click within 3 s really deletes (no browser dialogs)
 function confirmDel(b) { if (b.dataset.armed) return true; b.dataset.armed = 1; b.textContent = '?'; b.title = 'Zum Löschen noch einmal klicken'; setTimeout(() => { delete b.dataset.armed; b.textContent = '✕'; }, 3000); return false; }
 // a stored note: pitch, start, end, velocity, track, and if set its hand (R/L) and finger (1–5)
 function noteRow(n, pi) { const r = [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel, pi]; if (n.h || n.f) r.push(n.h || 0, n.f || 0); return r; }
+// a new piece is called after the moment it was recorded; a click on the title gives it a name
+const recName = (d = new Date()) => 'Aufnahme vom ' + d.toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric' }) + ', ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
 function songItem(parts) {
   // the song with the given parts as an entry of "Meine Aufnahmen" (the same form an edited version uses)
   const list = store.get('recordings', []);
   let item = song.recId && list.find(x => x.id === song.recId);
-  if (!item) { item = { id: Date.now(), name: song.blank ? 'Neues Stück ' + new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + new Date().toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) : (song.title.replace(/ \((bearbeitet|mehrspurig)\)$/, '') + ' (mehrspurig)').slice(0, 40) }; if (song.blank) Object.assign(item, song.blank); list.unshift(item); }
+  if (!item) { item = { id: Date.now(), name: song.blank ? song.title : (song.title.replace(/ \((bearbeitet|mehrspurig)\)$/, '') + ' (mehrspurig)').slice(0, 40) }; if (song.blank) Object.assign(item, song.blank); list.unshift(item); }
   item.notes = []; parts.forEach((p, pi) => p.notes.forEach(n => item.notes.push(noteRow(n, pi))));
   item.parts = parts.map(p => ({ name: p.name, role: p.role, program: p.program || 0, drum: !!p.drum, sound: p.sound, vol: p.vol }));
   item.meta = { spell: song.spell, swing: song.swing, keySf: song.keySf, split: song.split };
@@ -4026,7 +4111,7 @@ function blankSong() {
   // an empty piece in the metronome's tempo and time, ready for its first track
   const [n, d] = settings.metroSig.split('/').map(Number), spb = 60 / settings.metroBpm, beats = [];
   for (let i = 0; i <= n * 16; i++) beats.push({ time: i * spb, bar: i % n === 0, n, d });
-  const s = makeSongFinal('Neues Stück', [], beats, 0, {}); s.metro = true; s.blank = { bpm: settings.metroBpm, sig: [n, d] }; s.source = 'Neue Aufnahme';
+  const s = makeSongFinal(recName(), [], beats, 0, {}); s.metro = true; s.blank = { bpm: settings.metroBpm, sig: [n, d] }; s.source = 'Neue Aufnahme';
   loadSong(s);
 }
 // free play: no song, just an endless empty bar line, so a rhythm can run on its own
@@ -4047,14 +4132,17 @@ function overdubStart() {
   // count in one bar before the first note, with the song's own beat
   const B = song.beats, start = Math.max(0, song.firstStart - 0.05);
   let bi = 0; for (let i = 0; i < B.length; i++) { if (B[i].time <= start + 1e-6 && B[i].bar) bi = i; }
+  // with a loop the take starts at its first bar
+  if (settings.loopOn) { let k = 0; for (let i = 0; i < B.length; i++) if (B[i].bar && ++k === loopAB()[0]) { bi = i; break; } }
   const spb = B.length > 1 ? B[1].time - B[0].time : 0.5, n = (B[bi] && B[bi].n) || 4, bar0 = B[bi] ? B[bi].time : 0;
   seek(bar0 - n * spb, true);
   const sp = settings.speed / 100, a0 = synth.ctx.currentTime + 0.05, cnt = Math.max(1, +settings.metroCount || 0) * n;
   seek(bar0 - cnt * spb, true);
   if (settings.metroClick !== 'off' && +settings.metroCount) for (let k = 0; k < cnt; k++) metroBeat(a0 + k * spb / sp, k % n, n, spb / sp, true);
+  metroMuted = false;
   rec = { overdub: true, ev: [], since: performance.now() + (+settings.metroCount ? cnt : 0) * spb / sp * 1000 };
   // loop: the chosen bars from the first recorded bar on repeat, and every round adds to the take
-  const nb = +settings.recLoop || 0;
+  const nb = settings.loopOn ? loopAB()[1] - loopAB()[0] + 1 : 0;
   if (nb) { const bars = B.filter(x => x.bar).map(x => x.time); const ai = bars.findIndex(x => x >= bar0 - 1e-6); const a = ai >= 0 ? bars[ai] : bar0; const b = ai >= 0 && bars[ai + nb] !== undefined ? bars[ai + nb] : a + nb * n * spb;
     rec.loop = { a, b, pass: 0, hits: [], open: new Map(), prevT: t }; }
   if (!drawerOpen()) setDrawer(true);
@@ -4103,9 +4191,19 @@ $('#trUndo').onclick = () => {
   const last = Math.max(-1, ...L.hits.filter(h => h.pass < L.pass).map(h => h.pass)); if (last < 0) return;
   L.hits = L.hits.filter(h => h.pass !== last); rec.ev = rec.ev.filter(e => e[4] !== last); renderDrawer();
 };
-$('#trLoop').value = String(settings.recLoop || 0); $('#trFill').checked = settings.loopFill !== false;
-const syncLoopUi = () => { $('#trFillL').hidden = !+settings.recLoop; };
-$('#trLoop').onchange = e => { settings.recLoop = +e.target.value; saveSettings(); syncLoopUi(); };
+// the loop: from bar x to bar y (both included)
+if (settings.loopA === undefined) { settings.loopOn = +settings.recLoop > 0; settings.loopA = 1; settings.loopB = Math.max(1, +settings.recLoop || 4); }
+const loopAB = () => { const a = Math.max(1, settings.loopA | 0 || 1); return [a, Math.max(a, settings.loopB | 0 || a)]; };
+// the loop in seconds of the current song (bars past its end go on in its last tempo)
+function loopSpan() {
+  if (!song || !settings.loopOn) return null; const [a, b] = loopAB(), B = song.beats, bars = []; B.forEach(x => { if (x.bar) bars.push(x.time); });
+  if (!bars.length) return null; const last = bars[bars.length - 1], bl = bars.length > 1 ? last - bars[bars.length - 2] : 2;
+  const at = k => k < bars.length ? bars[k] : last + (k - bars.length + 1) * bl; return { a: at(a - 1), b: at(b) };
+}
+const syncLoopUi = () => { $('#trLoop').checked = !!settings.loopOn; $('#trLoopA').value = loopAB()[0]; $('#trLoopB').value = loopAB()[1]; $('#trFillL').hidden = $('#trAB').hidden = !settings.loopOn; };
+$('#trLoop').onchange = e => { settings.loopOn = e.target.checked; saveSettings(); syncLoopUi(); };
+['#trLoopA', '#trLoopB'].forEach((id, i) => $(id).onchange = e => { const v = Math.max(1, Math.min(999, Math.round(+e.target.value) || 1)); if (i) { settings.loopB = v; if (settings.loopA > v) settings.loopA = v; } else { settings.loopA = v; if (settings.loopB < v) settings.loopB = v; } saveSettings(); syncLoopUi(); });
+$('#trFill').checked = settings.loopFill !== false;
 $('#trFill').onchange = e => { settings.loopFill = e.target.checked; saveSettings(); };
 syncLoopUi();
 function overdubStop(keep) {
@@ -4272,6 +4370,7 @@ function metroLayout() {
   $('#mHint').textContent = metroTracks() ? '„' + song.title + '“ spielt mit, und du spielst eine neue Spur dazu. Der Klick folgt dem Takt des Lieds. Mit „Fertig“ oder am Ende des Lieds wird die Spur gespeichert.' : 'Drücke eine Taste, danach zähle ich ein. Spiel im Takt, die Aufnahme behält Takt und Tempo und landet danach als Song in der Bibliothek, zum Üben mit Noten.';
 }
 const metroTracks = () => !metro.fresh && settings.metroWith === 'tracks' && !!(song && song.parts.length);
+$('#mMore').onclick = () => { const on = $('#metro').classList.toggle('more'); $('#mMore').setAttribute('aria-expanded', on); };
 function metroOpenScreen() {
   synth.ensure();
   if (playing) togglePlay();
@@ -4316,8 +4415,10 @@ function metroClick(at, accent) {
   }
 }
 // one beat of the guide: the click, or with "Schlagzeug" a groove (counted in with the sticks)
+var metroMuted = false;
 function metroBeat(at, pos, n, spb, count) {
-  if ((settings.metroMode || 'sound') !== 'sound') return;   // "Nur Licht" and "Aus" stay silent
+  if ((settings.metroMode || 'sound') !== 'sound') return;
+  if (metroMuted && rec && !count) return;   // "Nur Licht" and "Aus" stay silent
   if ((settings.metroSound || 'wood') !== 'drums') { metroClick(at, pos === 0 ? 2 : (n === 6 && pos === 3) ? 1 : 0); return; }
   const v = Math.round(30 + 90 * settings.metroVol / 100), fx = { bus: 'acc' };
   if (count) { synth.drum(37, pos === 0 ? v : Math.round(v * 0.8), at, fx); return; }
@@ -4385,7 +4486,8 @@ function metroDraw() {
 // the small metronome in the bottom right corner: it swings and counts as long as a take runs
 function metroMiniDraw() {
   const el = $('#metroMini'), on = (settings.metroMode || 'sound') !== 'off' && ((!!rec && (rec.overdub || metro.phase !== 'ready')) || (!rec && !!song && !!song.jam && playing)) && !!synth.ctx;
-  if (el.hidden === on) el.hidden = !on;
+  if (el.hidden === on) { el.hidden = !on; stage.classList.toggle('mm-on', on); }
+  if (on) { const w = el.offsetWidth + 'px'; if (stage.style.getPropertyValue('--mmw') !== w) stage.style.setProperty('--mmw', w); }
   if (!on) return;
   let beat, n, bar = 0, pos;
   const paused = !!(rec && rec.paused);
@@ -4404,16 +4506,24 @@ function metroMiniDraw() {
     n = metro.n || 4; beat = (synth.ctx.currentTime - metro.a0) / (metro.spb || 0.5) - (metro.countBeats || 0);
     pos = ((Math.floor(beat) % n) + n) % n; bar = beat < 0 ? 0 : Math.floor(beat / n) + 1;
   }
-  const count = beat < 0, frac = beat - Math.floor(beat), hit = !paused && frac < 0.3;
+  const count = beat < 0, frac = beat - Math.floor(beat), hit = !paused && frac < 0.3 && settings.metroLight !== false;
+  el.classList.toggle('muted', metroMuted && !!rec);
   if ($('#mmBeats').childElementCount !== n) $('#mmBeats').innerHTML = '<i></i>'.repeat(n);
   [...$('#mmBeats').children].forEach((b, i) => b.classList.toggle('on', hit && i === pos));
   el.classList.toggle('hit', hit); el.classList.toggle('one', hit && pos === 0); el.classList.toggle('count', count);
-  $('#mmArm').setAttribute('transform', 'rotate(' + (paused ? 0 : 26 * Math.cos(Math.PI * beat)).toFixed(2) + ' 60 140)');
+  $('#mmArm').setAttribute('transform', 'rotate(' + (paused || settings.metroSwing === false ? 0 : 26 * Math.cos(Math.PI * beat)).toFixed(2) + ' 60 140)');
   $('#mmWeight').setAttribute('y', metroWeightY((!rec || rec.overdub) && song.beats.length > 1 ? Math.max(40, Math.min(208, 60 / (song.beats[1].time - song.beats[0].time) * settings.speed / 100)) : settings.metroBpm));
   const num = String(pos + 1), sub = paused ? 'Pause' : count ? 'Einzählen' : 'Takt ' + bar;
   if ($('#mmNum').textContent !== num) $('#mmNum').textContent = num;
   if ($('#mmSub').textContent !== sub) $('#mmSub').textContent = sub;
 }
+function metroMiniTap() {
+  if (rec) { metroMuted = !metroMuted; $('#metroMini').title = metroMuted ? 'Tippen: Takt wieder hörbar' : 'Tippen: Takt anhalten'; return; }
+  if (song && song.jam && playing) togglePlay();
+}
+$('#metroMini').addEventListener('pointerdown', e => e.stopPropagation());
+$('#metroMini').addEventListener('click', e => { e.stopPropagation(); metroMiniTap(); });
+$('#metroMini').addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); metroMiniTap(); } });
 // "Spur hinzufügen": only now the take becomes a track, next to the tracks of the same instrument, and the track list opens
 function recAddTrack() {
   if (!rec || rec.starting) return;
@@ -4428,7 +4538,20 @@ function recErase() {
   if (rec.loop) { rec.loop.hits = []; rec.loop.open.clear(); }
   rec.msg = 'Gelöscht, spiel neu ein'; rec.msgUntil = performance.now() + 1600; renderDrawer();
 }
-$('#rbAdd').onclick = recAddTrack; $('#rbErase').onclick = recErase;
+$('#rbAdd').onclick = recAddTrack;
+// own recordings can be renamed right in the title
+function syncTitleEdit() { const own = !!(song && (song.recId || song.blank)); const el = $('#songTitle'); el.classList.toggle('named', own); el.title = own ? 'Klicken, um dem Stück einen Namen zu geben' : ''; }
+$('#songTitle').addEventListener('click', () => {
+  const el = $('#songTitle'); if (!el.classList.contains('named') || el.isContentEditable) return;
+  el.contentEditable = 'true'; el.focus(); const r = document.createRange(); r.selectNodeContents(el); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+});
+$('#songTitle').addEventListener('keydown', e => { e.stopPropagation(); if (e.key === 'Enter') { e.preventDefault(); e.target.blur(); } if (e.key === 'Escape') { e.target.textContent = song.title; e.target.blur(); } });
+$('#songTitle').addEventListener('blur', () => {
+  const el = $('#songTitle'); if (!el.isContentEditable) return; el.contentEditable = 'false';
+  const v = el.textContent.replace(/\s+/g, ' ').trim().slice(0, 60); if (!v || !song) { el.textContent = song ? song.title : ''; return; }
+  song.title = v; el.textContent = v;
+  if (song.recId) { const list = store.get('recordings', []), it = list.find(x => x.id === song.recId); if (it) { it.name = v; store.set('recordings', list); renderRecs(); } }
+}); $('#rbErase').onclick = recErase;
 /* ---------- recording controls: pause, stop, discard, and the automatic stop after four quiet bars ---------- */
 const recBeat = () => { if (rec && rec.overdub) { const B = song.beats; return B.length > 1 ? (B[1].time - B[0].time) / (settings.speed / 100) : 0.5; } return metro.spb || 0.5; };
 const recBarN = () => rec && rec.overdub ? ((song.beats[0] && song.beats[0].n) || 4) : (metro.n || 4);
@@ -4465,12 +4588,11 @@ function syncRecBar() {
   if (bar.hidden === on) bar.hidden = !on;
   if (!on) return;
   bar.classList.toggle('paused', !!rec.paused);
-  $('#rbPauseTxt').textContent = rec.paused ? 'Weiter' : 'Pause'; $('#rbPause').title = rec.paused ? 'Weiter aufnehmen, nach einem Takt Einzählen' : 'Aufnahme anhalten';
+  const pt = rec.paused ? 'Weiter aufnehmen, nach einem Takt Einzählen' : 'Aufnahme anhalten (Leertaste)'; if ($('#rbPause').title !== pt) { $('#rbPause').title = pt; $('#rbPause').setAttribute('aria-label', pt); }
+  $('#rbBack').disabled = !rec.overdub || !!rec.starting;
+  // next to the track list when it is open, on the row of the keys' top edge
+  const lx = (drawerOpen() ? $('#trDrawer').offsetWidth : 0) + 14 + 'px'; if (bar.style.left !== lx) bar.style.left = lx;
   let txt = rec.paused ? 'Pausiert' : rec.starting || metro.phase === 'count' ? 'Einzählen …' : 'Aufnahme läuft';
-  if (!rec.paused && !rec.starting && metro.phase !== 'count' && !othersPlaying()) {
-    const left = 4 * recBarN() * recBeat() - (performance.now() - (rec.lastIn || rec.since || performance.now())) / 1000;
-    if (left < 2 * recBarN() * recBeat()) txt = rec.any ? 'Stoppt in ' + Math.max(0, Math.ceil(left / (recBarN() * recBeat()))) + ' Takten' : 'Kein Ton, stoppt gleich';
-  }
   if (rec.msgUntil > performance.now()) txt = rec.msg;
   if ($('#rbTxt').textContent !== txt) $('#rbTxt').textContent = txt;
 }
@@ -4479,15 +4601,17 @@ function recWatch() {
   if (!rec) { if (!$('#recBar').hidden) syncRecBar(); return; }
   if (!rec.since) rec.since = performance.now();
   syncRecBar();
-  if (rec.paused || rec.starting || metro.phase === 'count' || othersPlaying()) return;
-  if (rec.overdub && !playing) return;
-  // the quiet time counts from the start of the take (after the count-in) or the last key
-  const startAt = rec.overdub ? rec.since : rec.t0;
-  const quiet = (performance.now() - Math.max(rec.lastIn || 0, startAt)) / 1000;
-  if (quiet > 4 * recBarN() * recBeat()) recStop(true);
 }
 $('#rbPause').onclick = () => rec && (rec.paused ? recResume() : recPause());
-$('#rbStop').onclick = () => recStop(true);
+// back to the start: the piece jumps to its first bar and counts in again, the take so far stays
+function recBack() {
+  if (!rec || !rec.overdub || rec.starting) return;
+  if (!rec.paused) { rec.paused = true; setPlaying(false); }
+  if (rec.loop) { rec.loop.pass = 0; rec.loop.prevT = rec.loop.a; seek(rec.loop.a, true); }
+  else { const B = song.beats, start = Math.max(0, song.firstStart - 0.05); let bi = 0; for (let i = 0; i < B.length; i++) if (B[i].time <= start + 1e-6 && B[i].bar) bi = i; seek(B[bi] ? B[bi].time : 0, true); }
+  recResume();
+}
+$('#rbBack').onclick = recBack;
 $('#rbDiscard').onclick = () => recStop(false);
 function toggleRec() { if (rec && rec.overdub) overdubStop(true); else if (metroOpen()) metroGoStop(); else metroOpenScreen(); }
 function saveRecording(r) {
@@ -4502,7 +4626,7 @@ function saveRecording(r) {
     notes.forEach(n => { n.start += pickup; n.end += pickup; });
   }
   const d = new Date();
-  const name = 'Aufnahme ' + d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' }) + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+  const name = recName(d);
   const item = { id: Date.now(), name, notes: notes.map(n => [n.midi, +n.start.toFixed(3), +n.end.toFixed(3), n.vel, 0]), parts: [{ name: (settings.trackName || '').trim() || instName(settings.sound), role: settings.recHand || 'P', program: 0, drum: false, sound: settings.sound }] };
   if (m) Object.assign(item, { bpm: m.bpm, sig: m.sig, blank: { bpm: m.bpm, sig: m.sig } });
   const list = store.get('recordings', []); list.unshift(item); store.set('recordings', list.slice(0, 60));
@@ -4516,8 +4640,11 @@ function syncMetroSegs() {
   document.querySelectorAll('[data-metro-sig]').forEach(b => b.setAttribute('aria-pressed', b.dataset.metroSig === settings.metroSig));
   document.querySelectorAll('[data-metro-mode]').forEach(b => b.setAttribute('aria-pressed', b.dataset.metroMode === (settings.metroMode || 'sound')));
   document.querySelectorAll('[data-metro-sound]').forEach(b => b.setAttribute('aria-pressed', b.dataset.metroSound === (settings.metroSound || 'wood')));
+  document.querySelectorAll('[data-metro-show]').forEach(b => b.setAttribute('aria-pressed', settings['metro' + (b.dataset.metroShow === 'swing' ? 'Swing' : 'Light')] !== false));
   $('#rBpm').textContent = settings.metroBpm; $('#metro').dataset.mode = $('.rhy-panel').dataset.mode = settings.metroMode || 'sound';
 }
+// the pendulum and the flash of light can be switched on and off on their own
+$('#rShowSeg').addEventListener('click', e => { const b = e.target.closest('[data-metro-show]'); if (!b) return; const k = b.dataset.metroShow === 'swing' ? 'metroSwing' : 'metroLight'; settings[k] = settings[k] === false; saveSettings(); syncMetroSegs(); });
 // free play follows the metronome's time and tempo
 function jamRefresh() { if (!song || !song.jam || rec) return; const was = playing; if (was) setPlaying(false); jamSong(); if (was) togglePlay(); }
 let jamT = 0; const jamRefreshSoon = () => { clearTimeout(jamT); jamT = setTimeout(jamRefresh, 350); };
@@ -5542,7 +5669,9 @@ function stRenderMine() {
 }
 // music styles: the built-in songs, and searches whose letters look like their music
 const ST_BUILTIN = [['kids', 'Kinderlieder', "'Fredoka',sans-serif"], ['classic', 'Klassik', "'Cormorant Garamond',serif"], ['jazz', 'Jazz & Ragtime', "'Limelight',serif"]];
-const ST_WEB = [['Bach', "'UnifrakturMaguntia',serif"], ['Mozart', "'Playfair Display',serif"], ['Beethoven', "'Cinzel',serif"], ['Chopin', "'Great Vibes',cursive"], ['Satie', "'Italiana',serif"], ['Debussy', "'Italiana',serif"], ['Joplin', "'Rye',serif"], ['Ragtime', "'Rye',serif"], ['Blues', "'Special Elite',monospace"], ['Boogie', "'Monoton',sans-serif"], ['Swing', "'Lobster',cursive"], ['Jazz', "'Limelight',serif"]];
+// styles get their own lettering, composers stay plain
+const ST_WEB = [['Ragtime', "'Rye',serif"], ['Blues', "'Special Elite',monospace"], ['Boogie', "'Monoton',sans-serif"], ['Swing', "'Lobster',cursive"], ['Jazz', "'Limelight',serif"]];
+const ST_COMPOSERS = ['Bach', 'Mozart', 'Beethoven', 'Schubert', 'Chopin', 'Schumann', 'Satie', 'Debussy', 'Joplin', 'Gershwin'];
 const stFontOf = q => (ST_WEB.find(([n]) => n.toLowerCase() === q.trim().toLowerCase()) || [0, ''])[1];
 function stStyle(id) {
   document.querySelectorAll('#stStyles button').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === id));
@@ -5550,18 +5679,21 @@ function stStyle(id) {
   const st = ST_BUILTIN.find(x => x[0] === id);
   BUILTIN.filter(d => songCat(d) === id).forEach(d => stItem(el, d.title, d.source, d.level, () => practise({ k: 'b', title: d.title }), st && st[2]));
 }
-$('#stStyles').innerHTML = ST_BUILTIN.map(([id, n, f]) => `<button type="button" data-style="${id}" aria-pressed="false" style="font-family:${f}">${esc(n)}</button>`).join('');
-$('#stStyles').onclick = e => { const b = e.target.closest('[data-style]'); if (b) stStyle(b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.style); };
+$('#stStyles').innerHTML = ST_BUILTIN.map(([id, n, f]) => `<button type="button" data-style="${id}" aria-pressed="false" style="font-family:${f}">${esc(n)}</button>`).join('')
+  + ST_WEB.map(([n, f]) => `<button type="button" data-q="${n}" style="font-family:${f}" title="${n} im Internet suchen">${n}</button>`).join('');
+$('#stComposers').innerHTML = ST_COMPOSERS.map(n => `<button type="button" data-q="${n}" title="${n} im Internet suchen">${n}</button>`).join('');
+const stLearnGo = q => { const box = document.querySelector('#startVeil .st-search[data-for=learn]'); box._go(q); box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+$('#stStyles').onclick = e => { const q = e.target.closest('[data-q]'); if (q) { stStyle(null); stLearnGo(q.dataset.q); return; } const b = e.target.closest('[data-style]'); if (b) stStyle(b.getAttribute('aria-pressed') === 'true' ? null : b.dataset.style); };
+$('#stComposers').onclick = e => { const q = e.target.closest('[data-q]'); if (q) stLearnGo(q.dataset.q); };
 // the search on the start screen, once for practising and once for editing
 document.querySelectorAll('#startVeil .st-search').forEach(box => {
   const forEdit = box.dataset.for === 'edit';
-  box.innerHTML = '<form><input type="search" placeholder="Komponist, Titel oder Stil" aria-label="Im Internet nach MIDI-Dateien suchen"><button class="st-chip" type="submit">Suchen</button></form><div class="st-styles">'
-    + ST_WEB.map(([n, f]) => `<button type="button" data-q="${n}" style="font-family:${f}">${n}</button>`).join('') + '</div><div class="st-list"></div>';
+  box.innerHTML = '<form><input type="search" placeholder="Komponist, Titel oder Stil" aria-label="Im Internet nach MIDI-Dateien suchen"><button class="st-chip" type="submit">Suchen</button></form><div class="st-list"></div>';
   const inp = box.querySelector('input'), out = box.querySelector('.st-list');
   const pick = e => { startClose(); theoryStop(); if (forEdit) { setModeTo('watch'); setDrawer(true); } else { startedAdd(e); setModeTo('chord'); } };
   const go = q => { q = q.trim(); if (!q) return; inp.value = q; inp.style.fontFamily = stFontOf(q); search(q, out, stFontOf(q), pick); };
+  box._go = go;
   box.querySelector('form').onsubmit = e => { e.preventDefault(); go(inp.value); };
-  box.querySelector('.st-styles').onclick = e => { const b = e.target.closest('[data-q]'); if (b) go(b.dataset.q); };
   inp.oninput = () => { inp.style.fontFamily = stFontOf(inp.value); };
 });
 // a MIDI file opened or dropped on the start screen: to edit it, or to practise it
@@ -5569,7 +5701,7 @@ function stFileAfter(title) {
   const v = stCard().dataset.view; startClose(); theoryStop();
   afterLoad = v === 'learn' ? () => setModeTo('chord') : () => { setModeTo('watch'); setDrawer(true); };
 }
-$('#stFile').onclick = () => { stFileAfter(''); $('#fileIn').click(); };
+document.querySelectorAll('#startVeil .st-file').forEach(b => b.onclick = () => { stFileAfter(''); $('#fileIn').click(); });
 // theory
 function stRenderTheory() {
   const th = theory();
